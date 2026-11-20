@@ -927,7 +927,9 @@ function loop(now){
 }
 
 /* ────────────────────────── input ────────────────────────── */
+var pressCount = 0;
 function press(which){
+  pressCount++;
   drumFXAnim(which);
   zonePress(which, true);
   hit(which);
@@ -993,6 +995,7 @@ requestAnimationFrame(loop);
 var analyser = null;
 window.__game = {
   time: function(){ return songT; },
+  presses: function(){ return pressCount; },
   output: function(){
     if(!AC) return null;
     if(!analyser){ analyser = AC.createAnalyser(); analyser.fftSize = 2048; master.connect(analyser); }
