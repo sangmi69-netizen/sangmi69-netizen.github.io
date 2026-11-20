@@ -35,7 +35,7 @@
 
   /* ── stage (drums) ── */
   #stage{position:relative;flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:2% 0}
-  #drums{display:block;width:100%;max-width:1120px;height:100%;max-height:96%}
+  #drums{display:block;width:100%;max-width:1640px;height:100%;max-height:100%}
   .zone{position:absolute;top:0;bottom:0;width:50%;z-index:3;touch-action:none}
   #zoneF{left:0}
   #zoneC{right:0}
@@ -545,7 +545,7 @@ function drawScore(now){
   var y0=STAFF_TOP, s=S;
 
   /* 오선 */
-  g.strokeStyle="#1b1b1b"; g.lineWidth=Math.max(0.8, s*0.075);
+  g.strokeStyle="#1b1b1b"; g.lineWidth=Math.max(1, s*0.10);
   g.beginPath();
   for(var i=0;i<5;i++){ var y=y0+i*s+0.5; g.moveTo(0,y); g.lineTo(W,y); }
   g.stroke();
