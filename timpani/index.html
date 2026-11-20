@@ -331,9 +331,7 @@ function loadMusic(){
   }).then(function(b){
     musicBuf=b;
     if(b && b.duration){
-      SONG_END = b.duration;
-      var last = notes.length ? notes[notes.length-1].t : 0;
-      if(SONG_END > last + 2.2) SONG_END = last + 2.2;
+      SONG_END = Math.max(1, b.duration - 0.15);
     }
     return b;
   });
@@ -672,7 +670,7 @@ function loop(now){
       }
     }
     for(var k=0;k<notes.length;k++) if(notes[k].flash>0) notes[k].flash=Math.max(0,notes[k].flash-dt*3.4);
-    if(songT>SONG_END+0.9) finishGame();
+    if(songT>SONG_END+0.4) finishGame();
   }
   updateDrum("F",now); updateDrum("C",now);
   if(AC && phase==="play"){
