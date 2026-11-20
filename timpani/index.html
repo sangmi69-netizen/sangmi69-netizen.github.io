@@ -64,7 +64,7 @@
     position:relative;
     flex:1 1 auto;
     min-height:96px;
-    max-height:290px;
+    max-height:56vh;
     margin-top:3px;
   }
   #score{display:block;width:100%;height:100%}
@@ -771,7 +771,7 @@ var barHasNote = (function(){
 function drawScore(t){
   g.clearRect(0,0,W,H);
   var s = Math.max(7, Math.min(22, H/9));
-  var m = H*0.62;
+  var m = Math.min(3.6*s + 12, H - 3.45*s);
   var jx = Math.max(56, W*0.34);
   var pps = (W - jx)/5.4;
   var xOf = function(tt){ return jx + (tt - t)*pps; };
@@ -996,6 +996,13 @@ var analyser = null;
 window.__game = {
   time: function(){ return songT; },
   presses: function(){ return pressCount; },
+  drumLevel: function(){
+    var b = drumSets.F[0];
+    if(!b) return null;
+    var d = b.getChannelData(0), sum = 0, pk = 0;
+    for(var i=0;i<d.length;i++){ sum += d[i]*d[i]; var a = Math.abs(d[i]); if(a>pk) pk=a; }
+    return { rms: Math.sqrt(sum/d.length), peak: pk, dur: b.duration, sr: b.sampleRate };
+  },
   output: function(){
     if(!AC) return null;
     if(!analyser){ analyser = AC.createAnalyser(); analyser.fftSize = 2048; master.connect(analyser); }
