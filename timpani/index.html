@@ -9,79 +9,83 @@
 <title>팀파니 모먼트 — 베토벤 교향곡 8번</title>
 <style>
   :root{
-    --ink:#111;
+    --ink:#141414;
     --red:#e0392c;
-    --line:#2b2b2b;
-    --font:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
-    --hand:"Bradley Hand","Snell Roundhand","Segoe Script","Apple Chancery",cursive;
+    --serif:"Iowan Old Style",Palatino,"Palatino Linotype",Georgia,"Times New Roman",serif;
+    --hand:"Bradley Hand","Chalkboard SE","Segoe Print","Comic Sans MS","Marker Felt",cursive;
+    --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%;margin:0;background:#fff}
+  html,body{height:100%;margin:0;background:#fff;overflow:hidden}
   body{
-    font-family:var(--font);color:var(--ink);
-    overflow:hidden;overscroll-behavior:none;
-    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    font-family:var(--ui);color:var(--ink);
+    overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
     touch-action:manipulation;
   }
-  #app{
-    position:fixed;inset:0;background:#fff;
-    display:flex;flex-direction:column;
-    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  #app{position:fixed;inset:0;background:#fff}
+  #canvas{position:absolute;background:#fff;overflow:hidden}
+
+  /* ── score ── */
+  #scoreSvg{position:absolute;left:0;top:0;display:block;overflow:hidden}
+
+  /* ── drums ── */
+  #drumArea{position:absolute;pointer-events:none}
+  #drumArea img{position:absolute;display:block;transform-origin:50% 88%;will-change:transform}
+  #drumL{left:0;top:0;width:51.05%}
+  #drumR{left:51.81%;top:2.04%;width:48.19%}
+  .drum-hit{animation:dip .16s ease-out}
+  @keyframes dip{
+    0%{transform:translateY(0) scaleY(1)}
+    35%{transform:translateY(1.1%) scaleY(.985)}
+    100%{transform:translateY(0) scaleY(1)}
   }
 
-  /* ── score band ── */
-  #scoreWrap{position:relative;flex:0 0 auto;width:100%}
-  #score{display:block;width:100%;height:100%}
+  /* ── touch zones ── */
+  .zone{position:absolute;bottom:0;height:56%;z-index:4;touch-action:none}
+  #zoneF{left:0;width:50%}
+  #zoneC{right:0;width:50%}
+  .zone.on{background:rgba(224,57,44,.045)}
 
-  /* ── stage (drums) ── */
-  #stage{position:relative;flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:2% 0}
-  #drums{display:block;width:100%;max-width:1480px;height:100%;max-height:93%}
-  .zone{position:absolute;top:0;bottom:0;width:50%;z-index:3;touch-action:none}
-  #zoneF{left:0}
-  #zoneC{right:0}
-  .zone.on::after{content:"";position:absolute;inset:0;background:rgba(224,57,44,.045);pointer-events:none}
-
-  /* ── minimal hud ── */
-  #hud{position:absolute;top:0;left:0;right:0;z-index:6;display:flex;align-items:flex-start;justify-content:space-between;padding:6px 12px;pointer-events:none}
-  #hud .score{font-size:11px;letter-spacing:.06em;color:#9b9b9b;font-variant-numeric:tabular-nums}
-  #hud .score b{color:#6a6a6a;font-weight:600}
-  #pauseBtn{pointer-events:auto;appearance:none;background:none;border:0;padding:6px 4px;font-size:11px;letter-spacing:.14em;color:#b5b5b5}
+  /* ── hud ── */
+  #hud{position:absolute;top:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding:8px 12px;pointer-events:none}
+  #hudScore{font-size:11px;letter-spacing:.08em;color:#b8b8b8;font-variant-numeric:tabular-nums;font-family:var(--ui)}
+  #pauseBtn{pointer-events:auto;appearance:none;background:none;border:0;padding:4px 2px;font-size:11px;letter-spacing:.12em;color:#c2c2c2;font-family:var(--ui)}
 
   /* ── overlays ── */
   .ov{
     position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;padding:26px 22px;background:#fff;
-    transition:opacity .28s ease, visibility .28s;
+    transition:opacity .3s ease, visibility .3s;
   }
   .ov.hide{opacity:0;visibility:hidden;pointer-events:none}
-  .ov h1{font-size:clamp(21px,6vw,32px);font-weight:600;letter-spacing:.01em;margin:0 0 8px}
+  .ov h1{font-size:clamp(20px,5.4vw,30px);font-weight:600;letter-spacing:.01em;margin:0 0 8px}
   .ov h1 em{font-style:normal;color:var(--red)}
-  .ov .sub{font-size:clamp(11.5px,3.2vw,14px);color:#6c6c6c;line-height:1.65;margin:0 0 20px}
-  .rule{width:36px;height:2px;background:var(--red);border-radius:2px;margin:0 auto 16px}
-  .legend{display:flex;gap:30px;margin:0 0 22px;font-size:12px;color:#777}
+  .ov .sub{font-size:clamp(11.5px,3.1vw,13.5px);color:#6c6c6c;line-height:1.7;margin:0 0 18px}
+  .rule{width:36px;height:2px;background:var(--red);border-radius:2px;margin:0 auto 15px}
+  .legend{display:flex;gap:28px;margin:0 0 20px;font-size:11.5px;color:#777}
   .legend div{display:flex;flex-direction:column;align-items:center;gap:4px}
   .legend b{font-size:15px;color:#222;font-weight:600}
   .legend b.red{color:var(--red)}
   .btn{
-    appearance:none;border:0;cursor:pointer;font-family:var(--font);
+    appearance:none;border:0;cursor:pointer;font-family:var(--ui);
     font-size:15px;font-weight:600;letter-spacing:.02em;color:#fff;background:#111;
     padding:13px 32px;border-radius:999px;
   }
   .btn:active{transform:translateY(1px)}
   .btn[disabled]{opacity:.4}
   .btn.ghost{background:#fff;color:#222;box-shadow:inset 0 0 0 1.4px rgba(0,0,0,.16)}
-  .hint{margin-top:14px;font-size:11px;color:#9a9a9a;line-height:1.7}
+  .hint{margin-top:13px;font-size:11px;color:#9a9a9a;line-height:1.7}
   .credit{position:absolute;left:0;right:0;bottom:8px;font-size:9.5px;color:#a9a9a9;text-align:center;line-height:1.6;padding:0 16px}
   .credit a{color:#8d8d8d}
-  #result .rank{font-size:clamp(46px,14vw,74px);line-height:.95;color:var(--red);margin:0 0 4px}
-  #result .big{font-size:clamp(22px,6vw,30px);font-variant-numeric:tabular-nums;margin:2px 0 2px}
-  #result .acc{font-size:12px;color:#7a7a7a;margin-bottom:18px}
-  .stats{display:flex;gap:20px;margin-bottom:22px}
+  #result .rank{font-size:clamp(44px,13vw,70px);line-height:.95;color:var(--red);margin:0 0 4px}
+  #result .big{font-size:clamp(21px,5.8vw,29px);font-variant-numeric:tabular-nums;margin:2px 0}
+  #result .acc{font-size:12px;color:#7a7a7a;margin-bottom:16px}
+  .stats{display:flex;gap:18px;margin-bottom:20px}
   .stats div{display:flex;flex-direction:column;align-items:center;gap:3px}
   .stats b{font-size:16px;font-variant-numeric:tabular-nums}
-  .stats span{font-size:9.5px;letter-spacing:.1em;color:#9a9a9a;text-transform:uppercase}
+  .stats span{font-size:9px;letter-spacing:.1em;color:#9a9a9a;text-transform:uppercase}
   .row{display:flex;gap:10px}
-  #judge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:clamp(15px,4vw,22px);letter-spacing:.18em;color:var(--red);opacity:0;pointer-events:none;z-index:7;font-weight:600}
+  #judge{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font-size:clamp(14px,3.6vw,20px);letter-spacing:.18em;color:var(--red);opacity:0;pointer-events:none;z-index:7;font-weight:600}
   #judge.show{animation:jp .5s ease forwards}
   @keyframes jp{0%{opacity:0;transform:translate(-50%,-40%)}30%{opacity:.9}100%{opacity:0;transform:translate(-50%,-60%)}}
   #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#2b1b1b;color:#ffd9d3;font-size:11px;padding:8px 10px;border-radius:8px;display:none;white-space:pre-wrap}
@@ -89,84 +93,22 @@
 </head>
 <body>
 <div id="app">
-  <div id="scoreWrap"><canvas id="score"></canvas></div>
-
-  <div id="stage">
-    <svg id="drums" viewBox="380 380 1300 610" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-      <defs>
-        <linearGradient id="kettle" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#F0A052"/>
-          <stop offset="0.25" stop-color="#E88F3D"/>
-          <stop offset="0.68" stop-color="#DA7C2C"/>
-          <stop offset="1" stop-color="#C66B23"/>
-        </linearGradient>
-        <linearGradient id="kettleShade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#8F4611" stop-opacity="0.40"/>
-          <stop offset="0.13" stop-color="#8F4611" stop-opacity="0.02"/>
-          <stop offset="0.83" stop-color="#8F4611" stop-opacity="0.02"/>
-          <stop offset="1" stop-color="#8F4611" stop-opacity="0.36"/>
-        </linearGradient>
-        <radialGradient id="headG" cx="0.46" cy="0.36" r="0.85">
-          <stop offset="0" stop-color="#F9F5EA"/>
-          <stop offset="0.55" stop-color="#EFE8D9"/>
-          <stop offset="1" stop-color="#E8DFCE"/>
-        </radialGradient>
-
-        <g id="timp">
-          <g stroke="#211B15" stroke-width="13" stroke-linecap="round" fill="none">
-            <path d="M -208 90 L -178 346"/>
-            <path d="M 208 90 L 178 346"/>
-          </g>
-          <path d="M -228 34 C -234 124 -212 202 -160 242 C -116 274 -60 288 0 288 C 60 288 116 274 160 242 C 212 202 234 124 228 34 C 150 86 -150 86 -228 34 Z"
-                fill="url(#kettle)" stroke="#1D1712" stroke-width="6" stroke-linejoin="round"/>
-          <path d="M -228 34 C -234 124 -212 202 -160 242 C -116 274 -60 288 0 288 C 60 288 116 274 160 242 C 212 202 234 124 228 34 C 150 86 -150 86 -228 34 Z"
-                fill="url(#kettleShade)"/>
-          <g stroke="#1D1712" stroke-width="3.6" fill="none" stroke-linecap="round">
-            <path d="M -188 66 C -182 150 -152 232 -86 282"/>
-            <path d="M 148 70 C 154 156 138 230 96 278"/>
-            <path d="M 212 48 C 218 140 206 232 176 284"/>
-          </g>
-          <ellipse cx="0" cy="10" rx="240" ry="86" fill="#2A211A"/>
-          <ellipse cx="0" cy="5" rx="233" ry="78" fill="#AEACA2"/>
-          <ellipse class="hd" cx="0" cy="0" rx="230" ry="72" fill="url(#headG)" stroke="#1D1712" stroke-width="3.4"/>
-          <g fill="#2A211A" stroke="#1D1712" stroke-width="2">
-            <rect x="-234" y="-16" width="12" height="21" rx="4.5" transform="rotate(-30 -228 -6)"/>
-            <rect x="-190" y="-52" width="12" height="21" rx="4.5" transform="rotate(-19 -184 -42)"/>
-            <rect x="-134" y="-73" width="12" height="21" rx="4.5" transform="rotate(-10 -128 -63)"/>
-            <rect x="-70" y="-84" width="12" height="21" rx="4.5" transform="rotate(-3 -64 -74)"/>
-            <rect x="-5" y="-85" width="12" height="21" rx="4.5" transform="rotate(2 1 -75)"/>
-            <rect x="58" y="-78" width="12" height="21" rx="4.5" transform="rotate(9 64 -68)"/>
-            <rect x="119" y="-61" width="12" height="21" rx="4.5" transform="rotate(16 125 -51)"/>
-            <rect x="178" y="-34" width="12" height="21" rx="4.5" transform="rotate(25 184 -24)"/>
-          </g>
-          <path d="M -176 352 L 176 352" stroke="#241D16" stroke-width="21" stroke-linecap="round"/>
-          <path d="M -128 337 L 128 337" stroke="#33291F" stroke-width="10" stroke-linecap="round"/>
-          <g fill="#2A211A" stroke="#191410" stroke-width="2">
-            <rect x="-88" y="313" width="28" height="32" rx="9"/>
-            <rect x="60" y="313" width="28" height="32" rx="9"/>
-          </g>
-          <path d="M -30 336 L 30 336 L 27 438 C 27 452 19 460 4 460 L -4 460 C -19 460 -27 452 -27 438 Z"
-                fill="#3D3D3D" stroke="#141210" stroke-width="5"/>
-          <path d="M -62 344 C -70 384 -62 414 -34 442" stroke="#141210" stroke-width="3" fill="none"/>
-          <path d="M 62 344 C 70 384 62 414 34 442" stroke="#141210" stroke-width="3" fill="none"/>
-          <g>
-            <path d="M 222 42 C 248 50 256 108 252 160 C 249 204 240 238 233 256 C 244 216 248 166 244 126 C 240 90 231 66 222 42 Z" fill="#2A211A" stroke="#1D1712" stroke-width="3"/>
-            <path d="M 218 38 C 236 50 240 108 236 160 C 233 202 227 236 222 254 C 231 216 233 166 229 126 C 225 90 221 58 218 38 Z" fill="#3E3024" stroke="#1D1712" stroke-width="2"/>
-            <rect x="202" y="94" width="46" height="42" fill="#7A5B3A" stroke="#1D1712" stroke-width="3" transform="rotate(-3 225 115)"/>
-          </g>
-        </g>
-      </defs>
-      <use id="drumF" href="#timp" transform="translate(756,512) rotate(-4)"/>
-      <use id="drumC" href="#timp" transform="translate(1290,514) scale(-0.93,0.93) rotate(-4)"/>
+  <div id="canvas">
+    <svg id="scoreSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 432" preserveAspectRatio="xMidYMid meet">
+      <g id="layer"></g>
+      <line id="playhead" x1="854.5" y1="174" x2="854.5" y2="411" stroke="#d9463a" stroke-width="2.4"></line>
     </svg>
+    <div id="drumArea">
+      <img id="drumL" src="assets/drum_left.png" alt="" draggable="false">
+      <img id="drumR" src="assets/drum_right.png" alt="" draggable="false">
+    </div>
     <div class="zone" id="zoneF"></div>
     <div class="zone" id="zoneC"></div>
     <div id="judge"></div>
-  </div>
-
-  <div id="hud">
-    <button id="pauseBtn" aria-label="일시정지">❚❚</button>
-    <div class="score"><b id="hudScore">0</b></div>
+    <div id="hud">
+      <div id="hudScore">0</div>
+      <button id="pauseBtn" aria-label="일시정지">❚❚</button>
+    </div>
   </div>
 
   <div class="ov" id="startScreen">
@@ -205,60 +147,69 @@
 (function(){
 "use strict";
 
-/* ══════════════════ chart ══════════════════
-   실제 영상(cU-1WOYfpAM) 오디오에서 검출한 팀파니 타격 지점.
-   F = 왼쪽(낮은 파) / C = 오른쪽(낮은 도)                                    */
-var CHART = "0.62:F,0.95:C,3.25:C,3.72:C,3.99:C,4.41:F,4.88:C,5.31:F,5.69:C,7.84:C,8.29:C,8.58:C,9.08:F,9.49:F,11.57:F,11.83:F,12.77:F,13.47:F,13.87:F,14.14:F,14.47:C,14.83:F,15.15:F,15.42:F,16.07:F,16.33:F,16.59:F,16.94:F,17.24:F,17.5:F,17.78:F,18.44:F,18.76:F,19.21:F,19.48:F,19.91:F,20.21:F,20.5:F,20.96:C,21.23:F,21.55:F,21.98:F,22.24:C,22.62:F,22.94:C,23.46:F,23.73:C,23.99:C,24.44:C,32.63:C,32.93:C,33.29:F,33.58:F,33.86:F,34.14:F,34.6:C,35.16:F,35.64:C,35.94:F,36.23:F,44.96:C,45.65:C,45.96:F,46.21:F,46.91:C,47.41:C";
+/* ══════════════════════════════════════════════════════════════
+   영상(youtu.be/cU-1WOYfpAM)에서 프레임 단위로 필사한 악보 데이터.
+   좌표계는 영상의 1920×1080 픽셀 좌표.
+   ══════════════════════════════════════════════════════════════ */
+var D = {"playhead_x":854.5,"staff_top":223.3,"staff_gap":20.9,"yC":273.8,"yF":315.6,"barlines":[92.2,303.3,515.1,786.0,997.8,1208.9,1420.0,1631.1,1902.0,2175.0,2386.9,2597.9,2868.8,3079.9,3291.7,3502.8,3713.9,3987.7,4261.5,4532.4,4802.5,5072.7,5284.5,5605.8,5899.8,6196.6,6408.4,6619.5,6830.6,7042.4,7253.5,7464.6,7676.4,7997.7,8291.7,8588.5,8800.3,9010.7,9222.5,9434.3,9646.1,9857.9,10069.7,10281.5,10493.3,10705.1,10916.9,11128.7,11340.5,11552.3,11764.1,11975.9,12187.7,12399.5,12611.3],"notes":[{"x":557.6,"p":"C","r":"q","a":0,"s":null},{"x":719.0,"p":"C","r":"q","a":0,"s":null},{"x":1672.9,"p":"C","r":"q","a":0,"s":null},{"x":1835.7,"p":"C","r":"q","a":0,"s":null},{"x":1943.8,"p":"C","r":"q","a":0,"s":null},{"x":2639.7,"p":"C","r":"q","a":0,"s":null},{"x":2801.1,"p":"C","r":"q","a":0,"s":null},{"x":3756.4,"p":"C","r":"q","a":0,"s":null},{"x":4028.8,"p":"F","r":"q","a":1,"s":null},{"x":4302.5,"p":"F","r":"q","a":1,"s":null},{"x":4463.9,"p":"F","r":"q","a":1,"s":null},{"x":4573.4,"p":"C","r":"q","a":1,"s":null},{"x":4736.2,"p":"C","r":"q","a":1,"s":null},{"x":4844.3,"p":"F","r":"q","a":1,"s":null},{"x":5005.7,"p":"F","r":"q","a":1,"s":null},{"x":5327.0,"p":"C","r":"d8","a":0,"s":"L"},{"x":5390.4,"p":"C","r":"16","a":0,"s":"R"},{"x":5430.8,"p":"F","r":"q","a":1,"s":"L"},{"x":5511.4,"p":"F","r":"d8","a":1,"s":"R"},{"x":5574.8,"p":"F","r":"16","a":1,"s":"L"},{"x":5648.3,"p":"C","r":"q","a":0,"s":"R"},{"x":5727.6,"p":"F","r":"d8","a":1,"s":"R"},{"x":5791.0,"p":"F","r":"16","a":1,"s":"L"},{"x":5832.8,"p":"C","r":"q","a":0,"s":"R"},{"x":5942.3,"p":"F","r":"d8","a":1,"s":"R"},{"x":6005.7,"p":"F","r":"16","a":1,"s":"L"},{"x":6047.5,"p":"C","r":"q","a":0,"s":"R"},{"x":7718.9,"p":"C","r":"d8","a":0,"s":"L"},{"x":7783.7,"p":"C","r":"16","a":0,"s":"R"},{"x":7824.1,"p":"F","r":"q","a":1,"s":"L"},{"x":7903.3,"p":"F","r":"d8","a":1,"s":"R"},{"x":7968.2,"p":"F","r":"16","a":1,"s":"L"},{"x":8040.2,"p":"C","r":"q","a":0,"s":"R"},{"x":8119.5,"p":"F","r":"d8","a":1,"s":"R"},{"x":8182.9,"p":"F","r":"16","a":1,"s":"L"},{"x":8224.7,"p":"C","r":"q","a":0,"s":"R"},{"x":8334.2,"p":"F","r":"d8","a":1,"s":"R"},{"x":8397.6,"p":"F","r":"16","a":1,"s":"L"},{"x":8439.4,"p":"C","r":"q","a":0,"s":"R"}],"qrests":[638.3,1753.6,2024.5,2106.6,2720.4,3837.1,3919.2,4110.9,4191.6,4383.2,4925.0,6128.1,8520.0],"wrests":[197.8,409.2,891.9,1103.3,1314.5,1525.5,2280.9,2492.4,2974.4,3185.8,3397.2,3608.4,5178.6,6302.5,6513.9,6725.1,6936.5,7147.9,7359.1,7570.5,8694.4,8905.5,9116.6,9328.4,9540.2],"dyns":[{"x":1200.3,"t":"ritard. a tempo.","fs":44},{"x":1642.6,"t":"pp","fs":62},{"x":3734.8,"t":"sf","fs":58},{"x":4008.6,"t":"sf","fs":58},{"x":4266.5,"t":"ff","fs":64},{"x":7682.9,"t":"ff","fs":64}],"timemap":[[854.5,0],[1430.8,2],[1642.6,3],[2280.9,6],[2899.1,9],[3439.4,12],[4064.8,15],[4752.1,18],[5389.0,21],[6129.6,24],[6678.6,27],[7239.1,30],[7808.2,33],[8547.4,36]],"letter_y":175.8,"letter_fs":62};
 
-var notes = CHART.split(",").map(function(s,i){
-  var p = s.split(":");
-  return { i:i, t:parseFloat(p[0]), d:p[1], done:false, res:null, flash:0 };
-});
+var SVGNS = "http://www.w3.org/2000/svg";
+var PH = D.playhead_x, ST = D.staff_top, SP = D.staff_gap;
+var Y_C = D.yC, Y_F = D.yF;
+var BAR_BOT = ST + 4*SP;
 
-var SONG_END = 51.2;         // 오디오 길이(로드 후 실제 길이로 보정)
-var BEAT = 0.31;             // 악보 한 박 (영상 표기 기준)
-var BAR  = 3*BEAT;           // 3/4박자 한 마디
-var FIRST_BAR = 0.3;         // 첫 마디 시작 시각
-var W_PERFECT = 0.075, W_GOOD = 0.155, W_HIT = 0.20;
-
-/* 박자 격자 (마디·쉼표 표기용) */
-function barIndex(t){ return Math.floor((t - FIRST_BAR)/BAR); }
-function beatInBar(t){ return ((t - FIRST_BAR)%BAR)/BEAT; }
-
-/* 마디별 음표 유무 */
-var barNotes = {};
-notes.forEach(function(n){ var b = barIndex(n.t); (barNotes[b] = barNotes[b]||[]).push(n); });
+/* ── 영상 재생선 ↔ 악보 위치 매핑 (프레임에서 측정) ── */
+var TM = D.timemap;
+function xToTime(x){
+  var n=TM.length, i;
+  if(x<=TM[0][0]){ return TM[0][1]+(x-TM[0][0])*(TM[1][1]-TM[0][1])/(TM[1][0]-TM[0][0]); }
+  for(i=0;i<n-1;i++){
+    var a=TM[i], b=TM[i+1];
+    if(x>=a[0] && x<=b[0]) return a[1]+(x-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+  }
+  var p=TM[n-2], q=TM[n-1];
+  return q[1]+(x-q[0])*(q[1]-p[1])/(q[0]-p[0]);
+}
+function timeToX(t){
+  var n=TM.length, i;
+  if(t<=TM[0][1]){ return TM[0][0]+(t-TM[0][1])*(TM[1][0]-TM[0][0])/(TM[1][1]-TM[0][1]); }
+  for(i=0;i<n-1;i++){
+    var a=TM[i], b=TM[i+1];
+    if(t>=a[1] && t<=b[1]) return a[0]+(t-a[1])*(b[0]-a[0])/(b[1]-a[1]);
+  }
+  var p=TM[n-2], q=TM[n-1];
+  return q[0]+(t-q[1])*(q[0]-p[0])/(q[1]-p[1]);
+}
 
 /* ══════════════════ error surface ══════════════════ */
-var errBox = document.getElementById("err");
-function fail(msg){ errBox.style.display="block"; errBox.textContent=String(msg); }
+var errBox=document.getElementById("err");
+function fail(m){ errBox.style.display="block"; errBox.textContent=String(m); }
 
 /* ══════════════════ audio ══════════════════ */
 var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null;
 var drumSets={F:[],C:[]}, musicBuf=null, musicSrc=null;
 var startAt=0, songT=0, phase="title";
-var F0 = {F:87.307, C:130.813};
+var F0={F:87.307, C:130.813};
 
 function ensureAudio(){
   if(AC) return AC;
-  var Ctx = window.AudioContext || window.webkitAudioContext;
+  var Ctx=window.AudioContext||window.webkitAudioContext;
   if(!Ctx){ fail("이 브라우저에서는 소리를 재생할 수 없습니다."); return null; }
-  AC = new Ctx({ latencyHint:"interactive" });
-  master = AC.createGain(); master.gain.value=0.95;
-  var limit = AC.createDynamicsCompressor();
+  AC=new Ctx({latencyHint:"interactive"});
+  master=AC.createGain(); master.gain.value=0.95;
+  var limit=AC.createDynamicsCompressor();
   limit.threshold.value=-6; limit.knee.value=8; limit.ratio.value=6;
   limit.attack.value=0.003; limit.release.value=0.18;
   master.connect(limit); limit.connect(AC.destination);
-  musicGain = AC.createGain(); musicGain.gain.value=0.85; musicGain.connect(master);
-  drumDry = AC.createGain(); drumDry.gain.value=0.62; drumDry.connect(master);
-  conv = AC.createConvolver(); conv.buffer = makeIR(1.15);
-  drumWet = AC.createGain(); drumWet.gain.value=0.26;
+  musicGain=AC.createGain(); musicGain.gain.value=0.85; musicGain.connect(master);
+  drumDry=AC.createGain(); drumDry.gain.value=0.62; drumDry.connect(master);
+  conv=AC.createConvolver(); conv.buffer=makeIR(1.15);
+  drumWet=AC.createGain(); drumWet.gain.value=0.26;
   drumWet.connect(conv); conv.connect(master);
   drumSets.F=[makeDrum(F0.F),makeDrum(F0.F),makeDrum(F0.F)];
   drumSets.C=[makeDrum(F0.C),makeDrum(F0.C),makeDrum(F0.C)];
   return AC;
 }
-
 function makeIR(dur){
   var sr=AC.sampleRate, n=Math.floor(dur*sr), buf=AC.createBuffer(2,n,sr);
   for(var ch=0;ch<2;ch++){
@@ -273,8 +224,6 @@ function makeIR(dur){
   }
   return buf;
 }
-
-/* modal timpani body */
 function makeDrum(f0){
   var sr=AC.sampleRate, dur=2.6, n=Math.floor(dur*sr);
   var buf=AC.createBuffer(1,n,sr), d=buf.getChannelData(0);
@@ -289,8 +238,7 @@ function makeDrum(f0){
   }
   var nb=Math.floor(0.026*sr), lp=0;
   for(i=0;i<nb;i++){ var w=Math.random()*2-1; lp=lp*0.72+w*0.28; d[i]+=lp*1.5*Math.pow(1-i/nb,2.4); }
-  var boom=Math.exp(-1/(0.42*sr));
-  for(i=0;i<Math.floor(0.9*sr);i++){ d[i]+=0.16*Math.sin(Math.PI*f0*i/sr*2)*boom; boom*=Math.exp(-1/(0.42*sr)); }
+  for(i=0;i<Math.floor(0.9*sr);i++){ d[i]+=0.16*Math.sin(Math.PI*f0*i/sr*2)*Math.exp(-i/(0.42*sr)); }
   var peak=0;
   for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
   var g2=0.92/(peak||1);
@@ -299,15 +247,14 @@ function makeDrum(f0){
   for(i=0;i<fade;i++){ d[n-1-i]*=i/fade; }
   return buf;
 }
-
-function playDrum(which, gainScale){
+function playDrum(which, scale){
   if(!AC) return;
   var set=drumSets[which];
   if(!set||!set.length) return;
   var src=AC.createBufferSource();
   src.buffer=set[(Math.random()*set.length)|0];
   src.playbackRate.value=0.99+Math.random()*0.02;
-  var g=AC.createGain(); g.gain.value=0.95*(gainScale||1);
+  var g=AC.createGain(); g.gain.value=0.95*(scale||1);
   if(AC.createStereoPanner){
     var pan=AC.createStereoPanner(); pan.pan.value = which==="F" ? -0.32 : 0.32;
     src.connect(g); g.connect(pan); pan.connect(drumDry); pan.connect(drumWet);
@@ -316,11 +263,10 @@ function playDrum(which, gainScale){
   }
   src.start(0);
 }
-
 function loadMusic(){
   if(musicBuf) return Promise.resolve(musicBuf);
   if(!window.fetch||!AC) return Promise.reject(new Error("no fetch"));
-  var names=["orchestra.mp3?v=2", "%EC%83%81%EB%AF%B8%EB%8B%98_%ED%8C%80%ED%8C%8C%EB%8B%88_%EA%B2%8C%EC%9E%84_%EB%B0%98%EC%A3%BC.mp3"];
+  var names=["orchestra.mp3?v=3","%EC%83%81%EB%AF%B8%EB%8B%98_%ED%8C%80%ED%8C%8C%EB%8B%88_%EA%B2%8C%EC%9E%84_%EB%B0%98%EC%A3%BC.mp3"];
   var i=0;
   function attempt(){
     return fetch(names[i]).then(function(r){
@@ -339,15 +285,142 @@ function loadMusic(){
     });
   }).then(function(b){
     musicBuf=b;
-    if(b && b.duration){
-      SONG_END = Math.max(1, b.duration - 0.15);
-    }
+    if(b && b.duration) SONG_END=Math.max(1,b.duration-0.15);
     return b;
   });
 }
 
-/* ══════════════════ game state ══════════════════ */
-var stats=null;
+/* ══════════════════ 악보 그리기 ══════════════════ */
+var layer=document.getElementById("layer");
+var fadeEls=[];   /* {el, x} : 재생선이 지나가면 영상처럼 흐려지는 요소 */
+
+function mk(tag, a){
+  var e=document.createElementNS(SVGNS, tag);
+  for(var k in a) e.setAttribute(k, a[k]);
+  return e;
+}
+
+var NOTE_RX=14.4, NOTE_RY=7.9, STEM_W=3.4, STEM_LEN=62.7, BEAM_H=7.0;
+
+function noteY(p){ return p==="C" ? Y_C : Y_F; }
+
+function drawScore(){
+  var XL=0, XR=D.barlines[D.barlines.length-1]+60;
+
+  /* 5선 */
+  var g= mk("g",{stroke:"#181818","stroke-width":2.2,"stroke-linecap":"butt"});
+  for(var i=0;i<5;i++) g.appendChild(mk("line",{x1:XL,y1:(ST+i*SP).toFixed(1),x2:XR,y2:(ST+i*SP).toFixed(1)}));
+  layer.appendChild(g);
+
+  /* 마디선 */
+  var bg=mk("g",{stroke:"#181818","stroke-width":2.6});
+  D.barlines.forEach(function(x){
+    bg.appendChild(mk("line",{x1:x,y1:ST.toFixed(1),x2:x,y2:BAR_BOT.toFixed(1)}));
+  });
+  layer.appendChild(bg);
+
+  /* 온쉼표 */
+  D.wrests.forEach(function(x){
+    var e=mk("rect",{x:(x-12.2).toFixed(1), y:(ST+SP+5).toFixed(1), width:24.4, height:7.4, fill:"#141414"});
+    layer.appendChild(e);
+    fadeEls.push({el:e,x:x});
+  });
+
+  /* 4분쉼표 */
+  D.qrests.forEach(function(x){
+    var y0=ST+SP*1.28;
+    var p="M "+(x-2.4).toFixed(1)+" "+(y0+2.5).toFixed(1)+
+          " L "+(x+4.2).toFixed(1)+" "+(y0+9.5).toFixed(1)+
+          " L "+(x-1.6).toFixed(1)+" "+(y0+15.5).toFixed(1)+
+          " L "+(x+4.0).toFixed(1)+" "+(y0+21.5).toFixed(1)+
+          " C "+(x+5.8).toFixed(1)+" "+(y0+23.6).toFixed(1)+" "+(x+0.4).toFixed(1)+" "+(y0+25.8).toFixed(1)+" "+(x-1.8).toFixed(1)+" "+(y0+28.2).toFixed(1);
+    var e=mk("path",{d:p,fill:"none",stroke:"#141414","stroke-width":4.4,"stroke-linecap":"round","stroke-linejoin":"round"});
+    layer.appendChild(e);
+    fadeEls.push({el:e,x:x});
+  });
+
+  /* 보표별 음표 묶음(빔) 계산: 같은 마디 안에서 가까운 음표끼리 */
+  var groups=[], used={};
+  D.notes.forEach(function(n,i){
+    if(used[i]) return;
+    if(n.r==="d8"){
+      for(var j=i+1;j<D.notes.length;j++){
+        var m=D.notes[j];
+        if(m.r==="16" && m.p===n.p && (m.x-n.x)<90){ groups.push([n,m]); used[i]=used[j]=true; break; }
+      }
+    }
+  });
+
+  /* 음표 */
+  D.notes.forEach(function(n){
+    var y=noteY(n.p), x=n.x;
+    var grp=mk("g",{});
+    var head=mk("ellipse",{cx:x.toFixed(1),cy:y.toFixed(1),rx:NOTE_RX,ry:NOTE_RY,fill:"#141414",
+      transform:"rotate(-18 "+x.toFixed(1)+" "+y.toFixed(1)+")"});
+    grp.appendChild(head);
+    var sx=x+12.0, top=y-STEM_LEN;
+    grp.appendChild(mk("line",{x1:sx.toFixed(1),y1:(y-1).toFixed(1),x2:sx.toFixed(1),y2:top.toFixed(1),
+      stroke:"#141414","stroke-width":STEM_W,"stroke-linecap":"butt"}));
+    if(n.r==="d8"){
+      grp.appendChild(mk("circle",{cx:(x+25).toFixed(1),cy:y.toFixed(1),r:3.6,fill:"#141414"}));
+    }
+    if(n.a){
+      var ay=y+13, d="M "+x.toFixed(1)+" "+(ay).toFixed(1)+
+        " L "+(x+5.2).toFixed(1)+" "+(ay+13).toFixed(1)+
+        " Q "+x.toFixed(1)+" "+(ay+18).toFixed(1)+" "+(x-5.2).toFixed(1)+" "+(ay+13).toFixed(1)+" Z";
+      grp.appendChild(mk("path",{d:d,fill:"#141414"}));
+    }
+    layer.appendChild(grp);
+    n._head=head; n._grp=grp; n._sx=sx; n._top=top;
+  });
+
+  /* 빔 */
+  groups.forEach(function(pr){
+    var a=pr[0], b=pr[1];
+    var x1=a.x+12.0, x2=b.x+12.0, ty=Math.min(a.y!==undefined?a.y:noteY(a.p), noteY(b.p))-STEM_LEN;
+    var gb=mk("g",{fill:"#141414"});
+    gb.appendChild(mk("rect",{x:x1.toFixed(1),y:ty.toFixed(1),width:(x2-x1).toFixed(1),height:BEAM_H}));
+    gb.appendChild(mk("rect",{x:Math.max(x1, x2-26).toFixed(1),y:(ty+BEAM_H+2.6).toFixed(1),width:Math.min(26,x2-x1).toFixed(1),height:BEAM_H}));
+    layer.appendChild(gb);
+  });
+
+  /* 다이나믹 */
+  var DY={ "ritard. a tempo.":{fs:46,bl:379,it:1}, "pp":{fs:66,bl:378,it:1}, "sf":{fs:58,bl:419,it:1}, "ff":{fs:66,bl:419,it:1} };
+  D.dyns.forEach(function(d){
+    var st=DY[d.t]||{fs:58,bl:400,it:1};
+    var e=mk("text",{x:d.x.toFixed(1),y:(d.t==="ff"&&d.x>7000?385:st.bl).toFixed(1),
+      "font-family":"'Iowan Old Style',Palatino,Georgia,'Times New Roman',serif",
+      "font-size":st.fs,"font-style":"italic","font-weight":"700",fill:"#141414"});
+    e.textContent=d.t;
+    layer.appendChild(e);
+    fadeEls.push({el:e,x:d.x});
+  });
+
+  /* 빨간 손글씨 스티킹 */
+  D.notes.forEach(function(n){
+    if(!n.s) return;
+    var e=mk("text",{x:(n.x+2).toFixed(1),y:(D.letter_y).toFixed(1),
+      "text-anchor":"middle",
+      "font-family":"'Bradley Hand','Chalkboard SE','Segoe Print','Comic Sans MS','Marker Felt',cursive",
+      "font-size":D.letter_fs+16,"font-weight":"600",fill:"#e0392c"});
+    e.textContent=n.s;
+    layer.appendChild(e);
+  });
+}
+
+/* ══════════════════ 게임 상태 ══════════════════ */
+var SONG_END=51.0;
+var notes=[], stats=null;
+var W_PERFECT=0.085, W_GOOD=0.16, W_HIT=0.21;
+
+function buildChart(){
+  notes=[];
+  D.notes.forEach(function(n){
+    var t=xToTime(n.x);
+    if(t < -0.05) return;          /* 영상 시작 전에 이미 지나간 음표 */
+    notes.push({t:t, d:n.p, src:n, done:false, res:null, flash:0});
+  });
+}
 var els={
   score:document.getElementById("hudScore"),
   judge:document.getElementById("judge"),
@@ -355,24 +428,20 @@ var els={
   result:document.getElementById("result"),
   startBtn:document.getElementById("startBtn")
 };
-
 function resetStats(){
   stats={score:0,combo:0,maxCombo:0,perfect:0,good:0,miss:0,hits:0};
   notes.forEach(function(n){ n.done=false; n.res=null; n.flash=0; });
   els.score.textContent="0";
 }
-
 function accuracy(){
   var total=stats.perfect+stats.good+stats.miss;
   if(!total) return 1;
   return (stats.perfect+stats.good*0.55)/total;
 }
-
-function judgeText(txt){
-  var j=els.judge; j.textContent=txt; j.className="";
+function judgeText(t){
+  var j=els.judge; j.textContent=t; j.className="";
   void j.offsetWidth; j.className="show";
 }
-
 function startGame(){
   if(phase==="play") return;
   ensureAudio();
@@ -401,13 +470,12 @@ function startGame(){
     fail("음악을 불러오지 못했습니다: "+e.message+"\n주소 https://sangmi69-netizen.github.io/timpani/ 로 열면 바로 재생됩니다.");
   });
 }
-
 function hit(drum){
   if(phase!=="play"){ playDrum(drum,0.8); return; }
   playDrum(drum,1);
-  var t=songT, best=null, bestErr=1e9;
-  for(var i=0;i<notes.length;i++){
-    var n=notes[i];
+  var t=songT, best=null, bestErr=1e9, i, n;
+  for(i=0;i<notes.length;i++){
+    n=notes[i];
     if(n.done||n.d!==drum) continue;
     var e=Math.abs(t-n.t);
     if(e<=W_HIT&&e<bestErr){ best=n; bestErr=e; }
@@ -431,7 +499,6 @@ function hit(drum){
     els.score.textContent=stats.score.toLocaleString("en-US");
     return;
   }
-  /* 다른 북을 두드린 경우 */
   for(var j=0;j<notes.length;j++){
     var m=notes[j];
     if(m.done||m.d===drum) continue;
@@ -442,7 +509,6 @@ function hit(drum){
     }
   }
 }
-
 function finishGame(){
   phase="done";
   var acc=accuracy();
@@ -456,217 +522,98 @@ function finishGame(){
   document.getElementById("rCombo").textContent=stats.maxCombo;
   els.result.classList.remove("hide");
 }
-
 function stopAll(){
   if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; }
   phase="title";
 }
 
-/* ══════════════════ drum visuals ══════════════════ */
-var drumEl={F:document.getElementById("drumF"), C:document.getElementById("drumC")};
-var animT={F:0, C:0};
-var geo={F:{cx:756,cy:512}, C:{cx:1290,cy:514}};
-
+/* ══════════════════ 드럼 연출 ══════════════════ */
+var imgL=document.getElementById("drumL"), imgR=document.getElementById("drumR");
 function drumFX(which){
-  if(!drumEl[which]) return;
-  animT[which]=performance.now();
-  if(animT[which]===0) animT[which]=1;
+  var im = which==="F"?imgL:imgR;
+  im.classList.remove("drum-hit");
+  void im.offsetWidth;
+  im.classList.add("drum-hit");
 }
 
-function updateDrum(which, now){
-  var el=drumEl[which], t0=animT[which];
-  if(!t0) return;
-  var u=(now-t0)/1000;
-  var base = which==="F" ? "translate(756,512) rotate(-4)" : "translate(1290,514) scale(-0.93,0.93) rotate(-4)";
-  if(u>0.42){ el.setAttribute("transform",base); animT[which]=0; return; }
-  var p=Math.min(1,u/0.13);
-  var dip=1-0.045*Math.sin(Math.PI*p);
-  el.setAttribute("transform", base+" translate(0,"+(9*Math.sin(Math.PI*p)).toFixed(2)+") scale(1,"+dip.toFixed(4)+")");
-}
-
-/* ══════════════════ score canvas ══════════════════ */
-var cv=document.getElementById("score"), g=cv.getContext("2d");
-var wrap=document.getElementById("scoreWrap");
-var W=0, H=0, S=8, STAFF_TOP=0, PHX=0, PPS=0, DPR=1;
+/* ══════════════════ 레이아웃 ══════════════════ */
+var canvas=document.getElementById("canvas");
+var scoreSvg=document.getElementById("scoreSvg");
+var drumArea=document.getElementById("drumArea");
+var zoneF=document.getElementById("zoneF"), zoneC=document.getElementById("zoneC");
+var hud=document.getElementById("hud");
+var LAYOUT={mode:"land"};
 
 function layout(){
   var vw=window.innerWidth, vh=window.innerHeight;
-  DPR=Math.min(3, window.devicePixelRatio||1);
-  S = Math.max(6.2, Math.min(17, vw*0.0286));
-  var bandH = Math.round(11.4*S);
-  wrap.style.height = bandH+"px";
-  cv.style.width="100%"; cv.style.height=bandH+"px";
-  cv.width=Math.round(vw*DPR); cv.height=Math.round(bandH*DPR);
-  W=vw; H=bandH;
-  g.setTransform(DPR,0,0,DPR,0,0);
-  STAFF_TOP = 4.45*S;
-  PHX = vw*0.42;
-  PPS = S*13.2;
-}
-
-var yC = function(){ return STAFF_TOP + 2.5*S; };   // 도 (오른쪽 북)
-var yF = function(){ return STAFF_TOP + 4.5*S; };   // 파 (왼쪽 북)
-
-function xOf(t, now){ return PHX + (t-now)*PPS; }
-
-function drawQuarterRest(x, y0){
-  var s=S;
-  g.save(); g.translate(x, y0+2.05*s);
-  g.strokeStyle="#141414"; g.lineWidth=Math.max(1.3, 0.30*s);
-  g.lineCap="round"; g.lineJoin="round";
-  g.beginPath();
-  g.moveTo(0.40*s, -1.25*s);
-  g.lineTo(-0.26*s, -0.34*s);
-  g.lineTo(0.36*s, -0.14*s);
-  g.lineTo(-0.18*s, 0.84*s);
-  g.quadraticCurveTo(-0.44*s, 1.32*s, -0.02*s, 1.34*s);
-  g.stroke();
-  g.restore();
-}
-
-/* 빔 그룹 (한 박 안에서 이어지는 음표들) */
-var beamGroups=[], beamOf={};
-(function(){
-  var i=0;
-  while(i<notes.length){
-    var j=i;
-    while(j+1<notes.length && (notes[j+1].t-notes[j].t) < BEAT*0.95 && (j-i)<3) j++;
-    if(j>i){ beamGroups.push({a:i,b:j}); }
-    i=j+1;
+  var land = (vw/vh) >= 1.05;
+  LAYOUT.mode = land?"land":"port";
+  if(land){
+    var s=Math.min(vw/1920, vh/1080);
+    var w=1920*s, h=1080*s;
+    canvas.style.width=w+"px"; canvas.style.height=h+"px";
+    canvas.style.left=((vw-w)/2)+"px"; canvas.style.top=((vh-h)/2)+"px";
+    scoreSvg.setAttribute("viewBox","0 0 1920 432");
+    scoreSvg.style.width="100%";
+    scoreSvg.style.height=(432/1080*100)+"%";
+    scoreSvg.style.top="0";
+    drumArea.style.left="19.38%"; drumArea.style.top="45.44%";
+    drumArea.style.bottom="auto"; drumArea.style.width="59.50%";
+    zoneF.style.height="54%"; zoneC.style.height="54%";
+    LAYOUT.drumTop = h*0.4544;
+  } else {
+    canvas.style.width=vw+"px"; canvas.style.height=vh+"px";
+    canvas.style.left="0px"; canvas.style.top="0px";
+    var vbW=Math.min(760, vw*1.85);
+    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 0 "+vbW.toFixed(1)+" 432");
+    scoreSvg.style.width="100%";
+    var sh=vw*432/vbW;
+    scoreSvg.style.height=sh+"px";
+    scoreSvg.style.top=Math.max(0,(vh*0.30-sh)*0.55)+"px";
+    drumArea.style.left="0"; drumArea.style.width="100%";
+    drumArea.style.top="auto"; drumArea.style.bottom="0";
+    var dh=vw*(589.3/1142.6);
+    zoneF.style.height=dh+"px"; zoneC.style.height=dh+"px";
+    LAYOUT.drumTop = vh-dh;
   }
-  beamGroups.forEach(function(gr,gi){ for(var k=gr.a;k<=gr.b;k++) beamOf[k]=gi; });
-})();
-
-function stemTopFor(n, y0, s){ return (n.d==="C") ? y0 - 1.05*s : y0 + 0.32*s; }
-
-function drawNoteHead(x,y,which,fresh){
-  g.save(); g.translate(x,y); g.rotate(-0.30);
-  g.beginPath(); g.ellipse(0,0,S*0.66,S*0.47,0,0,Math.PI*2);
-  if(fresh) g.fillStyle="#e0392c"; else g.fillStyle="#141414";
-  g.fill(); g.restore();
+  hud.style.top = "0px";
 }
+window.addEventListener("resize", function(){ layout(); });
+window.addEventListener("orientationchange", function(){ setTimeout(layout,240); });
 
-function drawScore(now){
-  g.clearRect(0,0,W,H);
-  g.fillStyle="#fff"; g.fillRect(0,0,W,H);
-  var y0=STAFF_TOP, s=S;
-
-  /* 오선 */
-  g.strokeStyle="#1b1b1b"; g.lineWidth=Math.max(1, s*0.10);
-  g.beginPath();
-  for(var i=0;i<5;i++){ var y=y0+i*s+0.5; g.moveTo(0,y); g.lineTo(W,y); }
-  g.stroke();
-
-  /* 마디선 */
-  var b0=barIndex(now-1), b1=barIndex(now+(W-PHX)/PPS)+1;
-  g.beginPath();
-  for(var b=b0;b<=b1;b++){
-    var x=xOf(FIRST_BAR+b*BAR, now);
-    if(x<-2||x>W+2) continue;
-    g.moveTo(x, y0); g.lineTo(x, y0+4*s);
-  }
-  g.stroke();
-
-  /* 빈 마디 온쉼표 / 빈 박 4분쉼표 */
-  for(var bb=b0;bb<=b1;bb++){
-    var xb=xOf(FIRST_BAR+bb*BAR, now);
-    if(xb>W+2||xb+BAR*PPS<-2) continue;
-    var list=barNotes[bb];
-    if(!list){
-      var xc=xOf(FIRST_BAR+bb*BAR+BAR*0.5, now);
-      if(xc>-1.5*s && xc<W+1.5*s){
-        g.fillStyle="#141414";
-        g.fillRect(xc-0.72*s, y0+1.02*s, 1.44*s, 0.50*s);
-      }
-      continue;
-    }
-    for(var k=0;k<3;k++){
-      var slot=FIRST_BAR+bb*BAR+k*BEAT;
-      var has=false;
-      for(var q=0;q<list.length;q++){
-        if(list[q].t>=slot-0.06 && list[q].t<slot+BEAT-0.06){ has=true; break; }
-      }
-      if(!has){
-        var xr=xOf(slot+BEAT*0.45, now);
-        if(xr>-1.5*s && xr<W+1.5*s) drawQuarterRest(xr, y0);
-      }
-    }
-  }
-
-  /* 음표 */
-  g.strokeStyle="#141414"; g.lineCap="butt";
-  for(var i2=0;i2<notes.length;i2++){
-    var n=notes[i2];
-    var x=xOf(n.t, now);
-    if(x<-3*s || x>W+3*s) continue;
-    var y=(n.d==="C")?yC():yF();
-    var alpha = (n.done && n.res==="miss") ? 0.26 : 1;
-    g.globalAlpha=alpha;
-
-    var gi=beamOf[i2];
-    var topY=stemTopFor(n,y0,s);
-    if(gi!==undefined){
-      var gr=beamGroups[gi];
-      for(var q=gr.a;q<=gr.b;q++){
-        var ty=stemTopFor(notes[q],y0,s);
-        if(ty<topY) topY=ty;
-      }
-    }
-    var stemX=x+s*0.58;
-
-    /* 기둥 */
-    g.strokeStyle="#141414"; g.lineWidth=Math.max(1, s*0.115);
-    g.beginPath(); g.moveTo(stemX, y); g.lineTo(stemX, topY); g.stroke();
-
-    /* 빔 */
-    if(gi!==undefined){
-      var nx=xOf(notes[i2+1].t, now);
-      var thick=s*0.20;
-      g.fillStyle="#141414";
-      g.fillRect(stemX, topY, (nx+s*0.58)-stemX, thick);
-      if((notes[i2+1].t-n.t) < BEAT*0.55){
-        var wx=(nx-x)*0.55;
-        g.fillRect(nx+s*0.58-wx, topY+thick+s*0.10, wx, thick*0.85);
-      }
-    }
-
-    drawNoteHead(x, y, n.d, n.flash>0.35 && n.res==="perfect");
-
-    /* 빨간 손글씨 스티킹 */
-    g.globalAlpha=1;
-    g.fillStyle="#e0392c";
-    g.font = "italic " + (s*2.35).toFixed(1) + "px " + '"Bradley Hand","Snell Roundhand","Segoe Script","Apple Chancery",cursive';
-    g.textAlign="center";
-    g.fillText(n.d==="F"?"L":"R", x+s*0.15, y0-2.05*s);
-
-    if(n.flash>0){
-      g.strokeStyle="rgba(224,57,44,"+(0.5*n.flash).toFixed(3)+")";
-      g.lineWidth=1.6;
-      g.beginPath(); g.ellipse(x, y, s*(0.9+(1-n.flash)*2.6), s*(0.65+(1-n.flash)*1.9), 0, 0, Math.PI*2); g.stroke();
-    }
-  }
-  g.globalAlpha=1;
-
-  /* ff */
-  var sections=[3.15, 11.5, 32.5, 44.9];
-  g.fillStyle="#141414";
-  g.font="italic bold "+(s*3.0).toFixed(1)+'px "Iowan Old Style",Palatino,Georgia,serif';
-  g.textAlign="left";
-  sections.forEach(function(st){
-    var x=xOf(st-0.1, now);
-    if(x>-2*s && x<W) g.fillText("ff", x, y0+6.3*s);
-  });
-
-  /* 빨간 재생선 */
-  g.strokeStyle="#e0392c"; g.lineWidth=Math.max(1.1, s*0.10);
-  g.beginPath(); g.moveTo(PHX, y0-3.1*s); g.lineTo(PHX, y0+5.6*s); g.stroke();
-}
-
-/* ══════════════════ loop ══════════════════ */
+/* ══════════════════ 루프 ══════════════════ */
 var lastFrame=0;
+function renderScore(now){
+  var x = timeToX(Math.max(0,now));
+  var dx = x - PH;
+  layer.setAttribute("transform","translate("+(-dx).toFixed(1)+",0)");
+  /* 지나간 음표/쉼표는 영상처럼 흐려진다 */
+  for(var i=0;i<fadeEls.length;i++){
+    var f=fadeEls[i];
+    var sx=f.x-dx;
+    if(sx>PH+40 || sx< -40){ continue; }
+    var passed=PH-sx;
+    var op = passed<=0 ? 1 : Math.max(0.16, 1-passed/1250);
+    if(Math.abs(op-(f.o===undefined?1:f.o))>0.03){ f.el.setAttribute("opacity", op.toFixed(2)); f.o=op; }
+  }
+  for(var j=0;j<D.notes.length;j++){
+    var n=D.notes[j];
+    if(!n._grp) continue;
+    var sx2=n.x-dx;
+    if(sx2>PH+60 || sx2< -60) continue;
+    var passed2=PH-sx2;
+    var op2 = passed2<=0 ? 1 : Math.max(0.16, 1-passed2/1250);
+    if(Math.abs(op2-(n._o===undefined?1:n._o))>0.03){ n._grp.setAttribute("opacity", op2.toFixed(2)); n._o=op2; }
+    if(n.flash>0){
+      n._head.setAttribute("fill", "rgba(224,57,44,"+(0.35+0.65*n.flash).toFixed(2)+")");
+    } else if(n._flashOn){
+      n._head.setAttribute("fill","#141414"); n._flashOn=false;
+    }
+    if(n.flash>0) n._flashOn=true;
+  }
+}
 function loop(now){
   var dt=Math.min(0.05,(now-lastFrame)/1000||0); lastFrame=now;
-
   if(phase==="play"){
     songT = AC ? (AC.currentTime-startAt) : songT+dt;
     if(songT>0){
@@ -678,38 +625,28 @@ function loop(now){
         }
       }
     }
-    for(var k=0;k<notes.length;k++) if(notes[k].flash>0) notes[k].flash=Math.max(0,notes[k].flash-dt*3.4);
+    for(var k=0;k<notes.length;k++) if(notes[k].flash>0) notes[k].flash=Math.max(0,notes[k].flash-dt*4.2);
     if(songT>SONG_END+0.4) finishGame();
   }
-  updateDrum("F",now); updateDrum("C",now);
-  if(AC && phase==="play"){
-    try{
-      var lv=window.__game && window.__game.level ? window.__game.level() : 0;
-      window.__peak = Math.max(lv||0, (window.__peak||0)*0.985);
-    }catch(e){}
-  }
-  drawScore(phase==="play"||phase==="done" ? Math.max(songT,0) : 0);
+  renderScore(phase==="play"||phase==="done" ? Math.max(songT,0) : 0);
   requestAnimationFrame(loop);
 }
 
-/* ══════════════════ input ══════════════════ */
+/* ══════════════════ 입력 ══════════════════ */
 function press(which){
   drumFX(which);
-  var z=document.getElementById(which==="F"?"zoneF":"zoneC");
+  var z=which==="F"?zoneF:zoneC;
   z.classList.add("on");
   setTimeout(function(){ z.classList.remove("on"); },90);
   hit(which);
 }
-
-[["F","zoneF"],["C","zoneC"]].forEach(function(pair){
-  var z=document.getElementById(pair[1]);
-  z.addEventListener("pointerdown", function(ev){
+[["F",zoneF],["C",zoneC]].forEach(function(pr){
+  pr[1].addEventListener("pointerdown", function(ev){
     if(ev.cancelable) ev.preventDefault();
-    if(phase==="title"||phase==="done"){ return; }
-    press(pair[0]);
+    if(phase==="title"||phase==="done") return;
+    press(pr[0]);
   }, {passive:false});
 });
-
 document.addEventListener("keydown", function(e){
   var k=e.key;
   if(k==="ArrowLeft"||k==="a"||k==="A"||k==="f"||k==="F"){
@@ -720,7 +657,6 @@ document.addEventListener("keydown", function(e){
     startGame();
   }
 });
-
 els.startBtn.addEventListener("click", startGame);
 document.getElementById("againBtn").addEventListener("click", function(){
   els.result.classList.add("hide"); startGame();
@@ -734,44 +670,24 @@ document.getElementById("pauseBtn").addEventListener("click", function(){
   if(AC.state==="running"){ AC.suspend(); this.textContent="▶"; }
   else { AC.resume(); this.textContent="❚❚"; }
 });
-
 document.addEventListener("gesturestart", function(e){ e.preventDefault(); }, {passive:false});
 document.addEventListener("touchmove", function(e){ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
 
 /* ══════════════════ boot ══════════════════ */
-window.addEventListener("resize", function(){ layout(); });
-window.addEventListener("orientationchange", function(){ setTimeout(layout,220); });
-layout(); resetStats();
+drawScore();
+buildChart();
+layout();
+resetStats();
 try{ ensureAudio(); loadMusic().then(function(){ window.__musicReady=true; }); }catch(e){ fail(e); }
 requestAnimationFrame(loop);
 
 window.__game={
-  time:function(){ return songT; },
-  phase:function(){ return phase; },
-  audio:function(){ return AC?{state:AC.state, dur:musicBuf?musicBuf.duration:0, ready:!!musicBuf}:null; },
   notes:notes, stats:function(){ return stats; },
+  time:function(){ return songT; }, phase:function(){ return phase; },
+  audio:function(){ return AC?{state:AC.state,dur:musicBuf?musicBuf.duration:0,ready:!!musicBuf}:null; },
+  xToTime:xToTime, timeToX:timeToX, start:startGame, hit:press,
   counts:function(){ return {F:notes.filter(function(n){return n.d==="F";}).length, C:notes.filter(function(n){return n.d==="C";}).length}; },
-  start:startGame, hit:press,
-  /* 검증용: 임의 시각에 대한 판정 결과만 돌려줌(상태 변경 없음) */
-  judgeAt:function(t,drum){
-    var best=null,be=1e9;
-    for(var i=0;i<notes.length;i++){
-      var n=notes[i]; if(n.d!==drum) continue;
-      var e=Math.abs(t-n.t); if(e<=W_HIT&&e<be){best=n;be=e;}
-    }
-    if(!best) return null;
-    return {res: be<=W_PERFECT?"perfect":(be<=W_GOOD?"good":"miss"), err:Math.round(be*1000), t:best.t};
-  },
-  /* 검증용: 출력 레벨 추적 */
-  level:function(){
-    if(!AC) return null;
-    if(!window.__an){ window.__an=AC.createAnalyser(); window.__an.fftSize=1024; master.connect(window.__an); }
-    var a=new Float32Array(window.__an.fftSize); window.__an.getFloatTimeDomainData(a);
-    var s=0; for(var i=0;i<a.length;i++) s+=a[i]*a[i];
-    return Math.sqrt(s/a.length);
-  },
-  peak:function(){ return window.__peak||0; },
-  musicVol:function(v){ if(musicGain) musicGain.gain.value=v; }
+  layoutInfo:function(){ return {mode:LAYOUT.mode, canvas:[canvas.style.width,canvas.style.height]}; }
 };
 })();
 </script>
