@@ -530,7 +530,7 @@ var beamGroups=[], beamOf={};
   var i=0;
   while(i<notes.length){
     var j=i;
-    while(j+1<notes.length && (notes[j+1].t-notes[j].t) < BEAT*0.82 && (j-i)<3) j++;
+    while(j+1<notes.length && (notes[j+1].t-notes[j].t) < BEAT*0.95 && (j-i)<3) j++;
     if(j>i){ beamGroups.push({a:i,b:j}); }
     i=j+1;
   }
