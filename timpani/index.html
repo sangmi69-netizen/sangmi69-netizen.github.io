@@ -992,6 +992,7 @@ try{
 requestAnimationFrame(loop);
 var analyser = null;
 window.__game = {
+  time: function(){ return songT; },
   output: function(){
     if(!AC) return null;
     if(!analyser){ analyser = AC.createAnalyser(); analyser.fftSize = 2048; master.connect(analyser); }
