@@ -329,12 +329,12 @@ function drawScore(){
   /* 4분쉼표 */
   D.qrests.forEach(function(x){
     var y0=ST+SP*1.28;
-    var p="M "+(x-2.4).toFixed(1)+" "+(y0+2.0).toFixed(1)+
-          " L "+(x+4.8).toFixed(1)+" "+(y0+9.8).toFixed(1)+
-          " L "+(x-1.8).toFixed(1)+" "+(y0+16.6).toFixed(1)+
-          " L "+(x+4.6).toFixed(1)+" "+(y0+23.8).toFixed(1)+
-          " C "+(x+6.4).toFixed(1)+" "+(y0+26.2).toFixed(1)+" "+(x+0.4).toFixed(1)+" "+(y0+28.6).toFixed(1)+" "+(x-2.0).toFixed(1)+" "+(y0+31.0).toFixed(1);
-    var e=mk("path",{d:p,fill:"none",stroke:"#141414","stroke-width":4.8,"stroke-linecap":"round","stroke-linejoin":"round"});
+    var p="M "+(x+4.6).toFixed(1)+" "+(y0+0.8).toFixed(1)+
+          " L "+(x-4.8).toFixed(1)+" "+(y0+9.6).toFixed(1)+
+          " L "+(x+4.8).toFixed(1)+" "+(y0+13.0).toFixed(1)+
+          " L "+(x-4.0).toFixed(1)+" "+(y0+21.4).toFixed(1)+
+          " C "+(x-6.2).toFixed(1)+" "+(y0+24.8).toFixed(1)+" "+(x-0.4).toFixed(1)+" "+(y0+27.2).toFixed(1)+" "+(x+2.0).toFixed(1)+" "+(y0+28.2).toFixed(1);
+    var e=mk("path",{d:p,fill:"none",stroke:"#141414","stroke-width":3.6,"stroke-linecap":"butt","stroke-linejoin":"miter"});
     layer.appendChild(e);
     fadeEls.push({el:e,x:x});
   });
@@ -365,9 +365,11 @@ function drawScore(){
       grp.appendChild(mk("circle",{cx:(x+26).toFixed(1),cy:y.toFixed(1),r:4.0,fill:"#141414"}));
     }
     if(n.a){
-      var ay=y+12, d="M "+x.toFixed(1)+" "+(ay).toFixed(1)+
-        " L "+(x+5.8).toFixed(1)+" "+(ay+15).toFixed(1)+
-        " Q "+x.toFixed(1)+" "+(ay+20).toFixed(1)+" "+(x-5.8).toFixed(1)+" "+(ay+15).toFixed(1)+" Z";
+      var ay=y+(n.p==="C"?36:19);
+      var d="M "+x.toFixed(1)+" "+ay.toFixed(1)+
+        " Q "+(x+4.8).toFixed(1)+" "+(ay+7).toFixed(1)+" "+(x+4.4).toFixed(1)+" "+(ay+14).toFixed(1)+
+        " Q "+x.toFixed(1)+" "+(ay+19).toFixed(1)+" "+(x-4.4).toFixed(1)+" "+(ay+14).toFixed(1)+
+        " Q "+(x-4.8).toFixed(1)+" "+(ay+7).toFixed(1)+" "+x.toFixed(1)+" "+ay.toFixed(1)+" Z";
       grp.appendChild(mk("path",{d:d,fill:"#141414"}));
     }
     layer.appendChild(grp);
