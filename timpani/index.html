@@ -415,9 +415,13 @@ function ensureAudio(){
   var Ctx = window.AudioContext || window.webkitAudioContext;
   if(!Ctx){ fail("이 브라우저에서는 소리를 재생할 수 없습니다."); return null; }
   AC = new Ctx({ latencyHint:"interactive" });
-  master = AC.createGain(); master.gain.value = 0.92; master.connect(AC.destination);
-  musicGain = AC.createGain(); musicGain.gain.value = 0.78; musicGain.connect(master);
-  drumDry = AC.createGain(); drumDry.gain.value = 0.95; drumDry.connect(master);
+  master = AC.createGain(); master.gain.value = 0.95;
+  var limit = AC.createDynamicsCompressor();
+  limit.threshold.value = -6; limit.knee.value = 8; limit.ratio.value = 6;
+  limit.attack.value = 0.003; limit.release.value = 0.18;
+  master.connect(limit); limit.connect(AC.destination);
+  musicGain = AC.createGain(); musicGain.gain.value = 0.82; musicGain.connect(master);
+  drumDry = AC.createGain(); drumDry.gain.value = 0.72; drumDry.connect(master);
   conv = AC.createConvolver();
   if(!conv.buffer) conv.buffer = makeIR(1.15);
   drumWet = AC.createGain(); drumWet.gain.value = 0.24;
@@ -511,8 +515,16 @@ function playDrum(which, when){
   src.buffer = set[(Math.random()*set.length)|0];
   src.playbackRate.value = 0.99 + Math.random()*0.02;
   var g = AC.createGain();
-  g.gain.value = 0.92;
-  src.connect(g); g.connect(drumDry); g.connect(drumWet);
+  g.gain.value = 0.95;
+  var pan = null;
+  if(AC.createStereoPanner){
+    pan = AC.createStereoPanner();
+    pan.pan.value = which === "F" ? -0.34 : 0.34;
+    src.connect(g); g.connect(pan);
+    pan.connect(drumDry); pan.connect(drumWet);
+  } else {
+    src.connect(g); g.connect(drumDry); g.connect(drumWet);
+  }
   src.start(when || 0);
 }
 
