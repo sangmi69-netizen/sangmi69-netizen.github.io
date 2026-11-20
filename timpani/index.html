@@ -687,7 +687,9 @@ window.__game={
   audio:function(){ return AC?{state:AC.state,dur:musicBuf?musicBuf.duration:0,ready:!!musicBuf}:null; },
   xToTime:xToTime, timeToX:timeToX, start:startGame, hit:press,
   counts:function(){ return {F:notes.filter(function(n){return n.d==="F";}).length, C:notes.filter(function(n){return n.d==="C";}).length}; },
-  layoutInfo:function(){ return {mode:LAYOUT.mode, canvas:[canvas.style.width,canvas.style.height]}; }
+  layoutInfo:function(){ return {mode:LAYOUT.mode, canvas:[canvas.style.width,canvas.style.height]}; },
+  /* 확인용: 특정 시각의 화면을 그대로 보여준다 */
+  preview:function(t){ if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; } els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t; }
 };
 })();
 </script>
