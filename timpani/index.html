@@ -285,13 +285,13 @@
           <rect x="444" y="272" width="16" height="26" rx="5" transform="rotate(26 452 285)"/>
         </g>
         <!-- mallet -->
-        <g transform="translate(150,120)">
-          <g id="malletF" class="mallet">
-            <line x1="0" y1="0" x2="0" y2="196" stroke="#c9a273" stroke-width="9" stroke-linecap="round"/>
-            <circle cx="0" cy="206" r="19" fill="#efe4cd" stroke="#8d8168" stroke-width="3"/>
+        <g transform="translate(112,34)">
+          <g id="malletF" transform="rotate(-20,0,0)">
+            <line x1="0" y1="0" x2="0" y2="192" stroke="#c9a273" stroke-width="8.5" stroke-linecap="round"/>
+            <circle cx="0" cy="203" r="18" fill="#efe4cd" stroke="#8d8168" stroke-width="3"/>
           </g>
         </g>
-        <text x="290" y="576" text-anchor="middle" font-family="Georgia,serif" font-size="30" fill="#8b857b" opacity=".0">파</text>
+        <text x="290" y="432" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="46" fill="#fbe9cf" opacity=".5">F</text>
       </g>
 
       <!-- ══ right drum : 도 (C) ══ -->
@@ -321,18 +321,18 @@
           <rect x="786" y="240" width="15" height="25" rx="5" transform="rotate(12 794 252)"/>
           <rect x="848" y="272" width="15" height="25" rx="5" transform="rotate(24 856 284)"/>
         </g>
-        <g transform="translate(846,118)">
-          <g id="malletC" class="mallet">
-            <line x1="0" y1="0" x2="0" y2="188" stroke="#c9a273" stroke-width="9" stroke-linecap="round"/>
-            <circle cx="0" cy="198" r="18" fill="#efe4cd" stroke="#8d8168" stroke-width="3"/>
+        <g transform="translate(888,32)">
+          <g id="malletC" transform="rotate(20,0,0)">
+            <line x1="0" y1="0" x2="0" y2="186" stroke="#c9a273" stroke-width="8.5" stroke-linecap="round"/>
+            <circle cx="0" cy="197" r="17" fill="#efe4cd" stroke="#8d8168" stroke-width="3"/>
           </g>
         </g>
       </g>
 
-      <!-- labels -->
-      <g font-family="-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif" text-anchor="middle">
-        <text x="290" y="556" font-size="26" fill="#a49d92">왼쪽 · 파(F)</text>
-        <text x="702" y="552" font-size="26" fill="#a49d92">오른쪽 · 도(C)</text>
+      <text x="702" y="424" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="46" fill="#fbe9cf" opacity=".5">C</text>
+      <g font-family="-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif" text-anchor="middle" fill="#b3aca1" font-size="21">
+        <text x="290" y="614">파 (F)</text>
+        <text x="702" y="610">도 (C)</text>
       </g>
     </svg>
     <div class="zone" id="zoneF"></div>
@@ -700,34 +700,44 @@ var visual = {
     mallet: document.getElementById("malletC")
   }
 };
-var canAnimate = !!(window.Element && Element.prototype.animate);
+var animT = { F:0, C:0 };
+var GEO = { F:{cx:290, cy:300, rx:196, ry:76}, C:{cx:702, cy:298, rx:184, ry:71} };
 
 function drumFXAnim(which){
-  var v = visual[which];
-  if(!v) return;
-  if(!canAnimate){
-    v.head.setAttribute("opacity","0.75");
-    setTimeout(function(){ v.head.setAttribute("opacity","1"); }, 90);
+  if(!visual[which]) return;
+  animT[which] = performance.now();
+}
+
+function updateDrumAnim(which, now){
+  var v = visual[which], t0 = animT[which];
+  if(!t0) return;
+  var u = (now - t0)/1000;
+  if(u > 0.55){
+    v.mallet.setAttribute("transform", "rotate(" + (which==="F" ? -20 : 20) + ",0,0)");
+    v.head.setAttribute("transform", "");
+    v.flash.setAttribute("opacity", "0");
+    v.ring.setAttribute("opacity", "0");
+    animT[which] = 0;
     return;
   }
-  try{
-    v.mallet.animate(
-      [{transform:"rotate(-16deg)"},{transform:"rotate(4deg)"},{transform:"rotate(-16deg)"}],
-      {duration:190, easing:"cubic-bezier(.3,.9,.3,1)"}
-    );
-    v.head.animate(
-      [{transform:"scale(1.02,0.94)"},{transform:"scale(1,1)"}],
-      {duration:170, easing:"ease-out"}
-    );
-    v.flash.animate(
-      [{opacity:0.85},{opacity:0}],
-      {duration:260, easing:"ease-out"}
-    );
-    v.ring.animate(
-      [{opacity:0.75, transform:"scale(.45)"},{opacity:0, transform:"scale(2.1)"}],
-      {duration:430, easing:"cubic-bezier(.2,.8,.3,1)"}
-    );
-  }catch(e){}
+  var gp = GEO[which];
+  var base = which === "F" ? -20 : 20;
+  var swing = which === "F" ? 23 : -23;
+  var p = Math.min(1, u/0.19);
+  var ang = base + swing*Math.sin(Math.PI*p);
+  v.mallet.setAttribute("transform", "rotate(" + ang.toFixed(2) + ",0,0)");
+
+  var q = Math.min(1, u/0.17);
+  var sy = 1 - 0.055*Math.sin(Math.PI*q);
+  v.head.setAttribute("transform",
+    "translate(" + gp.cx + "," + gp.cy + ") scale(1," + sy.toFixed(4) + ") translate(" + (-gp.cx) + "," + (-gp.cy) + ")");
+
+  v.flash.setAttribute("opacity", (0.8*Math.max(0, 1 - u/0.26)).toFixed(3));
+
+  var r1 = 1 + 1.25*Math.min(1, u/0.45);
+  v.ring.setAttribute("opacity", (0.7*Math.max(0, 1 - u/0.45)).toFixed(3));
+  v.ring.setAttribute("transform",
+    "translate(" + gp.cx + "," + gp.cy + ") scale(" + r1.toFixed(3) + ") translate(" + (-gp.cx) + "," + (-gp.cy) + ")");
 }
 
 function zonePress(which, on){
@@ -760,8 +770,8 @@ var barHasNote = (function(){
 
 function drawScore(t){
   g.clearRect(0,0,W,H);
-  var s = Math.max(6.4, Math.min(11.5, H/12.5));
-  var m = H*0.48;
+  var s = Math.max(7, Math.min(22, H/9));
+  var m = H*0.62;
   var jx = Math.max(56, W*0.34);
   var pps = (W - jx)/5.4;
   var xOf = function(tt){ return jx + (tt - t)*pps; };
@@ -855,8 +865,8 @@ function drawScore(t){
     g.restore();
 
     /* sticking letter */
-    if(Math.abs(x - jx) < W*0.55 || n.t - t < 1.2){
-      g.fillStyle = "rgba(226,115,143," + (0.85*doneFade) + ")";
+    if(x > jx - pps*0.55 && x < jx + pps*2.3){
+      g.fillStyle = "rgba(226,115,143," + (0.72*doneFade) + ")";
       g.font = "italic 600 " + (s*2.1).toFixed(1) + "px " + "Georgia, 'Iowan Old Style', serif";
       g.textAlign = "center";
       g.fillText(n.d === "F" ? "L" : "R", x, y - 3.9*s);
@@ -910,6 +920,8 @@ function loop(now){
     els.prog.style.width = Math.max(0, Math.min(100, songT/SONG_END*100)).toFixed(1) + "%";
     if(songT > SONG_END + 1.6) finishGame();
   }
+  updateDrumAnim("F", now);
+  updateDrumAnim("C", now);
   drawScore(phase === "play" || phase === "done" ? Math.max(songT, 0) : -1.4);
   requestAnimationFrame(loop);
 }
