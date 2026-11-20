@@ -763,7 +763,8 @@ window.__game={
     var s=0; for(var i=0;i<a.length;i++) s+=a[i]*a[i];
     return Math.sqrt(s/a.length);
   },
-  peak:function(){ return window.__peak||0; }
+  peak:function(){ return window.__peak||0; },
+  musicVol:function(v){ if(musicGain) musicGain.gain.value=v; }
 };
 })();
 </script>
