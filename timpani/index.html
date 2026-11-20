@@ -330,9 +330,9 @@
       </g>
 
       <text x="702" y="424" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="46" fill="#fbe9cf" opacity=".5">C</text>
-      <g font-family="-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif" text-anchor="middle" fill="#b3aca1" font-size="21">
-        <text x="290" y="614">파 (F)</text>
-        <text x="702" y="610">도 (C)</text>
+      <g font-family="-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif" text-anchor="middle" fill="#b6afa4" font-size="22">
+        <text x="300" y="202">왼쪽 · 파(F)</text>
+        <text x="694" y="200">오른쪽 · 도(C)</text>
       </g>
     </svg>
     <div class="zone" id="zoneF"></div>
@@ -990,7 +990,17 @@ try{
 }catch(e){ fail(e); }
 
 requestAnimationFrame(loop);
+var analyser = null;
 window.__game = {
+  output: function(){
+    if(!AC) return null;
+    if(!analyser){ analyser = AC.createAnalyser(); analyser.fftSize = 2048; master.connect(analyser); }
+    var a = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(a);
+    var sum = 0;
+    for(var i=0;i<a.length;i++) sum += a[i]*a[i];
+    return Math.sqrt(sum/a.length);
+  },
   phase: function(){ return phase; },
   notes: notes,
   stats: function(){ return stats; },
