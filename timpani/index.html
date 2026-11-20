@@ -329,12 +329,12 @@ function drawScore(){
   /* 4분쉼표 */
   D.qrests.forEach(function(x){
     var y0=ST+SP*1.28;
-    var p="M "+(x-3.6).toFixed(1)+" "+(y0+2.6).toFixed(1)+
-          " L "+(x+6.2).toFixed(1)+" "+(y0+10.4).toFixed(1)+
-          " L "+(x-2.6).toFixed(1)+" "+(y0+16.4).toFixed(1)+
-          " L "+(x+5.6).toFixed(1)+" "+(y0+23.0).toFixed(1)+
-          " C "+(x+8.2).toFixed(1)+" "+(y0+25.4).toFixed(1)+" "+(x+1.0).toFixed(1)+" "+(y0+27.6).toFixed(1)+" "+(x-2.4).toFixed(1)+" "+(y0+30.2).toFixed(1);
-    var e=mk("path",{d:p,fill:"none",stroke:"#141414","stroke-width":5.2,"stroke-linecap":"round","stroke-linejoin":"round"});
+    var p="M "+(x-2.4).toFixed(1)+" "+(y0+2.0).toFixed(1)+
+          " L "+(x+4.8).toFixed(1)+" "+(y0+9.8).toFixed(1)+
+          " L "+(x-1.8).toFixed(1)+" "+(y0+16.6).toFixed(1)+
+          " L "+(x+4.6).toFixed(1)+" "+(y0+23.8).toFixed(1)+
+          " C "+(x+6.4).toFixed(1)+" "+(y0+26.2).toFixed(1)+" "+(x+0.4).toFixed(1)+" "+(y0+28.6).toFixed(1)+" "+(x-2.0).toFixed(1)+" "+(y0+31.0).toFixed(1);
+    var e=mk("path",{d:p,fill:"none",stroke:"#141414","stroke-width":4.8,"stroke-linecap":"round","stroke-linejoin":"round"});
     layer.appendChild(e);
     fadeEls.push({el:e,x:x});
   });
