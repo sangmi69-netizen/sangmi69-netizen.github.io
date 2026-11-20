@@ -505,14 +505,14 @@ function xOf(t, now){ return PHX + (t-now)*PPS; }
 function drawQuarterRest(x, y0){
   var s=S;
   g.save(); g.translate(x, y0+2.05*s);
-  g.strokeStyle="#141414"; g.lineWidth=Math.max(1.2, 0.24*s);
+  g.strokeStyle="#141414"; g.lineWidth=Math.max(1.3, 0.30*s);
   g.lineCap="round"; g.lineJoin="round";
   g.beginPath();
-  g.moveTo(0.34*s, -1.05*s);
-  g.lineTo(-0.22*s, -0.28*s);
-  g.lineTo(0.30*s, -0.12*s);
-  g.lineTo(-0.14*s, 0.70*s);
-  g.quadraticCurveTo(-0.36*s, 1.10*s, -0.02*s, 1.12*s);
+  g.moveTo(0.40*s, -1.25*s);
+  g.lineTo(-0.26*s, -0.34*s);
+  g.lineTo(0.36*s, -0.14*s);
+  g.lineTo(-0.18*s, 0.84*s);
+  g.quadraticCurveTo(-0.44*s, 1.32*s, -0.02*s, 1.34*s);
   g.stroke();
   g.restore();
 }
@@ -675,6 +675,12 @@ function loop(now){
     if(songT>SONG_END+0.9) finishGame();
   }
   updateDrum("F",now); updateDrum("C",now);
+  if(AC && phase==="play"){
+    try{
+      var lv=window.__game && window.__game.level ? window.__game.level() : 0;
+      window.__peak = Math.max(lv||0, (window.__peak||0)*0.985);
+    }catch(e){}
+  }
   drawScore(phase==="play"||phase==="done" ? Math.max(songT,0) : 0);
   requestAnimationFrame(loop);
 }
@@ -738,7 +744,26 @@ window.__game={
   audio:function(){ return AC?{state:AC.state, dur:musicBuf?musicBuf.duration:0, ready:!!musicBuf}:null; },
   notes:notes, stats:function(){ return stats; },
   counts:function(){ return {F:notes.filter(function(n){return n.d==="F";}).length, C:notes.filter(function(n){return n.d==="C";}).length}; },
-  start:startGame, hit:press
+  start:startGame, hit:press,
+  /* 검증용: 임의 시각에 대한 판정 결과만 돌려줌(상태 변경 없음) */
+  judgeAt:function(t,drum){
+    var best=null,be=1e9;
+    for(var i=0;i<notes.length;i++){
+      var n=notes[i]; if(n.d!==drum) continue;
+      var e=Math.abs(t-n.t); if(e<=W_HIT&&e<be){best=n;be=e;}
+    }
+    if(!best) return null;
+    return {res: be<=W_PERFECT?"perfect":(be<=W_GOOD?"good":"miss"), err:Math.round(be*1000), t:best.t};
+  },
+  /* 검증용: 출력 레벨 추적 */
+  level:function(){
+    if(!AC) return null;
+    if(!window.__an){ window.__an=AC.createAnalyser(); window.__an.fftSize=1024; master.connect(window.__an); }
+    var a=new Float32Array(window.__an.fftSize); window.__an.getFloatTimeDomainData(a);
+    var s=0; for(var i=0;i<a.length;i++) s+=a[i]*a[i];
+    return Math.sqrt(s/a.length);
+  },
+  peak:function(){ return window.__peak||0; }
 };
 })();
 </script>
