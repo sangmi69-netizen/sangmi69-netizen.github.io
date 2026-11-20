@@ -34,8 +34,8 @@
   #score{display:block;width:100%;height:100%}
 
   /* ── stage (drums) ── */
-  #stage{position:relative;flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center}
-  #drums{display:block;width:100%;height:100%}
+  #stage{position:relative;flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:2% 0}
+  #drums{display:block;width:100%;max-width:1120px;height:100%;max-height:96%}
   .zone{position:absolute;top:0;bottom:0;width:50%;z-index:3;touch-action:none}
   #zoneF{left:0}
   #zoneC{right:0}
@@ -215,7 +215,7 @@ var notes = CHART.split(",").map(function(s,i){
   return { i:i, t:parseFloat(p[0]), d:p[1], done:false, res:null, flash:0 };
 });
 
-var SONG_END = 51.2;         // 오디오 길이
+var SONG_END = 51.2;         // 오디오 길이(로드 후 실제 길이로 보정)
 var BEAT = 0.31;             // 악보 한 박 (영상 표기 기준)
 var BAR  = 3*BEAT;           // 3/4박자 한 마디
 var FIRST_BAR = 0.3;         // 첫 마디 시작 시각
@@ -320,7 +320,7 @@ function playDrum(which, gainScale){
 function loadMusic(){
   if(musicBuf) return Promise.resolve(musicBuf);
   if(!window.fetch||!AC) return Promise.reject(new Error("no fetch"));
-  return fetch("orchestra.mp3").then(function(r){
+  return fetch("orchestra.mp3?v=2").then(function(r){
     if(!r.ok) throw new Error("HTTP "+r.status);
     return r.arrayBuffer();
   }).then(function(ab){
@@ -328,7 +328,15 @@ function loadMusic(){
       var p=AC.decodeAudioData(ab,res,rej);
       if(p&&p.then) p.then(res,rej);
     });
-  }).then(function(b){ musicBuf=b; return b; });
+  }).then(function(b){
+    musicBuf=b;
+    if(b && b.duration){
+      SONG_END = b.duration;
+      var last = notes.length ? notes[notes.length-1].t : 0;
+      if(SONG_END > last + 2.2) SONG_END = last + 2.2;
+    }
+    return b;
+  });
 }
 
 /* ══════════════════ game state ══════════════════ */
@@ -477,7 +485,7 @@ var W=0, H=0, S=8, STAFF_TOP=0, PHX=0, PPS=0, DPR=1;
 function layout(){
   var vw=window.innerWidth, vh=window.innerHeight;
   DPR=Math.min(3, window.devicePixelRatio||1);
-  S = Math.max(6.2, Math.min(19, vw*0.0305));
+  S = Math.max(6.2, Math.min(17, vw*0.0286));
   var bandH = Math.round(11.4*S);
   wrap.style.height = bandH+"px";
   cv.style.width="100%"; cv.style.height=bandH+"px";
@@ -486,7 +494,7 @@ function layout(){
   g.setTransform(DPR,0,0,DPR,0,0);
   STAFF_TOP = 4.45*S;
   PHX = vw*0.42;
-  PPS = S*9.6;
+  PPS = S*13.2;
 }
 
 var yC = function(){ return STAFF_TOP + 2.5*S; };   // 도 (오른쪽 북)
@@ -496,17 +504,33 @@ function xOf(t, now){ return PHX + (t-now)*PPS; }
 
 function drawQuarterRest(x, y0){
   var s=S;
-  g.save(); g.translate(x, y0+2.1*s); g.scale(s/10,s/10);
+  g.save(); g.translate(x, y0+2.05*s);
+  g.strokeStyle="#141414"; g.lineWidth=Math.max(1.2, 0.24*s);
+  g.lineCap="round"; g.lineJoin="round";
   g.beginPath();
-  g.moveTo(2.4,-9.5);
-  g.quadraticCurveTo(6.2,-5.0,1.2,-1.4);
-  g.quadraticCurveTo(-3.2,1.8,1.0,3.2);
-  g.quadraticCurveTo(5.0,4.6,2.0,8.2);
-  g.quadraticCurveTo(0.2,10.4,-3.0,8.6);
-  g.lineWidth=3.2; g.strokeStyle="#141414"; g.lineCap="round"; g.lineJoin="round";
+  g.moveTo(0.34*s, -1.05*s);
+  g.lineTo(-0.22*s, -0.28*s);
+  g.lineTo(0.30*s, -0.12*s);
+  g.lineTo(-0.14*s, 0.70*s);
+  g.quadraticCurveTo(-0.36*s, 1.10*s, -0.02*s, 1.12*s);
   g.stroke();
   g.restore();
 }
+
+/* 빔 그룹 (한 박 안에서 이어지는 음표들) */
+var beamGroups=[], beamOf={};
+(function(){
+  var i=0;
+  while(i<notes.length){
+    var j=i;
+    while(j+1<notes.length && (notes[j+1].t-notes[j].t) < BEAT*0.82 && (j-i)<3) j++;
+    if(j>i){ beamGroups.push({a:i,b:j}); }
+    i=j+1;
+  }
+  beamGroups.forEach(function(gr,gi){ for(var k=gr.a;k<=gr.b;k++) beamOf[k]=gi; });
+})();
+
+function stemTopFor(n, y0, s){ return (n.d==="C") ? y0 - 1.05*s : y0 + 0.32*s; }
 
 function drawNoteHead(x,y,which,fresh){
   g.save(); g.translate(x,y); g.rotate(-0.30);
@@ -569,44 +593,44 @@ function drawScore(now){
     var x=xOf(n.t, now);
     if(x<-3*s || x>W+3*s) continue;
     var y=(n.d==="C")?yC():yF();
-    var fading = n.done && n.res==="miss";
-    var alpha = fading?0.28:1;
+    var alpha = (n.done && n.res==="miss") ? 0.26 : 1;
     g.globalAlpha=alpha;
 
-    var next=notes[i2+1];
-    var gap = next ? (next.t-n.t) : BEAT;
-    var stemX = x + s*0.58;
-    var beamY = (n.d==="C") ? y0 - 1.05*s : y0 + 0.12*s;
-    var beam = false;
-    if(next && gap < BEAT*0.85){
-      beam = true;
-      var nx=xOf(next.t, now), ny=(next.d==="C")?yC():yF();
-      var nbeamY = (next.d==="C") ? y0 - 1.05*s : y0 + 0.12*s;
-      g.fillStyle="#141414";
-      g.fillRect(stemX-s*0.14, beamY-s*0.19, (nx+ s*0.58)-stemX+s*0.28, s*0.19);
-      if(gap < BEAT*0.55){
-        g.fillRect(stemX-s*0.14, beamY+s*0.03, ((nx+s*0.58)-stemX)*0.45+s*0.28, s*0.16);
+    var gi=beamOf[i2];
+    var topY=stemTopFor(n,y0,s);
+    if(gi!==undefined){
+      var gr=beamGroups[gi];
+      for(var q=gr.a;q<=gr.b;q++){
+        var ty=stemTopFor(notes[q],y0,s);
+        if(ty<topY) topY=ty;
       }
-      /* 두 번째 음표 기둥 */
-      g.strokeStyle="#141414"; g.lineWidth=Math.max(1, s*0.11);
-      g.beginPath(); g.moveTo(nx+s*0.58, ny); g.lineTo(nx+s*0.58, nbeamY); g.stroke();
-      /* 첫 음표 기둥 */
-      g.beginPath(); g.moveTo(stemX, y); g.lineTo(stemX, beamY); g.stroke();
-    } else {
-      g.strokeStyle="#141414"; g.lineWidth=Math.max(1, s*0.11);
-      g.beginPath(); g.moveTo(stemX, y); g.lineTo(stemX, beamY); g.stroke();
+    }
+    var stemX=x+s*0.58;
+
+    /* 기둥 */
+    g.strokeStyle="#141414"; g.lineWidth=Math.max(1, s*0.115);
+    g.beginPath(); g.moveTo(stemX, y); g.lineTo(stemX, topY); g.stroke();
+
+    /* 빔 */
+    if(gi!==undefined){
+      var nx=xOf(notes[i2+1].t, now);
+      var thick=s*0.20;
+      g.fillStyle="#141414";
+      g.fillRect(stemX, topY, (nx+s*0.58)-stemX, thick);
+      if((notes[i2+1].t-n.t) < BEAT*0.55){
+        var wx=(nx-x)*0.55;
+        g.fillRect(nx+s*0.58-wx, topY+thick+s*0.10, wx, thick*0.85);
+      }
     }
 
     drawNoteHead(x, y, n.d, n.flash>0.35 && n.res==="perfect");
 
     /* 빨간 손글씨 스티킹 */
-    g.globalAlpha = Math.min(1, alpha+0.05);
-    g.fillStyle="#e0392c";
-    g.font = "italic " + (s*1.9).toFixed(1) + "px " + '"Bradley Hand","Snell Roundhand","Segoe Script",cursive';
-    g.textAlign="center";
-    g.fillText(n.d==="F"?"L":"R", x+s*0.1, y0-1.75*s + (n.d==="C"?-0.35*s:0.35*s));
-
     g.globalAlpha=1;
+    g.fillStyle="#e0392c";
+    g.font = "italic " + (s*2.35).toFixed(1) + "px " + '"Bradley Hand","Snell Roundhand","Segoe Script","Apple Chancery",cursive';
+    g.textAlign="center";
+    g.fillText(n.d==="F"?"L":"R", x+s*0.15, y0-2.05*s);
 
     if(n.flash>0){
       g.strokeStyle="rgba(224,57,44,"+(0.5*n.flash).toFixed(3)+")";
