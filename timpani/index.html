@@ -563,15 +563,15 @@ function layoutWith(vw, vh){
   } else {
     canvas.style.width=vw+"px"; canvas.style.height=vh+"px";
     canvas.style.left="0px"; canvas.style.top="0px";
-    var vbW=Math.min(760, vw*1.85);
+    var vbW=Math.min(700, vw*1.55);
     scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 0 "+vbW.toFixed(1)+" 432");
     scoreSvg.style.width="100%";
     var sh=vw*432/vbW;
     scoreSvg.style.height=sh+"px";
-    scoreSvg.style.top=Math.max(0,(vh*0.30-sh)*0.55)+"px";
+    var dh=vw*(589.3/1142.6);
+    scoreSvg.style.top=Math.max(18,(vh-dh-sh)*0.45)+"px";
     drumArea.style.left="0"; drumArea.style.width="100%";
     drumArea.style.top="auto"; drumArea.style.bottom="0";
-    var dh=vw*(589.3/1142.6);
     zoneF.style.height=dh+"px"; zoneC.style.height=dh+"px";
     LAYOUT.drumTop = vh-dh;
   }
