@@ -297,7 +297,7 @@ function startAudio(){
 /* ── score drawing ── */
 var layer=document.getElementById("layer");
 function mk(tag,a){ var e=document.createElementNS(SVGNS,tag); for(var k in a) e.setAttribute(k,a[k]); return e; }
-var NOTE_RX=9.6, NOTE_RY=6.6, STEM_W=3.4, STEM_LEN=66;
+var NOTE_RX=10.0, NOTE_RY=6.7, STEM_W=3.8, STEM_LEN=66;
 var hits=[], stats=null;
 
 function noteHeadY(p){ return p==="E"?YE:YB; }
@@ -377,7 +377,7 @@ function drawScore(){
   t.textContent="Timpani";
   layer.appendChild(t);
   /* 쉼표 */
-  D.rests.forEach(function(r){ addRest(barX(r.b,r.f), r.ty, layer); });
+  D.rests.forEach(function(r){ addRest(barX(r.bar,r.f), r.ty, layer); });
   /* 음표 */
   D.notes.forEach(function(n){
     var x=barX(n.b,n.f);
