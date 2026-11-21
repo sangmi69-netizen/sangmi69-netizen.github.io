@@ -65,10 +65,11 @@
   #hudSync{display:flex;align-items:center;gap:0;pointer-events:auto;white-space:nowrap;margin-right:-4px}
   #hudSync .slabel{font-size:10px;letter-spacing:.04em;color:#d2d2d2;font-family:var(--ui);padding-left:2px}
   #hudSync .hsbtn{appearance:none;border:0;background:none;color:#c4c4c4;font-size:12px;line-height:1;
-    padding:6px 7px;font-family:var(--ui);pointer-events:auto;touch-action:none;cursor:pointer;
+    padding:10px 11px;margin:-6px -2px;font-family:var(--ui);pointer-events:auto;touch-action:none;cursor:pointer;
     -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
   #hudSync .hsbtn:active{color:#7d7d7d}
-  #hudSync b{min-width:34px;text-align:center;font-size:11px;font-weight:500;color:#b4b4b4;
+  /* 값의 폭을 고정해 연타할 때 버튼이 좌우로 흔들리지 않게 한다. */
+  #hudSync b{width:40px;text-align:center;font-size:11px;font-weight:500;color:#b4b4b4;
     letter-spacing:0;font-variant-numeric:tabular-nums}
 
   /* ── overlays ── */
