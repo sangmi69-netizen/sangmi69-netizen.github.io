@@ -28,6 +28,10 @@
   #hud{position:absolute;top:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding:8px 12px;pointer-events:none}
   #hudScore{font-size:11px;letter-spacing:.08em;color:#c4c4c4;font-variant-numeric:tabular-nums}
   #pauseBtn{pointer-events:auto;appearance:none;background:none;border:0;padding:4px 2px;font-size:11px;letter-spacing:.12em;color:#c9c9c9}
+  #syncHud{pointer-events:auto;display:flex;align-items:center;gap:1px;font-size:9.5px;color:#c9c9c9;letter-spacing:.02em}
+  #syncHud .sl{color:#cfcfcf;margin-right:2px}
+  #syncHud b{min-width:30px;text-align:center;font-weight:500;font-size:9.5px;color:#b9b9b9;font-variant-numeric:tabular-nums}
+  #syncHud .sbtn{appearance:none;border:0;background:none;color:#c9c9c9;font-size:11px;line-height:1;padding:2px 4px;font-family:var(--ui)}
   #judge{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:clamp(15px,3.6vw,21px);letter-spacing:.2em;color:var(--red);opacity:0;pointer-events:none;z-index:7;font-weight:600}
   .ov{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 22px;background:#fff;transition:opacity .3s ease,visibility .3s}
   .ov.hide{opacity:0;visibility:hidden;pointer-events:none}
@@ -75,7 +79,16 @@
     <div class="zone" id="zoneL"></div>
     <div class="zone" id="zoneR"></div>
     <div id="judge"></div>
-    <div id="hud"><div id="hudScore">0</div><button id="pauseBtn" aria-label="일시정지">❚❚</button></div>
+    <div id="hud">
+      <div id="syncHud">
+        <span class="sl">싱크</span>
+        <button class="sbtn" id="syncMinus" aria-label="싱크 보정 줄이기">−</button>
+        <b id="syncVal">0ms</b>
+        <button class="sbtn" id="syncPlus" aria-label="싱크 보정 늘리기">＋</button>
+      </div>
+      <div id="hudScore">0</div>
+      <button id="pauseBtn" aria-label="일시정지">❚❚</button>
+    </div>
   </div>
 
   <div class="ov" id="startScreen">
@@ -87,14 +100,7 @@
       <div><b class="red">미</b><span>오른쪽 팀파니 · E</span></div>
     </div>
     <button class="btn" id="startBtn">연주 시작</button>
-    <div class="hint">왼쪽·오른쪽 팀파니를 직접 터치하거나<br>← → / A L 키로 연주할 수 있어요</div>
-    <div class="syncbox">
-      <span>싱크 보정</span>
-      <button class="sbtn" id="syncMinus" aria-label="싱크 보정 줄이기">−</button>
-      <b id="syncVal">0ms</b>
-      <button class="sbtn" id="syncPlus" aria-label="싱크 보정 늘리기">＋</button>
-      <span>빨간 선이 음악보다 앞서면 ＋</span>
-    </div>
+    <div class="hint">왼쪽·오른쪽 팀파니를 직접 터치하거나<br>← → / A L 키로 연주할 수 있어요<br>연주 중 화면 오른쪽 위 ‘싱크 − 0ms ＋’로 미세 조정</div>
     <div class="credit">연주: London Philharmonic Orchestra “Timpani Moments – Dvořák 9” · 작곡 A. Dvořák<br>
       <a href="https://youtu.be/MGrludsRW60" target="_blank" rel="noopener">youtu.be/MGrludsRW60</a></div>
   </div>
@@ -681,9 +687,19 @@ document.getElementById("pauseBtn").addEventListener("click",function(){
   if(AC.state==="running"){ AC.suspend(); this.textContent="▶"; }
   else { AC.resume(); this.textContent="❚❚"; }
 });
-var syncMinus=document.getElementById("syncMinus"), syncPlus=document.getElementById("syncPlus");
-if(syncMinus) syncMinus.addEventListener("click",function(){ setSyncOffset(Math.round(syncOffsetSec*1000)-10); });
-if(syncPlus) syncPlus.addEventListener("click",function(){ setSyncOffset(Math.round(syncOffsetSec*1000)+10); });
+(function(){
+  var syncMinus=document.getElementById("syncMinus"), syncPlus=document.getElementById("syncPlus");
+  function bindBtn(el, delta){
+    if(!el) return;
+    var stop=function(ev){ ev.stopPropagation(); if(ev.cancelable) ev.preventDefault(); };
+    ["pointerdown","touchstart","mousedown"].forEach(function(t){ el.addEventListener(t,stop,{passive:false}); });
+    el.addEventListener("click",function(ev){
+      ev.stopPropagation(); ev.preventDefault();
+      setSyncOffset(Math.round(syncOffsetSec*1000)+delta);
+    });
+  }
+  bindBtn(syncMinus,-10); bindBtn(syncPlus,+10);
+})();
 
 /* iOS 확대 방지 */
 var lastTouchEnd=0;
