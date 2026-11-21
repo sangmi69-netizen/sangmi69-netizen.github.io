@@ -17,20 +17,25 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%;margin:0;background:#fff;overflow:hidden}
+  html{
+    touch-action:none;
+    -webkit-text-size-adjust:100%;text-size-adjust:100%;
+  }
   body{
     font-family:var(--ui);color:var(--ink);
     overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-    touch-action:manipulation;
+    touch-action:none;
   }
-  #app{position:fixed;inset:0;background:#fff}
-  #canvas{position:absolute;background:#fff;overflow:hidden}
+  #app{position:fixed;inset:0;background:#fff;touch-action:none}
+  #canvas{position:absolute;background:#fff;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
   /* ── score ── */
-  #scoreSvg{position:absolute;left:0;top:0;display:block;overflow:hidden}
+  #scoreSvg{position:absolute;left:0;top:0;display:block;overflow:hidden;touch-action:none}
 
   /* ── drums ── */
-  #drumArea{position:absolute;pointer-events:none;aspect-ratio:1142.6/589.3;height:auto}
-  #drumArea img{position:absolute;display:block;transform-origin:50% 88%;will-change:transform}
+  #drumArea{position:absolute;pointer-events:none;aspect-ratio:1142.6/589.3;height:auto;touch-action:none}
+  #drumArea img{position:absolute;display:block;transform-origin:50% 88%;will-change:transform;touch-action:none;pointer-events:none}
   #drumL{left:0;top:0;width:51.05%}
   #drumR{left:51.81%;top:2.04%;width:48.19%}
   .drum-hit{animation:dip .16s ease-out}
@@ -41,7 +46,8 @@
   }
 
   /* ── touch zones ── */
-  .zone{position:absolute;bottom:0;height:56%;z-index:4;touch-action:none}
+  .zone{position:absolute;bottom:0;height:56%;z-index:4;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
   #zoneF{left:0;width:50%}
   #zoneC{right:0;width:50%}
   .zone.on{background:rgba(224,57,44,.045)}
@@ -190,7 +196,20 @@ function fail(m){ errBox.style.display="block"; errBox.textContent=String(m); }
 var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null;
 var drumSets={F:[],C:[]}, musicBuf=null, musicSrc=null;
 var startAt=0, songT=0, phase="title";
-var F0={F:87.307, C:130.813};
+/* ── 기준 음높이 ──────────────────────────────────────────────
+   orchestra.mp3(LPO 연주)를 numpy/scipy로 정밀 측정한 값.
+   · 오케스트라 조율 기준: 여러 대역(180~2500Hz)의 지속 배음 피크를
+     가중 원형평균 → A4 = 442.3Hz (A4=440 대비 +9.0센트, 오차 ±1.5센트)
+     (예전 값 A4=440 대비 F2 87.307Hz/C3 130.813Hz는 음원보다 9센트 낮아
+      연주할 때 천천히 맥동(beating)이 생겼다)
+   · F2 = 442.3 × 2^(-28/12) = 87.75Hz
+     C3 = 442.3 × 2^(-21/12) = 131.50Hz
+   ※ 저역 80~140Hz는 더블베이스·첼로의 비브라토(±10~30센트)가 겹쳐
+     실제 팀파니 기본음을 따로 떼어 재기 어려우므로, 배음이 깨끗하게
+     분리되는 중·고역(F3 175.2Hz, C4 263.3Hz, F4 351.6Hz 등) 피크로
+     조율 기준을 잡고 그 기준으로 두 북의 12평균율 음높이를 계산했다. */
+var A4_REF=442.3;
+var F0={F:87.75, C:131.50};
 
 function ensureAudio(){
   if(AC) return AC;
@@ -228,18 +247,22 @@ function makeIR(dur){
 function makeDrum(f0){
   var sr=AC.sampleRate, dur=2.6, n=Math.floor(dur*sr);
   var buf=AC.createBuffer(1,n,sr), d=buf.getChannelData(0);
-  var modes=[[1.000,1.00,1.85],[1.504,0.52,1.05],[1.742,0.40,0.86],[2.000,0.28,0.66],
-             [2.245,0.21,0.53],[2.494,0.15,0.43],[2.800,0.10,0.34],[3.160,0.07,0.27],
-             [3.500,0.05,0.21],[4.060,0.03,0.16]];
-  var i,k,m;
+  /* 모드 비율은 실제 팀파니 진동 모드(1 : 1.504 : 1.742 : 2.0 …).
+     기본음(1.000)의 세기·지속을 조금 올려 음정이 또렷하게 들리도록 했다. */
+  var modes=[[1.000,1.12,2.05],[1.504,0.50,1.05],[1.742,0.38,0.86],[2.000,0.26,0.66],
+             [2.245,0.19,0.53],[2.494,0.14,0.43],[2.800,0.10,0.34],[3.160,0.06,0.27],
+             [3.500,0.045,0.21],[4.060,0.03,0.16]];
+  var i,k,m,ph0=0;
   for(m=0;m<modes.length;m++){
     var ratio=modes[m][0], amp=modes[m][1], dec=modes[m][2];
     var ph=Math.random()*6.283, om=2*Math.PI*f0*ratio/sr, kd=Math.exp(-1/(dec*sr)), e=amp;
+    if(m===0) ph0=ph;
     for(i=0;i<n;i++){ d[i]+=e*Math.sin(om*i+ph); e*=kd; }
   }
   var nb=Math.floor(0.026*sr), lp=0;
-  for(i=0;i<nb;i++){ var w=Math.random()*2-1; lp=lp*0.72+w*0.28; d[i]+=lp*1.5*Math.pow(1-i/nb,2.4); }
-  for(i=0;i<Math.floor(0.9*sr);i++){ d[i]+=0.16*Math.sin(Math.PI*f0*i/sr*2)*Math.exp(-i/(0.42*sr)); }
+  for(i=0;i<nb;i++){ var w=Math.random()*2-1; lp=lp*0.72+w*0.28; d[i]+=lp*1.25*Math.pow(1-i/nb,2.4); }
+  /* 타격 직후의 짧은 저역 "툭" — 기본음과 같은 위상으로 더해 음정을 보강한다. */
+  for(i=0;i<Math.floor(0.9*sr);i++){ d[i]+=0.14*Math.sin(Math.PI*f0*i/sr*2+ph0)*Math.exp(-i/(0.42*sr)); }
   var peak=0;
   for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
   var g2=0.92/(peak||1);
@@ -254,7 +277,9 @@ function playDrum(which, scale){
   if(!set||!set.length) return;
   var src=AC.createBufferSource();
   src.buffer=set[(Math.random()*set.length)|0];
-  src.playbackRate.value=0.99+Math.random()*0.02;
+  /* 타격마다의 미세한 음높이 흔들림은 ±1.2센트 이내로 제한(예전 ±1%≈±17센트).
+     음정이 흔들려 들리지 않게 하고, 생동감은 세 가지 음색 변형으로 준다. */
+  src.playbackRate.value=0.9993+Math.random()*0.0014;
   var g=AC.createGain(); g.gain.value=0.95*(scale||1);
   if(AC.createStereoPanner){
     var pan=AC.createStereoPanner(); pan.pan.value = which==="F" ? -0.32 : 0.32;
@@ -543,7 +568,16 @@ var zoneF=document.getElementById("zoneF"), zoneC=document.getElementById("zoneC
 var hud=document.getElementById("hud");
 var LAYOUT={mode:"land"};
 
-function layout(){ layoutWith(window.innerWidth, window.innerHeight); }
+function layout(){ 
+  /* iOS 사파리 가로모드에서 주소창이 접히면 innerHeight가 갑자기 커져
+     화면(북)이 순간적으로 커진다. 폭이 바뀌었거나(회전) 높이가 120px 넘게
+     바뀐 경우에만 다시 그리고, 그 밖의 높이 변화는 무시해 크기를 고정한다. */
+  var w=window.innerWidth, h=window.innerHeight;
+  if(!LOCK_W){ LOCK_W=w; LOCK_H=h; }
+  else if(w!==LOCK_W || Math.abs(h-LOCK_H)>120){ LOCK_W=w; LOCK_H=h; }
+  layoutWith(LOCK_W, LOCK_H);
+}
+var LOCK_W=0, LOCK_H=0;
 function layoutWith(vw, vh){
   var land = (vw/vh) >= 1.05;
   LAYOUT.mode = land?"land":"port";
@@ -656,7 +690,40 @@ document.getElementById("pauseBtn").addEventListener("click", function(){
   else { AC.resume(); this.textContent="❚❚"; }
 });
 document.addEventListener("gesturestart", function(e){ e.preventDefault(); }, {passive:false});
-document.addEventListener("touchmove", function(e){ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
+
+/* ══════════════════ iOS Safari 확대(더블탭·핀치) 차단 ══════════════════
+   ① viewport meta(maximum-scale=1, user-scalable=no) + html/body/{canvas,zone}
+      touch-action:none — 아래는 그래도 발생하는 사파리 더블탭 확대를 막는 장치.
+   ② 두 손가락 터치(핀치)와 사파리 전용 gesture 이벤트 차단
+   ③ 게임 화면에서 320ms 안에 두 번 터치하면 두 번째 touchend를 취소
+      (시작 버튼 등 오버레이 버튼은 #canvas 밖이라 영향 없음)
+   ④ 더블클릭·길게 누르기 메뉴 차단
+   ⑤ 탭은 pointerdown에서 즉시 처리하므로 방어책이 발음 지연을 만들지 않는다. */
+var lastTouchEnd=0;
+function blockGesture(ev){ if(ev.cancelable) ev.preventDefault(); }
+document.addEventListener("touchstart", function(e){
+  if(e.touches && e.touches.length>1 && e.cancelable) e.preventDefault();
+}, {passive:false});
+["gesturestart","gesturechange","gestureend"].forEach(function(t){
+  document.addEventListener(t, blockGesture, {passive:false});
+});
+canvas.addEventListener("touchend", function(e){
+  var now=e.timeStamp||Date.now();
+  if(now-lastTouchEnd<320){
+    if(e.cancelable) e.preventDefault();
+    lastTouchEnd=0;
+  } else {
+    lastTouchEnd=now;
+  }
+}, {passive:false});
+document.addEventListener("dblclick", blockGesture, {passive:false});
+document.addEventListener("contextmenu", blockGesture, {passive:false});
+/* 확인용: 확대 배율(1이어야 정상) */
+function zoomScale(){
+  var vv=window.visualViewport;
+  if(!vv) return 1;
+  return vv.scale;
+}
 
 /* ══════════════════ boot ══════════════════ */
 drawScore();
@@ -673,6 +740,8 @@ window.__game={
   xToTime:xToTime, timeToX:timeToX, start:startGame, hit:press,
   counts:function(){ return {F:notes.filter(function(n){return n.d==="F";}).length, C:notes.filter(function(n){return n.d==="C";}).length}; },
   layoutInfo:function(){ return {mode:LAYOUT.mode, canvas:[canvas.style.width,canvas.style.height]}; },
+  pitch:function(){ return {A4:A4_REF, F:F0.F, C:F0.C}; },
+  zoom:function(){ return zoomScale(); },
   layoutFor:function(w,h){ layoutWith(w,h); canvas.style.left="0px"; canvas.style.top="0px"; },
   /* 확인용: 특정 시각의 화면을 그대로 보여준다 */
   preview:function(t){ if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; } els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t; }
