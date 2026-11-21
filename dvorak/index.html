@@ -722,7 +722,21 @@ window.__game={
     els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t;
     if(AC && AC.state==="running"){ startAt=AC.currentTime - outLat - syncOffsetSec - t; }
     overlay.classList.remove("on"); },
-  drumRect:function(){ var r=drumSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; }
+  drumRect:function(){ var r=drumSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
+  finish:function(){ finishGame(); },
+  autoplay:function(on){
+    if(window.__auto){ window.__auto.forEach(function(id){ clearTimeout(id); }); window.__auto=null; }
+    if(!on) return 0;
+    window.__auto=[];
+    var now=songT;
+    notes.forEach(function(n){
+      var dt=(n.t-now)*1000;
+      if(dt<-200||dt>200000) return;
+      var id=setTimeout(function(){ if(phase==="play") press(n.d==="X"?"R":n.d); },Math.max(0,dt));
+      window.__auto.push(id);
+    });
+    return window.__auto.length;
+  }
 };
 })();
 </script>
