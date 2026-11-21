@@ -742,6 +742,7 @@ window.__game={
     overlay.classList.remove("on"); },
   drumRect:function(){ var r=drumSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
   finish:function(){ finishGame(); },
+  layoutFor:function(w,h){ layoutWith(w,h); stage.style.left="0px"; stage.style.top="0px"; return LAY.mode; },
   autoplay:function(on){
     if(window.__auto){ window.__auto.forEach(function(id){ clearTimeout(id); }); window.__auto=null; }
     if(!on) return 0;
