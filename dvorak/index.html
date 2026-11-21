@@ -700,7 +700,9 @@ window.__game={
   latency:function(){ return {base:AC?AC.baseLatency:null,output:AC?(AC.outputLatency||0):null,used:outLat,syncMs:Math.round(syncOffsetSec*1000),sr:AC?AC.sampleRate:null}; },
   counts:function(){ var l=0,r=0,x=0; D.hits.forEach(function(h){ if(h.d==="L")l++; else if(h.d==="R")r++; else x++; }); return {L:l,R:r,X:x,total:D.hits.length}; },
   preview:function(t){ if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} } musicSrc=null;
-    els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t; overlay.classList.remove("on"); },
+    els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t;
+    if(AC && AC.state==="running"){ startAt=AC.currentTime - outLat - syncOffsetSec - t; }
+    overlay.classList.remove("on"); },
   drumRect:function(){ var r=drumSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; }
 };
 })();
