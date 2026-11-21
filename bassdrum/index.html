@@ -497,7 +497,7 @@ function hit(){
 }
 
 /* ── strike animation (pink flash + yellow arrows + struck mallet) ── */
-var STRIKE_AT=-99, FLASH_HOLD=0.26, FLASH_FADE=0.17, POSE_HOLD=0.22, ARROW_HOLD=0.30;
+var STRIKE_AT=-99, FLASH_HOLD=0.26, FLASH_FADE=0.17, POSE_HOLD=0.22, ARROW_HOLD=0.30, FX_HOLD=null;
 var flashDiv=document.getElementById("flash"),
     drumRest=document.getElementById("drumRest"),
     drumHit=document.getElementById("drumHit"),
@@ -505,7 +505,7 @@ var flashDiv=document.getElementById("flash"),
 function strikeFX(){ STRIKE_AT=(AC?AC.currentTime:performance.now()/1000); }
 function updateStrike(){
   var now=AC?AC.currentTime:performance.now()/1000;
-  var dt=now-STRIKE_AT;
+  var dt=(FX_HOLD!==null)?FX_HOLD:(now-STRIKE_AT);
   var op=0;
   if(dt>=0){
     if(dt<FLASH_HOLD) op=1;
@@ -669,6 +669,8 @@ window.__game={
   instRect:function(){ var r=instSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
   finish:function(){ finishGame(); },
   fx:function(dt){ STRIKE_AT=(AC?AC.currentTime:performance.now()/1000)-dt; updateStrike(); },
+  fxHold:function(dt){ FX_HOLD=(dt===undefined||dt===null)?null:dt; updateStrike(); },
+  hud:function(on){ document.getElementById("hud").style.display=on?"flex":"none"; },
   drum:function(){ return {dry:DRUM_DRY, wet:DRUM_WET, gain:DRUM_HIT_GAIN, variants:drumSet.length}; },
   layoutFor:function(w,h){ layoutWith(w,h); stage.style.left="0px"; stage.style.top="0px"; return LAY.mode; },
   autoplay:function(on){
