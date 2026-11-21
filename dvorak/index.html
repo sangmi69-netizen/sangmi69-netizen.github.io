@@ -738,6 +738,7 @@ window.__game={
   preview:function(t){ if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} } musicSrc=null;
     els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t;
     if(AC && AC.state==="running"){ startAt=AC.currentTime - outLat - syncOffsetSec - t; }
+    if(AC && AC.suspend){ try{ AC.suspend(); }catch(e){} }
     overlay.classList.remove("on"); },
   drumRect:function(){ var r=drumSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
   finish:function(){ finishGame(); },
