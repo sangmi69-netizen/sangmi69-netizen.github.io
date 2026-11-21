@@ -33,6 +33,9 @@
 
   /* ── score ── */
   #scoreSvg{position:absolute;left:0;top:0;display:block;overflow:hidden;touch-action:none}
+  /* 악보 그룹은 매 프레임 이동한다. CSS transform 이 실제로 먹는 브라우저에서는
+     이 값을 GPU 합성 레이어로 올려 벡터 재래스터 없이 이동시킨다(JS에서 판별해 켠다). */
+  #layer{backface-visibility:hidden}
 
   /* ── drums ── */
   #drumArea{position:absolute;pointer-events:none;aspect-ratio:1142.6/589.3;height:auto;touch-action:none}
@@ -82,6 +85,13 @@
   .btn[disabled]{opacity:.4}
   .btn.ghost{background:#fff;color:#222;box-shadow:inset 0 0 0 1.4px rgba(0,0,0,.16)}
   .hint{margin-top:13px;font-size:11px;color:#9a9a9a;line-height:1.7}
+  .syncbox{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px;
+    margin:15px 0 0;font-size:10px;color:#b0b0b0;letter-spacing:.01em}
+  .syncbox b{min-width:42px;text-align:center;font-weight:500;color:#8f8f8f;font-size:10px;
+    font-variant-numeric:tabular-nums}
+  .sbtn{appearance:none;border:0;background:none;color:#bdbdbd;font-size:13px;line-height:1;
+    padding:3px 7px;font-family:var(--ui);cursor:pointer}
+  .sbtn:active{color:#5a5a5a}
   .credit{position:absolute;left:0;right:0;bottom:8px;font-size:9.5px;color:#a9a9a9;text-align:center;line-height:1.6;padding:0 16px}
   .credit a{color:#8d8d8d}
   #result .rank{font-size:clamp(44px,13vw,70px);line-height:.95;color:var(--red);margin:0 0 4px}
@@ -129,6 +139,13 @@
     </div>
     <button class="btn" id="startBtn">연주 시작</button>
     <div class="hint">왼쪽·오른쪽 팀파니를 직접 터치하거나<br>← → / A L 키로 연주할 수 있어요</div>
+    <div class="syncbox">
+      <span>싱크 보정</span>
+      <button class="sbtn" id="syncMinus" aria-label="싱크 보정 줄이기">−</button>
+      <b id="syncVal">0ms</b>
+      <button class="sbtn" id="syncPlus" aria-label="싱크 보정 늘리기">＋</button>
+      <span>빨간 선이 음악보다 앞서면 ＋</span>
+    </div>
     <div class="credit">반주: London Philharmonic Orchestra “Timpani Moments – Beethoven 8” · 작곡 L. v. Beethoven<br>
       <a href="https://youtu.be/cU-1WOYfpAM" target="_blank" rel="noopener">youtu.be/cU-1WOYfpAM</a></div>
   </div>
@@ -205,8 +222,38 @@ function fail(m){ errBox.style.display="block"; errBox.textContent=String(m); }
 var MASTER_GAIN=1.0, MUSIC_GAIN=1.25, DRUM_DRY=0.30, DRUM_WET=0.12, DRUM_HIT_GAIN=0.95;
 var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null, softLim=null;
 var HITS=0, lastHitWall=0, lastHitCtx=0;   /* 지연 확인용 계측 */
-var drumSets={F:[],C:[]}, musicBuf=null, musicSrc=null;
-var startAt=0, songT=0, phase="title";
+var drumSets={F:[],C:[]}, musicBuf=null, musicAb=null, musicFetch=null, musicSrc=null;
+var startAt=0, songT=0, phase="title", starting=false;
+/* ── 출력 지연(outputLatency) 보정 ───────────────────────────────
+   AC.outputLatency = 버퍼에 들어간 소리가 스피커로 나오기까지 걸리는 시간.
+   아이폰은 몇 ms지만 윈도우 노트북(WASAPI 드라이버·블루투스)은 30~200ms라서,
+   currentTime 만으로 그리면 빨간 재생선이 귀에 들리는 음악보다 그만큼 앞서간다.
+   → 악보 스크롤과 타격 판정 모두
+        heardT = (currentTime - startAt) - outLat - syncOffsetSec
+     를 쓴다. 그러면 "빨간 선이 음표를 지나는 순간"과 "그 음이 귀에 들리는 순간"이 같아진다.
+   ※ 블루투스처럼 OS가 지연을 정확히 보고하지 않는 경우를 위해 싱크 보정(−/0/+)도 둔다. */
+var outLat=0, syncOffsetSec=0, SYNC_KEY="timpani.syncMs.v1";
+function measuredOutLat(){
+  if(!AC) return 0;
+  var v=AC.outputLatency;
+  return (typeof v==="number" && v>0 && v<0.6) ? v : 0;
+}
+function readSyncOffset(){
+  var ms=0;
+  try{ ms=parseFloat(localStorage.getItem(SYNC_KEY)); }catch(e){ ms=0; }
+  if(!isFinite(ms)) ms=0;
+  ms=Math.max(-200,Math.min(200,Math.round(ms/10)*10));
+  syncOffsetSec=ms/1000;
+  return ms;
+}
+function setSyncOffset(ms){
+  ms=Math.max(-200,Math.min(200,Math.round(ms/10)*10));
+  syncOffsetSec=ms/1000;
+  try{ localStorage.setItem(SYNC_KEY,String(ms)); }catch(e){}
+  var v=document.getElementById("syncVal");
+  if(v) v.textContent=(ms>0?"+":"")+ms+"ms";
+  return ms;
+}
 /* ── 기준 음높이 ──────────────────────────────────────────────
    orchestra.mp3(LPO 연주)를 numpy/scipy로 정밀 측정한 값.
    · 오케스트라 조율 기준: 여러 대역(180~2500Hz)의 지속 배음 피크를
@@ -224,6 +271,10 @@ var startAt=0, songT=0, phase="title";
 var A4_REF=442.3;
 var F0={F:87.763, C:131.497};
 
+/* 첫 사용자 제스처(연주 시작 버튼·키) 안에서 부른다.
+   윈도우 크롬·엣지는 제스처 밖에서 만든 컨텍스트를 suspended 로 두었다가
+   나중에 resume 하면 출력 버퍼를 큰 쪽으로 다시 잡기도 한다. 제스처 안에서 만들면
+   처음부터 latencyHint:"interactive" 프로파일(가장 짧은 버퍼)로 뜬다. */
 function ensureAudio(){
   if(AC) return AC;
   var Ctx=window.AudioContext||window.webkitAudioContext;
@@ -241,9 +292,18 @@ function ensureAudio(){
   conv=AC.createConvolver(); conv.buffer=makeIR(1.15);
   drumWet=AC.createGain(); drumWet.gain.value=DRUM_WET;
   drumWet.connect(conv); conv.connect(master);
-  drumSets.F=[makeDrum(F0.F),makeDrum(F0.F),makeDrum(F0.F)];
-  drumSets.C=[makeDrum(F0.C),makeDrum(F0.C),makeDrum(F0.C)];
+  drumSets.F=[makeDrum(F0.F)];
+  drumSets.C=[makeDrum(F0.C)];
+  /* 음색 변형(각 3개)은 첫 타격 전까지(리드 1.2초)의 빈 시간에 채운다.
+     클릭 순간 제스처 안에서 6개를 다 합성하면 시작이 그만큼 늦어진다. */
   return AC;
+}
+function fillDrumVariants(){
+  if(!AC || drumSets.F.length>=3) return;
+  try{
+    while(drumSets.F.length<3) drumSets.F.push(makeDrum(F0.F));
+    while(drumSets.C.length<3) drumSets.C.push(makeDrum(F0.C));
+  }catch(e){}
 }
 /* 0.85 이하는 그대로, 넘는 부분만 tanh로 눌러 ±1.0에 점근하는 0지연 소프트클립.
    (반주·팀파니가 동시에 피크일 때만 아주 약하게 다듬는다.) */
@@ -343,14 +403,16 @@ function dataToBuffer(uri){
     }catch(e){ rej(e); }
   });
 }
-function loadMusic(){
-  if(musicBuf) return Promise.resolve(musicBuf);
-  if(!AC) return Promise.reject(new Error("no audio"));
-  var names=["orchestra.mp3?v=3","%EC%83%81%EB%AF%B8%EB%8B%98_%ED%8C%80%ED%8C%8C%EB%8B%88_%EA%B2%8C%EC%9E%84_%EB%B0%98%EC%A3%BC.mp3"];
+var MUSIC_NAMES=["orchestra.mp3?v=4","%EC%83%81%EB%AF%B8%EB%8B%98_%ED%8C%80%ED%8C%8C%EB%8B%88_%EA%B2%8C%EC%9E%84_%EB%B0%98%EC%A3%BC.mp3"];
+/* 사전 로드는 "파일 받아 두기"(fetch → ArrayBuffer)까지만 한다.
+   AudioContext 를 미리 만들면 제스처 밖에서 생겨 윈도우에서 버퍼가 커지므로,
+   디코드(decodeAudioData)는 제스처 안에서 만든 컨텍스트로 시작 순간에 한다. */
+function prefetchMusic(){
+  if(musicAb) return Promise.resolve(musicAb);
+  if(musicFetch) return musicFetch;        /* 진행 중인 요청은 그대로 재사용 */
   var i=0;
   function attempt(){
-    var name=names[i];
-    var got;
+    var name=MUSIC_NAMES[i], got;
     if(name.indexOf("data:")===0){
       got=dataToBuffer(name);
     } else if(window.fetch){
@@ -363,19 +425,44 @@ function loadMusic(){
     }
     return got.catch(function(e){
       i++;
-      if(i<names.length) return attempt();
+      if(i<MUSIC_NAMES.length) return attempt();
       throw e;
     });
   }
-  return attempt().then(function(ab){
-    return new Promise(function(res,rej){
-      var p=AC.decodeAudioData(ab,res,rej);
-      if(p&&p.then) p.then(res,rej);
-    });
+  musicFetch=attempt().then(function(ab){ musicAb=ab; musicFetch=null; return ab; },
+                            function(e){ musicFetch=null; throw e; });
+  return musicFetch;
+}
+function decodeMusic(ab){
+  return new Promise(function(res,rej){
+    /* decodeAudioData 는 넘긴 ArrayBuffer 를 비운다(detach). 재시도를 위해 사본을 넘긴다. */
+    var p=AC.decodeAudioData(ab.slice ? ab.slice(0) : ab,res,rej);
+    if(p&&p.then) p.then(res,rej);
   }).then(function(b){
     musicBuf=b;
     if(b && b.duration) SONG_END=Math.max(1,b.duration-0.15);
     return b;
+  });
+}
+function ensureMusic(){
+  if(musicBuf) return Promise.resolve(musicBuf);
+  return prefetchMusic().then(decodeMusic);
+}
+/* 연주 시작: 제스처 안에서 컨텍스트를 만들고, resume() 이 끝나 state==="running" 이 된
+   뒤에야 startAt 을 잡는다(예전에는 resume 을 기다리지 않아 시작 시각이 어긋났다). */
+function startAudio(){
+  if(!ensureAudio()) return Promise.reject(new Error("no audio"));
+  var resumed=(AC.resume?AC.resume():Promise.resolve())||Promise.resolve();
+  return resumed.then(function(){
+    if(AC.state==="running") return null;
+    return AC.resume().then(function(){
+      if(AC.state!=="running") throw new Error("audio suspended");
+    });
+  }).then(function(){
+    return ensureMusic();
+  }).then(function(){
+    outLat=measuredOutLat();
+    return AC;
   });
 }
 
@@ -497,7 +584,7 @@ function drawScore(){
 
 /* ══════════════════ 게임 상태 ══════════════════ */
 var SONG_END=51.0;
-var notes=[], stats=null;
+var notes=[], stats=null, missPtr=0;
 var W_PERFECT=0.085, W_GOOD=0.16, W_HIT=0.21;
 
 function buildChart(){
@@ -505,8 +592,21 @@ function buildChart(){
   D.notes.forEach(function(n){
     var t=xToTime(n.x);
     if(t < -0.05) return;          /* 영상 시작 전에 이미 지나간 음표 */
-    notes.push({t:t, d:n.p, src:n, done:false, res:null, flash:0});
+    notes.push({t:t, d:n.p, src:n, done:false, res:null});
   });
+  missPtr=0;
+}
+/* 놓친 음표 처리 — 음표는 시각 오름차순이므로 포인터 하나로 앞에서부터만 본다
+   (매 프레임 음표 37개를 전부 도는 것보다 가볍다). */
+function scanMisses(t){
+  while(missPtr<notes.length){
+    var n=notes[missPtr];
+    if(!n.done && t-n.t>W_HIT){
+      n.done=true; n.res="miss"; stats.miss++; stats.combo=0;
+      els.score.textContent=stats.score.toLocaleString("en-US");
+    }
+    if(n.done) missPtr++; else break;
+  }
 }
 var els={
   score:document.getElementById("hudScore"),
@@ -517,7 +617,8 @@ var els={
 };
 function resetStats(){
   stats={score:0,combo:0,maxCombo:0,perfect:0,good:0,miss:0,hits:0};
-  notes.forEach(function(n){ n.done=false; n.res=null; n.flash=0; });
+  notes.forEach(function(n){ n.done=false; n.res=null; });
+  missPtr=0;
   els.score.textContent="0";
 }
 function accuracy(){
@@ -525,44 +626,60 @@ function accuracy(){
   if(!total) return 1;
   return (stats.perfect+stats.good*0.55)/total;
 }
+/* 판정 글자: 강제 리플로우(offsetWidth)를 없애고 Web Animations 로 바로 띄운다.
+   입력 순간 메인 스레드에서 레이아웃 계산을 돌리지 않으므로 발음·판정이 늦지 않는다. */
+var judgeAnim=null;
 function judgeText(t){
-  var j=els.judge; j.textContent=t; j.className="";
-  void j.offsetWidth; j.className="show";
+  var j=els.judge; j.textContent=t;
+  if(j.animate){
+    if(judgeAnim){ try{ judgeAnim.cancel(); }catch(e){} }
+    j.classList.remove("show");
+    judgeAnim=j.animate([
+      {opacity:0, transform:"translate(-50%,-40%)"},
+      {opacity:0.9, offset:0.3},
+      {opacity:0, transform:"translate(-50%,-60%)"}
+    ],{duration:500,easing:"ease"});
+    return;
+  }
+  j.className=""; void j.offsetWidth; j.className="show";   /* 애니메이션 미지원 브라우저용 */
 }
 function startGame(){
-  if(phase==="play") return;
-  ensureAudio();
-  if(!AC) return;
-  AC.resume();
-  var go=function(){
-    AC.resume();
+  if(phase==="play" || starting) return;
+  starting=true;
+  els.startBtn.disabled=true; els.startBtn.textContent="음악 준비 중…";
+  var unlock=function(){
+    starting=false;
+    els.startBtn.disabled=false; els.startBtn.textContent="연주 시작";
+  };
+  startAudio().then(function(){
+    /* 여기서는 AC.state==="running" 이고 음원도 디코드됐다 → 지금 시작 시각을 잡는다. */
+    outLat=measuredOutLat();
     resetStats();
     els.start.classList.add("hide");
     els.result.classList.add("hide");
     var lead=1.2;
-    startAt=AC.currentTime+lead;
     if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} }
     musicSrc=AC.createBufferSource();
     musicSrc.buffer=musicBuf;
     musicSrc.connect(musicGain);
+    startAt=AC.currentTime+lead;
     musicSrc.start(startAt);
     phase="play"; songT=-lead;
-  };
-  if(musicBuf){ go(); return; }
-  els.startBtn.disabled=true; els.startBtn.textContent="음악 준비 중…";
-  loadMusic().then(function(){
-    els.startBtn.disabled=false; els.startBtn.textContent="연주 시작"; go();
+    unlock();
+    /* 남은 팀파니 음색 변형은 연주가 시작된 뒤 빈 시간에 만든다(첫 타격은 1.2초 뒤). */
+    if(window.requestIdleCallback) requestIdleCallback(fillDrumVariants,{timeout:800});
+    else setTimeout(fillDrumVariants,120);
   }).catch(function(e){
-    els.startBtn.disabled=false; els.startBtn.textContent="연주 시작";
+    unlock();
     fail("음악을 불러오지 못했습니다: "+e.message+"\n주소 https://sangmi69-netizen.github.io/timpani/ 로 열면 바로 재생됩니다.");
   });
 }
 function hit(drum){
   if(phase!=="play"){ playDrum(drum,1); return; }
   playDrum(drum,1);
-  /* 프레임(loop)이 갱신해 둔 songT는 최대 한 프레임(≈16ms) 묵을 수 있다.
-     판정은 입력 순간의 오디오 클럭으로 바로 계산해 반응·판정을 일치시킨다. */
-  var t = AC ? (AC.currentTime-startAt) : songT;
+  /* 판정은 입력 순간의 오디오 클럭으로 바로 계산한다. 여기에 outputLatency 와
+     싱크 보정을 빼서 "귀에 들리는 음악" 기준 시각으로 맞춘다. */
+  var t = AC ? (AC.currentTime-startAt-outLat-syncOffsetSec) : songT;
   var best=null, bestErr=1e9, i, n;
   for(i=0;i<notes.length;i++){
     n=notes[i];
@@ -573,7 +690,7 @@ function hit(drum){
   if(best){
     var ad=Math.abs(t-best.t);
     var res = ad<=W_PERFECT?"perfect":(ad<=W_GOOD?"good":"miss");
-    best.done=true; best.res=res; best.flash=1; paintNote(best.src);
+    best.done=true; best.res=res; paintNote(best.src);
     if(res==="perfect"){
       stats.perfect++; stats.hits++; stats.combo++;
       stats.score+=Math.round(1000*(1+Math.min(stats.combo,50)*0.02));
@@ -619,10 +736,24 @@ function stopAll(){
 
 /* ══════════════════ 드럼 연출 ══════════════════ */
 var imgL=document.getElementById("drumL"), imgR=document.getElementById("drumR");
-/* 음표 머리를 입력 즉시 빨갛게 바꾼다(다음 rAF를 기다리지 않는다). */
+/* 음표 머리를 입력 즉시 빨갛게 바뀐다(다음 rAF를 기다리지 않는다).
+   잠시 뒤 검정으로 되돌리는 일까지 Web Animations 가 맡으므로,
+   예전처럼 매 프레임 모든 음표의 DOM 속성을 순회할 필요가 없다. */
 function paintNote(n){
   if(!n||!n._head) return;
-  n._head.setAttribute("fill","#e0392c");
+  var h=n._head;
+  h.style.fill="#e0392c";
+  if(n._anim){ try{ n._anim.cancel(); }catch(e){} n._anim=null; }
+  if(n._ft){ clearTimeout(n._ft); n._ft=0; }
+  if(h.animate){
+    try{
+      var a=h.animate([{fill:"#e0392c"},{fill:"#141414"}],{duration:430,easing:"ease-out",fill:"both"});
+      n._anim=a;
+      a.onfinish=function(){ try{ a.cancel(); }catch(e){} h.style.fill=""; n._anim=null; };
+      return;
+    }catch(e){}
+  }
+  n._ft=setTimeout(function(){ h.style.fill=""; n._ft=0; },430);
 }
 function drumFX(which){
   var im = which==="F"?imgL:imgR;
@@ -698,35 +829,41 @@ window.addEventListener("orientationchange", function(){ setTimeout(layout,240);
 
 /* ══════════════════ 루프 ══════════════════ */
 var lastFrame=0;
+/* 악보 그룹 이동을 SVG 속성 transform 으로 할지 CSS transform(GPU 합성) 으로 할지
+   실제 렌더링으로 판별한다. iOS 구버전 사파리는 SVG 요소의 CSS transform 을
+   그리지 않으므로, 그런 브라우저에서는 예전처럼 속성 transform 을 쓴다. */
+var CSS_LAYER_T=null;
+function detectCssSvgTransform(){
+  try{
+    var s=document.createElementNS(SVGNS,"svg");
+    s.setAttribute("width","120"); s.setAttribute("height","40");
+    s.style.position="absolute"; s.style.left="-2000px"; s.style.top="0";
+    var g=document.createElementNS(SVGNS,"g");
+    var r=document.createElementNS(SVGNS,"rect");
+    r.setAttribute("x","0"); r.setAttribute("y","0"); r.setAttribute("width","10"); r.setAttribute("height","10");
+    g.appendChild(r); s.appendChild(g); document.body.appendChild(s);
+    var base=r.getBoundingClientRect().left;
+    g.style.transform="translateX(50px)";
+    var moved=r.getBoundingClientRect().left;
+    document.body.removeChild(s);
+    return (moved-base)>30;
+  }catch(e){ return false; }
+}
 function renderScore(now){
   var x = timeToX(Math.max(0,now));
   var dx = x - PH;
-  layer.setAttribute("transform","translate("+(-dx).toFixed(1)+",0)");
-  for(var j=0;j<D.notes.length;j++){
-    var n=D.notes[j];
-    if(!n._grp) continue;
-    if(n.flash>0){
-      n._head.setAttribute("fill", "rgba(224,57,44,"+(0.35+0.65*n.flash).toFixed(2)+")");
-    } else if(n._flashOn){
-      n._head.setAttribute("fill","#141414"); n._flashOn=false;
-    }
-    if(n.flash>0) n._flashOn=true;
-  }
+  /* 이동만 하는 레이어라 translateX 한 번으로 끝낸다(자식 노드 순회 없음). */
+  if(CSS_LAYER_T) layer.style.transform="translateX("+(-dx).toFixed(2)+"px)";
+  else layer.setAttribute("transform","translate("+(-dx).toFixed(1)+",0)");
 }
+var latTick=0;
 function loop(now){
   var dt=Math.min(0.05,(now-lastFrame)/1000||0); lastFrame=now;
   if(phase==="play"){
-    songT = AC ? (AC.currentTime-startAt) : songT+dt;
-    if(songT>0){
-      for(var i=0;i<notes.length;i++){
-        var n=notes[i];
-        if(!n.done && songT-n.t>W_HIT){
-          n.done=true; n.res="miss"; stats.miss++; stats.combo=0;
-          els.score.textContent=stats.score.toLocaleString("en-US");
-        }
-      }
-    }
-    for(var k=0;k<notes.length;k++) if(notes[k].flash>0) notes[k].flash=Math.max(0,notes[k].flash-dt*4.2);
+    /* songT = 귀에 들리는 시각(출력 지연·싱크 보정 차감). */
+    songT = AC ? (AC.currentTime-startAt-outLat-syncOffsetSec) : songT+dt;
+    if((++latTick & 31)===0) outLat=measuredOutLat();   /* 이어폰 교체 등에 대비(0.5초 간격) */
+    if(songT>0) scanMisses(songT);
     if(songT>SONG_END+0.4) finishGame();
   }
   renderScore(phase==="play"||phase==="done" ? Math.max(songT,0) : 0);
@@ -772,6 +909,10 @@ document.getElementById("pauseBtn").addEventListener("click", function(){
   if(AC.state==="running"){ AC.suspend(); this.textContent="▶"; }
   else { AC.resume(); this.textContent="❚❚"; }
 });
+/* 싱크 보정 (− / 0 / +) — 시작 화면에만 있고 연주 화면은 그대로 깨끗하다. */
+var syncMinus=document.getElementById("syncMinus"), syncPlus=document.getElementById("syncPlus");
+if(syncMinus) syncMinus.addEventListener("click", function(){ setSyncOffset(Math.round(syncOffsetSec*1000)-10); });
+if(syncPlus) syncPlus.addEventListener("click", function(){ setSyncOffset(Math.round(syncOffsetSec*1000)+10); });
 document.addEventListener("gesturestart", function(e){ e.preventDefault(); }, {passive:false});
 
 /* ══════════════════ iOS Safari 확대(더블탭·핀치) 차단 ══════════════════
@@ -809,11 +950,16 @@ function zoomScale(){
 }
 
 /* ══════════════════ boot ══════════════════ */
+CSS_LAYER_T=detectCssSvgTransform();
+if(CSS_LAYER_T && layer.style) layer.style.willChange="transform";
 drawScore();
 buildChart();
 layout();
 resetStats();
-try{ ensureAudio(); loadMusic().then(function(){ window.__musicReady=true; }); }catch(e){ fail(e); }
+setSyncOffset(readSyncOffset());
+/* AudioContext 는 만들지 않고 음원 파일(ArrayBuffer)만 미리 받아 둔다.
+   컨텍스트 생성·decode 는 "연주 시작" 제스처 안에서 한다(startAudio). */
+prefetchMusic().then(function(){ window.__musicReady=true; }).catch(function(){});
 requestAnimationFrame(loop);
 
 window.__game={
@@ -828,8 +974,13 @@ window.__game={
   layoutFor:function(w,h){ layoutWith(w,h); canvas.style.left="0px"; canvas.style.top="0px"; },
   /* ── 확인용 계측 ── */
   latency:function(){
-    return {base:AC?AC.baseLatency:null, output:AC?(AC.outputLatency||0):null, sr:AC?AC.sampleRate:null};
+    return {base:AC?AC.baseLatency:null, output:AC?(AC.outputLatency||0):null,
+            used:outLat, syncMs:Math.round(syncOffsetSec*1000), sr:AC?AC.sampleRate:null};
   },
+  heard:function(){ return AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT; },
+  sync:function(ms){ if(typeof ms==="number"){ setSyncOffset(ms); return Math.round(syncOffsetSec*1000); }
+    return {ms:Math.round(syncOffsetSec*1000), outLat:outLat, measured:measuredOutLat(), css:!!CSS_LAYER_T}; },
+  startState:function(){ return {starting:starting, resume:AC?AC.state:null, haveBuf:!!musicBuf, haveAb:!!musicAb}; },
   levels:function(){
     var m=musicBuf?bufStats(musicBuf):null;
     var dr=(drumSets.F&&drumSets.F[0])?bufStats(drumSets.F[0]):null;
