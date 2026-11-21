@@ -289,16 +289,37 @@ function playDrum(which, scale){
   }
   src.start(0);
 }
+function dataToBuffer(uri){
+  /* data:...;base64,... 를 fetch 없이 ArrayBuffer로 만든다(한 파일 저장본용). */
+  return new Promise(function(res,rej){
+    try{
+      var i=uri.indexOf(","), head=uri.slice(5,i), body=uri.slice(i+1);
+      if(head.indexOf("base64")<0) throw new Error("not base64");
+      var bin=atob(body), n=bin.length, u8=new Uint8Array(n);
+      for(var k=0;k<n;k++) u8[k]=bin.charCodeAt(k);
+      res(u8.buffer);
+    }catch(e){ rej(e); }
+  });
+}
 function loadMusic(){
   if(musicBuf) return Promise.resolve(musicBuf);
-  if(!window.fetch||!AC) return Promise.reject(new Error("no fetch"));
+  if(!AC) return Promise.reject(new Error("no audio"));
   var names=["orchestra.mp3?v=3","%EC%83%81%EB%AF%B8%EB%8B%98_%ED%8C%80%ED%8C%8C%EB%8B%88_%EA%B2%8C%EC%9E%84_%EB%B0%98%EC%A3%BC.mp3"];
   var i=0;
   function attempt(){
-    return fetch(names[i]).then(function(r){
-      if(!r.ok) throw new Error("HTTP "+r.status);
-      return r.arrayBuffer();
-    }).catch(function(e){
+    var name=names[i];
+    var got;
+    if(name.indexOf("data:")===0){
+      got=dataToBuffer(name);
+    } else if(window.fetch){
+      got=fetch(name).then(function(r){
+        if(!r.ok) throw new Error("HTTP "+r.status);
+        return r.arrayBuffer();
+      });
+    } else {
+      got=Promise.reject(new Error("no fetch"));
+    }
+    return got.catch(function(e){
       i++;
       if(i<names.length) return attempt();
       throw e;
