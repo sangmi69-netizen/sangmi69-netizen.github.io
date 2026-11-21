@@ -668,6 +668,8 @@ window.__game={
   scoreRect:function(){ var r=scoreSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
   instRect:function(){ var r=instSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
   finish:function(){ finishGame(); },
+  fx:function(dt){ STRIKE_AT=(AC?AC.currentTime:performance.now()/1000)-dt; updateStrike(); },
+  drum:function(){ return {dry:DRUM_DRY, wet:DRUM_WET, gain:DRUM_HIT_GAIN, variants:drumSet.length}; },
   layoutFor:function(w,h){ layoutWith(w,h); stage.style.left="0px"; stage.style.top="0px"; return LAY.mode; },
   autoplay:function(on){
     if(window.__auto){ window.__auto.forEach(function(id){ clearTimeout(id); }); window.__auto=null; }
