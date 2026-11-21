@@ -275,7 +275,7 @@ function dataToBuffer(uri){
     }catch(e){ rej(e); }
   });
 }
-var MUSIC_NAMES=["orchestra.mp3?v=1"];
+var MUSIC_NAMES=["orchestra.mp3?v=2"];
 function prefetchMusic(){
   if(musicAb) return Promise.resolve(musicAb);
   if(musicFetch) return musicFetch;
