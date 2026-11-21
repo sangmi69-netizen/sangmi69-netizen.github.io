@@ -742,26 +742,6 @@ window.__game={
   layoutInfo:function(){ return {mode:LAYOUT.mode, canvas:[canvas.style.width,canvas.style.height]}; },
   pitch:function(){ return {A4:A4_REF, F:F0.F, C:F0.C}; },
   zoom:function(){ return zoomScale(); },
-  /* 확인용: 두 번 연속 터치를 흘려보내 더블탭 차단이 걸리는지 확인한다. */
-  zoomTest:function(){
-    var z=zoneF, r=z.getBoundingClientRect(), out=[];
-    function mk(type,id){
-      var t=new Touch({identifier:id,target:z,clientX:r.left+r.width/2,clientY:r.top+r.height/2});
-      return new TouchEvent(type,{bubbles:true,cancelable:true,composed:true,
-        touches:type==="touchend"?[]:[t],targetTouches:type==="touchend"?[]:[t],changedTouches:[t]});
-    }
-    function tap(id){
-      z.dispatchEvent(mk("touchstart",id));
-      var e=mk("touchend",id); var ok=z.dispatchEvent(e);
-      return {delivered:ok, prevented:e.defaultPrevented};
-    }
-    out.push(tap(11));
-    var t0=Date.now(); while(Date.now()-t0<90){}
-    out.push(tap(12));
-    var t1=Date.now(); while(Date.now()-t1<450){}
-    out.push(tap(13));
-    return {taps:out, zoom:zoomScale()};
-  },
   layoutFor:function(w,h){ layoutWith(w,h); canvas.style.left="0px"; canvas.style.top="0px"; },
   /* 확인용: 특정 시각의 화면을 그대로 보여준다 */
   preview:function(t){ if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; } els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t; }
