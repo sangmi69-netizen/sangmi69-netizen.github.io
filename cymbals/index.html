@@ -624,7 +624,7 @@ window.__game={
   preview:function(t){
     if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} } musicSrc=null;
     els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t;
-    if(AC && AC.state==="running"){ startAt=AC.currentTime - outLat - syncOffsetSec - t; }
+    startAt=(AC?AC.currentTime:0) - outLat - syncOffsetSec - t;
     if(AC && AC.suspend){ try{ AC.suspend(); }catch(e){} }
   },
   cymRect:function(){ var r=cymSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
