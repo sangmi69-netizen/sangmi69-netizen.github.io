@@ -315,9 +315,10 @@ function addNote(x,p,kind,grace,parent){
   var rx=grace?NOTE_RX*0.62:NOTE_RX, ry=grace?NOTE_RY*0.62:NOTE_RY;
   var head=mk("ellipse",{cx:x.toFixed(1),cy:y.toFixed(1),rx:rx.toFixed(1),ry:ry.toFixed(1),
     fill:kind==="half"?"#fff":"#141414",stroke:kind==="half"?"#141414":"none",
-    "stroke-width":kind==="half"?4.0:0,
+    "stroke-width":kind==="half"?4.6:0,
     transform:"rotate(-20 "+x.toFixed(1)+" "+y.toFixed(1)+")"});
   g.appendChild(head);
+  if(kind==="half"){ parent.appendChild(g); return g; }
   var down=(p==="E");
   var sx=x+(grace?2.6:5.6);
   var len=grace?STEM_LEN*0.62:STEM_LEN;
