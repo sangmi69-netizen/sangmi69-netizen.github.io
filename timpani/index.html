@@ -193,7 +193,15 @@ var errBox=document.getElementById("err");
 function fail(m){ errBox.style.display="block"; errBox.textContent=String(m); }
 
 /* ══════════════════ audio ══════════════════ */
-var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null;
+/* ── 음량 밸런스(사용자 요청: “팀파니 소리는 조금만 줄이고 음악이 더 크게”) ──
+   orchestra.mp3 실측: peak −4.9dBFS(0.567) / RMS −25dB. 팀파니 합성 버퍼는
+   peak 0.92로 정규화돼 있어 예전에는 팀파니 쪽이 반주보다 훨씬 컸고,
+   master의 컴프레서(-6dB, ratio 6)가 반주까지 눌러 묻혔다.
+   → 팀파니 버스 0.62/0.26 → 0.30/0.12 (약 46%), 반주 게인 0.85 → 1.55.
+      컴프레서 대신 0지연 소프트클립으로 피크만 다듬어 반주가 눌리지 않게 한다. */
+var MASTER_GAIN=1.0, MUSIC_GAIN=1.55, DRUM_DRY=0.30, DRUM_WET=0.12, DRUM_HIT_GAIN=0.95;
+var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null, softLim=null;
+var HITS=0, lastHitWall=0, lastHitCtx=0;   /* 지연 확인용 계측 */
 var drumSets={F:[],C:[]}, musicBuf=null, musicSrc=null;
 var startAt=0, songT=0, phase="title";
 /* ── 기준 음높이 ──────────────────────────────────────────────
@@ -217,20 +225,32 @@ function ensureAudio(){
   if(AC) return AC;
   var Ctx=window.AudioContext||window.webkitAudioContext;
   if(!Ctx){ fail("이 브라우저에서는 소리를 재생할 수 없습니다."); return null; }
+  /* latencyHint:'interactive' — 브라우저가 가장 짧은 출력 버퍼를 잡는다(키→소리 지연 최소화). */
   AC=new Ctx({latencyHint:"interactive"});
-  master=AC.createGain(); master.gain.value=0.95;
-  var limit=AC.createDynamicsCompressor();
-  limit.threshold.value=-6; limit.knee.value=8; limit.ratio.value=6;
-  limit.attack.value=0.003; limit.release.value=0.18;
-  master.connect(limit); limit.connect(AC.destination);
-  musicGain=AC.createGain(); musicGain.gain.value=0.85; musicGain.connect(master);
-  drumDry=AC.createGain(); drumDry.gain.value=0.62; drumDry.connect(master);
+  /* 마스터에 DynamicsCompressor를 두지 않는다: 크롬 컴프레서는 약 6ms의
+     룩어헤드 지연을 더하고, 큰 팀파니 피크마다 반주 전체를 눌러 버린다.
+     지연 0인 WaveShaper 소프트클립으로 넘치는 피크만 부드럽게 다듬는다. */
+  master=AC.createGain(); master.gain.value=MASTER_GAIN;
+  softLim=AC.createWaveShaper(); softLim.curve=softClipCurve(); softLim.oversample="none";
+  master.connect(softLim); softLim.connect(AC.destination);
+  musicGain=AC.createGain(); musicGain.gain.value=MUSIC_GAIN; musicGain.connect(master);
+  drumDry=AC.createGain(); drumDry.gain.value=DRUM_DRY; drumDry.connect(master);
   conv=AC.createConvolver(); conv.buffer=makeIR(1.15);
-  drumWet=AC.createGain(); drumWet.gain.value=0.26;
+  drumWet=AC.createGain(); drumWet.gain.value=DRUM_WET;
   drumWet.connect(conv); conv.connect(master);
   drumSets.F=[makeDrum(F0.F),makeDrum(F0.F),makeDrum(F0.F)];
   drumSets.C=[makeDrum(F0.C),makeDrum(F0.C),makeDrum(F0.C)];
   return AC;
+}
+/* 0.72 이하는 그대로, 넘는 부분만 tanh로 눌러 ±1.0에 점근하는 0지연 소프트클립. */
+function softClipCurve(){
+  var n=4096, c=new Float32Array(n), a=0.72, i;
+  for(i=0;i<n;i++){
+    var x=i/(n-1)*2-1, ax=Math.abs(x), y;
+    if(ax<=a) y=ax; else y=a+(1-a)*Math.tanh((ax-a)/(1-a));
+    c[i]= x<0 ? -y : y;
+  }
+  return c;
 }
 function makeIR(dur){
   var sr=AC.sampleRate, n=Math.floor(dur*sr), buf=AC.createBuffer(2,n,sr);
@@ -261,6 +281,20 @@ function makeDrum(f0){
     if(m===0) ph0=ph;
     for(i=0;i<n;i++){ d[i]+=e*Math.sin(om*i+ph); e*=kd; }
   }
+  /* ── 타격 트랜지언트: 반드시 0번 샘플(0ms)에서 바로 터진다 ──────────
+     버퍼 앞에는 무음 패딩도, 어택 램프도 없다(원래도 0샘플 시작이지만
+     모드 위상이 매번 랜덤이라 버퍼 3개 중에는 첫 파형이 약한 것이 섞였다).
+     0위상 코사인 저역 타격(12ms 감쇠)으로 첫 샘플을 항상 크게 만들고,
+     말렛이 살에 닿는 부드러운 클릭(저역 통과한 잡음·3ms 감쇠)을 앞에 더했다.
+     마지막에 피크 0.92로 다시 정규화하므로 전체 레벨은 그대로다. */
+  var nt=Math.floor(0.08*sr);
+  for(i=0;i<nt;i++){ d[i]+=0.55*Math.cos(2*Math.PI*f0*i/sr)*Math.exp(-i/(0.012*sr)); }
+  var nc=Math.floor(0.012*sr), ck=0, cf=0.50, cdec=0.004*sr;
+  for(i=0;i<nc;i++){
+    var w0=Math.random()*2-1;
+    ck=ck*cf+w0*(1-cf);          /* 저역 통과: 밝은 “딱” 대신 먹먹한 “툭” */
+    d[i]+=ck*1.6*Math.exp(-i/cdec);
+  }
   var nb=Math.floor(0.026*sr), lp=0;
   for(i=0;i<nb;i++){ var w=Math.random()*2-1; lp=lp*0.72+w*0.28; d[i]+=lp*1.25*Math.pow(1-i/nb,2.4); }
   /* 타격 직후의 짧은 저역 "툭" — 기본음과 같은 위상으로 더해 음정을 보강한다. */
@@ -282,7 +316,7 @@ function playDrum(which, scale){
   /* 타격마다의 미세한 음높이 흔들림은 ±1.2센트 이내로 제한(예전 ±1%≈±17센트).
      음정이 흔들려 들리지 않게 하고, 생동감은 세 가지 음색 변형으로 준다. */
   src.playbackRate.value=0.9993+Math.random()*0.0014;
-  var g=AC.createGain(); g.gain.value=0.95*(scale||1);
+  var g=AC.createGain(); g.gain.value=DRUM_HIT_GAIN*(scale||1);
   if(AC.createStereoPanner){
     var pan=AC.createStereoPanner(); pan.pan.value = which==="F" ? -0.32 : 0.32;
     src.connect(g); g.connect(pan); pan.connect(drumDry); pan.connect(drumWet);
@@ -290,6 +324,8 @@ function playDrum(which, scale){
     src.connect(g); g.connect(drumDry); g.connect(drumWet);
   }
   src.start(0);
+  HITS++; lastHitWall=(window.performance&&performance.now)?performance.now():Date.now();
+  lastHitCtx=AC.currentTime;
 }
 function dataToBuffer(uri){
   /* data:...;base64,... 를 fetch 없이 ArrayBuffer로 만든다(한 파일 저장본용). */
@@ -518,9 +554,12 @@ function startGame(){
   });
 }
 function hit(drum){
-  if(phase!=="play"){ playDrum(drum,0.8); return; }
+  if(phase!=="play"){ playDrum(drum,1); return; }
   playDrum(drum,1);
-  var t=songT, best=null, bestErr=1e9, i, n;
+  /* 프레임(loop)이 갱신해 둔 songT는 최대 한 프레임(≈16ms) 묵을 수 있다.
+     판정은 입력 순간의 오디오 클럭으로 바로 계산해 반응·판정을 일치시킨다. */
+  var t = AC ? (AC.currentTime-startAt) : songT;
+  var best=null, bestErr=1e9, i, n;
   for(i=0;i<notes.length;i++){
     n=notes[i];
     if(n.done||n.d!==drum) continue;
@@ -530,7 +569,7 @@ function hit(drum){
   if(best){
     var ad=Math.abs(t-best.t);
     var res = ad<=W_PERFECT?"perfect":(ad<=W_GOOD?"good":"miss");
-    best.done=true; best.res=res; best.flash=1;
+    best.done=true; best.res=res; best.flash=1; paintNote(best.src);
     if(res==="perfect"){
       stats.perfect++; stats.hits++; stats.combo++;
       stats.score+=Math.round(1000*(1+Math.min(stats.combo,50)*0.02));
@@ -576,12 +615,28 @@ function stopAll(){
 
 /* ══════════════════ 드럼 연출 ══════════════════ */
 var imgL=document.getElementById("drumL"), imgR=document.getElementById("drumR");
+/* 음표 머리를 입력 즉시 빨갛게 바꾼다(다음 rAF를 기다리지 않는다). */
+function paintNote(n){
+  if(!n||!n._head) return;
+  n._head.setAttribute("fill","#e0392c");
+}
 function drumFX(which){
   var im = which==="F"?imgL:imgR;
+  /* Web Animations로 바로 시작 — classList 재시작용 강제 reflow(offsetWidth) 없음. */
+  if(im.animate){
+    if(drumAnim[which]){ try{ drumAnim[which].cancel(); }catch(e){} }
+    drumAnim[which]=im.animate([
+      {transform:"translateY(0) scaleY(1)"},
+      {transform:"translateY(1.1%) scaleY(.985)", offset:0.35},
+      {transform:"translateY(0) scaleY(1)"}
+    ],{duration:160,easing:"ease-out"});
+    return;
+  }
   im.classList.remove("drum-hit");
   void im.offsetWidth;
   im.classList.add("drum-hit");
 }
+var drumAnim={F:null,C:null};
 
 /* ══════════════════ 레이아웃 ══════════════════ */
 var canvas=document.getElementById("canvas");
@@ -676,11 +731,11 @@ function loop(now){
 
 /* ══════════════════ 입력 ══════════════════ */
 function press(which){
+  hit(which);          /* 소리 먼저 — 시각 효과의 강제 레이아웃 계산이 발음보다 앞서지 않게 */
   drumFX(which);
   var z=which==="F"?zoneF:zoneC;
   z.classList.add("on");
   setTimeout(function(){ z.classList.remove("on"); },90);
-  hit(which);
 }
 [["F",zoneF],["C",zoneC]].forEach(function(pr){
   pr[1].addEventListener("pointerdown", function(ev){
@@ -691,6 +746,7 @@ function press(which){
 });
 document.addEventListener("keydown", function(e){
   var k=e.key;
+  if(e.repeat) return;          /* 키를 누르고 있을 때의 자동 반복은 무시(연타가 깔끔해진다) */
   if(k==="ArrowLeft"||k==="a"||k==="A"||k==="f"||k==="F"){
     if(phase==="play"){ e.preventDefault(); press("F"); }
   } else if(k==="ArrowRight"||k==="l"||k==="L"||k==="j"||k==="J"){
@@ -766,9 +822,42 @@ window.__game={
   pitch:function(){ return {A4:A4_REF, F:F0.F, C:F0.C}; },
   zoom:function(){ return zoomScale(); },
   layoutFor:function(w,h){ layoutWith(w,h); canvas.style.left="0px"; canvas.style.top="0px"; },
+  /* ── 확인용 계측 ── */
+  latency:function(){
+    return {base:AC?AC.baseLatency:null, output:AC?(AC.outputLatency||0):null, sr:AC?AC.sampleRate:null};
+  },
+  levels:function(){
+    var m=musicBuf?bufStats(musicBuf):null;
+    var dr=(drumSets.F&&drumSets.F[0])?bufStats(drumSets.F[0]):null;
+    return {
+      gains:{master:MASTER_GAIN, music:MUSIC_GAIN, drumDry:DRUM_DRY, drumWet:DRUM_WET, drumHit:DRUM_HIT_GAIN},
+      music:m?{peak:m.peak, rms:m.rms, outPeak:m.peak*MUSIC_GAIN*MASTER_GAIN, outRms:m.rms*MUSIC_GAIN*MASTER_GAIN}:null,
+      drum:dr?{peak:dr.peak, rms:dr.rms, outPeak:dr.peak*DRUM_HIT_GAIN*DRUM_DRY*MASTER_GAIN, outRms:dr.rms*DRUM_HIT_GAIN*DRUM_DRY*MASTER_GAIN}:null
+    };
+  },
+  attack:function(){
+    function one(b){
+      var d=b.getChannelData(0), p=0, i;
+      for(i=0;i<d.length;i++){ var a=Math.abs(d[i]); if(a>p) p=a; }
+      var first=-1, first10=-1;
+      for(i=0;i<d.length;i++){ if(first<0 && Math.abs(d[i])>p*0.5) first=i; if(first10<0 && Math.abs(d[i])>p*0.05) first10=i; }
+      return {peak:+(p.toFixed(3)), v0:+(d[0].toFixed(3)), firstHalfIdx:first, first5pctIdx:first10,
+              firstHalfMs:+(first/b.sampleRate*1000).toFixed(2), first5pctMs:+(first10/b.sampleRate*1000).toFixed(2)};
+    }
+    return (drumSets.F&&drumSets.F.length)?drumSets.F.map(one):null;
+  },
+  taps:function(){ return {hits:HITS, lastHitWall:lastHitWall, lastHitCtx:lastHitCtx}; },
   /* 확인용: 특정 시각의 화면을 그대로 보여준다 */
-  preview:function(t){ if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; } els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t; }
+  preview:function(t){ if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} } musicSrc=null; els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t; }
 };
+function bufStats(buf){
+  var p=0, s=0, cnt=0, c, i, d;
+  for(c=0;c<buf.numberOfChannels;c++){
+    d=buf.getChannelData(c);
+    for(i=0;i<d.length;i++){ var a=Math.abs(d[i]); if(a>p) p=a; s+=d[i]*d[i]; cnt++; }
+  }
+  return {peak:p, rms:cnt?Math.sqrt(s/cnt):0, dur:buf.duration, sr:buf.sampleRate};
+}
 })();
 </script>
 </body>
