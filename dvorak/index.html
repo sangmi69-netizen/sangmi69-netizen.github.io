@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23141414'/%3E%3Cellipse cx='16' cy='11' rx='9' ry='3.2' fill='%23d40006'/%3E%3Cpath d='M7 11v9.2c0 1.8 4 3.2 9 3.2s9-1.4 9-3.2V11' fill='none' stroke='%23d40006' stroke-width='2.2' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>팀파니 모먼트 — 드보르작 신세계 교향곡</title>
+<style>
+  :root{ --ink:#141414; --red:#d40006; --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0;background:#fff;overflow:hidden}
+  html{touch-action:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{font-family:var(--ui);color:var(--ink);overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+  #app{position:fixed;inset:0;background:#fff;touch-action:none}
+  #stage{position:absolute;inset:0;background:#fff;touch-action:none;overflow:hidden}
+  svg{display:block;position:absolute;touch-action:none;overflow:visible}
+  #score{left:0;top:0;width:100%}
+  #drums{left:0;top:0;width:100%}
+  #layer{backface-visibility:hidden}
+  .zone{position:absolute;z-index:4;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .zone.on{background:rgba(212,0,6,.05)}
+  #overlay{position:absolute;left:0;right:0;pointer-events:none;z-index:3;text-align:center;opacity:0;transition:opacity .35s}
+  #overlay.on{opacity:1}
+  #ovtext{color:var(--red);font-size:46px;letter-spacing:.01em;font-weight:400}
+  #hud{position:absolute;top:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding:8px 12px;pointer-events:none}
+  #hudScore{font-size:11px;letter-spacing:.08em;color:#c4c4c4;font-variant-numeric:tabular-nums}
+  #pauseBtn{pointer-events:auto;appearance:none;background:none;border:0;padding:4px 2px;font-size:11px;letter-spacing:.12em;color:#c9c9c9}
+  #judge{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:clamp(15px,3.6vw,21px);letter-spacing:.2em;color:var(--red);opacity:0;pointer-events:none;z-index:7;font-weight:600}
+  .ov{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 22px;background:#fff;transition:opacity .3s ease,visibility .3s}
+  .ov.hide{opacity:0;visibility:hidden;pointer-events:none}
+  .ov h1{font-size:clamp(21px,5.6vw,32px);font-weight:600;letter-spacing:.01em;margin:0 0 8px}
+  .ov h1 em{font-style:normal;color:var(--red)}
+  .ov .sub{font-size:clamp(11.5px,3.1vw,13.5px);color:#6c6c6c;line-height:1.75;margin:0 0 18px}
+  .rule{width:36px;height:2px;background:var(--red);border-radius:2px;margin:0 auto 15px}
+  .legend{display:flex;gap:30px;margin:0 0 20px;font-size:11.5px;color:#777}
+  .legend div{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .legend b{font-size:15px;color:#222;font-weight:600}
+  .legend b.red{color:var(--red)}
+  .btn{appearance:none;border:0;cursor:pointer;font-family:var(--ui);font-size:15px;font-weight:600;letter-spacing:.02em;color:#fff;background:#111;padding:13px 32px;border-radius:999px}
+  .btn:active{transform:translateY(1px)}
+  .btn[disabled]{opacity:.4}
+  .btn.ghost{background:#fff;color:#222;box-shadow:inset 0 0 0 1.4px rgba(0,0,0,.16)}
+  .hint{margin-top:13px;font-size:11px;color:#9a9a9a;line-height:1.7}
+  .syncbox{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px;margin:15px 0 0;font-size:10px;color:#b0b0b0}
+  .syncbox b{min-width:42px;text-align:center;font-weight:500;color:#8f8f8f;font-size:10px;font-variant-numeric:tabular-nums}
+  .sbtn{appearance:none;border:0;background:none;color:#bdbdbd;font-size:13px;line-height:1;padding:3px 7px;font-family:var(--ui);cursor:pointer}
+  .credit{position:absolute;left:0;right:0;bottom:8px;font-size:9.5px;color:#a9a9a9;text-align:center;line-height:1.6;padding:0 16px}
+  .credit a{color:#8d8d8d}
+  #result .rank{font-size:clamp(44px,13vw,70px);line-height:.95;color:var(--red);margin:0 0 4px}
+  #result .big{font-size:clamp(21px,5.8vw,29px);font-variant-numeric:tabular-nums;margin:2px 0}
+  #result .acc{font-size:12px;color:#7a7a7a;margin-bottom:16px}
+  .stats{display:flex;gap:18px;margin-bottom:20px}
+  .stats div{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .stats b{font-size:16px;font-variant-numeric:tabular-nums}
+  .stats span{font-size:9px;letter-spacing:.1em;color:#9a9a9a;text-transform:uppercase}
+  .row{display:flex;gap:10px}
+  #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#2b1b1b;color:#ffd9d3;font-size:11px;padding:8px 10px;border-radius:8px;display:none;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <svg id="score" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <g id="layer"></g>
+      <line id="playhead" x1="861" y1="54" x2="861" y2="377" stroke="#d40006" stroke-width="3.2"></line>
+    </svg>
+    <svg id="drums" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <g id="drumL"><image x="460" y="500" width="525" height="500" href="assets/drum_left.png"></image></g>
+      <g id="drumR"><image x="985" y="500" width="485" height="500" href="assets/drum_right.png"></image></g>
+    </svg>
+    <div id="overlay"><div id="ovtext"></div></div>
+    <div class="zone" id="zoneL"></div>
+    <div class="zone" id="zoneR"></div>
+    <div id="judge"></div>
+    <div id="hud"><div id="hudScore">0</div><button id="pauseBtn" aria-label="일시정지">❚❚</button></div>
+  </div>
+
+  <div class="ov" id="startScreen">
+    <h1>팀파니 <em>모먼트</em></h1>
+    <div class="rule"></div>
+    <p class="sub">드보르작 교향곡 9번 「신세계로부터」 4악장 · 알레그로 콘 포코<br>오케스트라가 연주하는 동안 두 대의 팀파니를 두드려 보세요.</p>
+    <div class="legend">
+      <div><b>시</b><span>왼쪽 팀파니 · B</span></div>
+      <div><b class="red">미</b><span>오른쪽 팀파니 · E</span></div>
+    </div>
+    <button class="btn" id="startBtn">연주 시작</button>
+    <div class="hint">왼쪽·오른쪽 팀파니를 직접 터치하거나<br>← → / A L 키로 연주할 수 있어요</div>
+    <div class="syncbox">
+      <span>싱크 보정</span>
+      <button class="sbtn" id="syncMinus" aria-label="싱크 보정 줄이기">−</button>
+      <b id="syncVal">0ms</b>
+      <button class="sbtn" id="syncPlus" aria-label="싱크 보정 늘리기">＋</button>
+      <span>빨간 선이 음악보다 앞서면 ＋</span>
+    </div>
+    <div class="credit">연주: London Philharmonic Orchestra “Timpani Moments – Dvořák 9” · 작곡 A. Dvořák<br>
+      <a href="https://youtu.be/MGrludsRW60" target="_blank" rel="noopener">youtu.be/MGrludsRW60</a></div>
+  </div>
+
+  <div class="ov hide" id="result">
+    <div class="rank" id="rRank">A</div>
+    <div class="big" id="rScore">0</div>
+    <div class="acc" id="rAcc">정확도 100%</div>
+    <div class="stats">
+      <div><b id="rPerfect">0</b><span>Perfect</span></div>
+      <div><b id="rGood">0</b><span>Good</span></div>
+      <div><b id="rMiss">0</b><span>Miss</span></div>
+      <div><b id="rCombo">0</b><span>Max Combo</span></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="againBtn">다시 연주</button>
+      <button class="btn ghost" id="homeBtn">처음으로</button>
+    </div>
+  </div>
+</div>
+<div id="err"></div>
+
+<script>
+var D = {"edges":[667.0,996.0,1319.0,1643.0,1986.0,2310.0,2634.0,2958.0,3300.0,3655.0,3989.0,4337.0,4754.0,5077.0,5401.0,5804.0,6221.0,6576.0,6808.0,7040.0,7273.0,7506.0,7738.0,7970.0,8202.0,8434.0,8779.0,9125.0,9468.0,9813.5,10159.0,10515.0,10856.5,11197.0,11598.0,12029.0,12501.0,12858.0,13091.0,13429.0,13772.0,14113.0,14437.0,14761.0,15085.0,15409.0,15748.0,16072.0,16305.0,16643.0,16967.0,17291.0,17665.0,18008.0,18240.0,18473.0,18705.0],"barT":[0.547,2.263,3.964,5.78,7.544,9.289,11.019,12.844,14.729,16.316,18.189,20.137,21.824,23.569,25.384,27.207,28.785,30.607,32.428,34.25,36.072,37.893,39.715,41.536,43.358,45.18,47.136,48.93,50.667,52.414,54.2,56.099,57.804,59.577,61.3,62.992,64.731,66.361,67.991,69.715,71.442,73.069,74.739,76.5,78.23,79.988,81.74,83.395,85.05,86.754,88.509,90.276,92.099,93.799,95.499,97.199],"notes":[{"t":0.8,"p":"E","k":"roll","g":false,"b":0,"f":0.1489},{"t":0.8,"p":"B","k":"half","g":false,"b":0,"f":0.1489},{"t":2.5,"p":"E","k":"q","g":false,"b":1,"f":0.1393},{"t":4.19,"p":"E","k":"q","g":false,"b":2,"f":0.1327},{"t":5.96,"p":"E","k":"q","g":false,"b":3,"f":0.1254},{"t":6.82,"p":"B","k":"q","g":false,"b":3,"f":0.5918},{"t":7.77,"p":"E","k":"q","g":false,"b":4,"f":0.1327},{"t":9.52,"p":"E","k":"q","g":false,"b":5,"f":0.1358},{"t":11.25,"p":"E","k":"q","g":false,"b":6,"f":0.1358},{"t":13.02,"p":"E","k":"q","g":false,"b":7,"f":0.1287},{"t":13.88,"p":"B","k":"q","g":false,"b":7,"f":0.5848},{"t":14.94,"p":"E","k":"half","g":false,"b":8,"f":0.1239},{"t":14.94,"p":"B","k":"roll","g":false,"b":8,"f":0.1239},{"t":15.64,"p":"E","k":"e8","g":false,"b":8,"f":0.5014},{"t":16.53,"p":"E","k":"q","g":false,"b":9,"f":0.1257},{"t":18.36,"p":"E","k":"q","g":false,"b":10,"f":0.1006},{"t":20.13,"p":"E","k":"q","g":false,"b":11,"f":0.0719},{"t":20.85,"p":"E","k":"e8","g":false,"b":11,"f":0.4269},{"t":21.08,"p":"B","k":"e8","g":false,"b":11,"f":0.5468},{"t":21.76,"p":"B","k":"e8","g":false,"b":11,"f":0.9041},{"t":22.05,"p":"E","k":"q","g":false,"b":12,"f":0.1331},{"t":23.8,"p":"E","k":"q","g":false,"b":13,"f":0.1358},{"t":25.57,"p":"E","k":"q","g":false,"b":14,"f":0.1092},{"t":27.38,"p":"E","k":"q","g":false,"b":15,"f":0.115},{"t":27.72,"p":"E","k":"e8","g":false,"b":15,"f":0.385},{"t":28.08,"p":"B","k":"e8","g":false,"b":15,"f":0.5},{"t":28.45,"p":"B","k":"e8","g":false,"b":15,"f":0.665},{"t":29.04,"p":"E","k":"half","g":false,"b":16,"f":0.15},{"t":29.04,"p":"B","k":"roll","g":false,"b":16,"f":0.15},{"t":29.9,"p":"E","k":"e8","g":false,"b":16,"f":0.76},{"t":45.5,"p":"E","k":"q","g":true,"b":25,"f":0.1884},{"t":47.2,"p":"E","k":"q","g":true,"b":26,"f":0.0376},{"t":49.13,"p":"E","k":"q","g":false,"b":27,"f":0.1283},{"t":49.95,"p":"B","k":"q","g":false,"b":27,"f":0.5889},{"t":50.78,"p":"E","k":"q","g":true,"b":28,"f":0.0666},{"t":52.53,"p":"E","k":"q","g":true,"b":29,"f":0.068},{"t":54.26,"p":"E","k":"q","g":true,"b":30,"f":0.0702},{"t":55.1,"p":"E","k":"q","g":true,"b":30,"f":0.4944},{"t":56.29,"p":"E","k":"q","g":false,"b":31,"f":0.1259},{"t":57.1,"p":"E","k":"q","g":false,"b":31,"f":0.5886},{"t":57.49,"p":"B","k":"q","g":false,"b":31,"f":0.8111},{"t":58.03,"p":"E","k":"q","g":false,"b":32,"f":0.1278},{"t":58.8,"p":"E","k":"q","g":false,"b":32,"f":0.5859},{"t":59.19,"p":"B","k":"q","g":false,"b":32,"f":0.8179},{"t":59.69,"p":"E","k":"q","g":false,"b":33,"f":0.1047},{"t":60.06,"p":"E","k":"e8","g":false,"b":33,"f":0.3017},{"t":60.32,"p":"B","k":"e8","g":false,"b":33,"f":0.4389},{"t":60.56,"p":"E","k":"q","g":false,"b":33,"f":0.5686},{"t":60.88,"p":"E","k":"e8","g":false,"b":33,"f":0.7631},{"t":61.11,"p":"B","k":"e8","g":false,"b":33,"f":0.9002},{"t":61.45,"p":"E","k":"q","g":false,"b":34,"f":0.0974},{"t":61.77,"p":"E","k":"e8","g":false,"b":34,"f":0.2784},{"t":61.99,"p":"B","k":"e8","g":false,"b":34,"f":0.406},{"t":62.21,"p":"E","k":"e8","g":false,"b":34,"f":0.5313},{"t":62.43,"p":"B","k":"e8","g":false,"b":34,"f":0.6566},{"t":62.64,"p":"E","k":"e8","g":false,"b":34,"f":0.7842},{"t":62.84,"p":"B","k":"e8","g":false,"b":34,"f":0.9118},{"t":63.14,"p":"E","k":"e8","g":false,"b":35,"f":0.0932},{"t":63.54,"p":"B","k":"e8","g":false,"b":35,"f":0.3242},{"t":63.95,"p":"E","k":"e8","g":false,"b":35,"f":0.5614},{"t":64.36,"p":"B","k":"e8","g":false,"b":35,"f":0.7987},{"t":64.94,"p":"E","k":"e8","g":false,"b":36,"f":0.1232},{"t":68.16,"p":"E","k":"q","g":false,"b":38,"f":0.1243},{"t":68.6,"p":"B","k":"q","g":false,"b":38,"f":0.3521},{"t":68.99,"p":"E","k":"q","g":false,"b":38,"f":0.5858},{"t":69.37,"p":"B","k":"q","g":false,"b":38,"f":0.8136},{"t":69.92,"p":"E","k":"q","g":false,"b":39,"f":0.1254},{"t":71.11,"p":"E","k":"q","g":false,"b":39,"f":0.8163},{"t":71.64,"p":"B","k":"q","g":false,"b":40,"f":0.132},{"t":72.05,"p":"B","k":"q","g":false,"b":40,"f":0.3578},{"t":72.45,"p":"E","k":"q","g":false,"b":40,"f":0.5806},{"t":73.31,"p":"B","k":"q","g":false,"b":41,"f":0.142},{"t":74.97,"p":"B","k":"q","g":false,"b":42,"f":0.1358},{"t":76.72,"p":"B","k":"q","g":false,"b":43,"f":0.1296},{"t":78.45,"p":"B","k":"q","g":false,"b":44,"f":0.1296},{"t":80.18,"p":"E","k":"q","g":false,"b":45,"f":0.1298},{"t":80.59,"p":"B","k":"q","g":false,"b":45,"f":0.3599},{"t":80.99,"p":"E","k":"q","g":false,"b":45,"f":0.5841},{"t":81.41,"p":"B","k":"q","g":false,"b":45,"f":0.8201},{"t":81.96,"p":"E","k":"q","g":false,"b":46,"f":0.1296},{"t":85.26,"p":"E","k":"q","g":false,"b":48,"f":0.1302},{"t":85.67,"p":"B","k":"q","g":false,"b":48,"f":0.3521},{"t":86.06,"p":"E","k":"q","g":false,"b":48,"f":0.5888},{"t":86.43,"p":"B","k":"q","g":false,"b":48,"f":0.8166},{"t":86.98,"p":"E","k":"q","g":false,"b":49,"f":0.1327},{"t":88.74,"p":"B","k":"q","g":false,"b":50,"f":0.1358},{"t":90.43,"p":"E","k":"q","g":false,"b":51,"f":0.1123},{"t":90.98,"p":"E","k":"q","g":false,"b":51,"f":0.4144},{"t":91.75,"p":"E","k":"q","g":false,"b":51,"f":0.8342},{"t":92.68,"p":"E","k":"q","g":false,"b":52,"f":0.3557},{"t":93.51,"p":"E","k":"q","g":false,"b":52,"f":0.8163}],"rests":[{"bar":0,"f":0.3191,"ty":"q"},{"bar":0,"f":0.617,"ty":"half"},{"bar":0,"f":0.4468,"ty":"half"},{"bar":1,"f":0.3114,"ty":"q"},{"bar":1,"f":0.6127,"ty":"half"},{"bar":1,"f":0.4405,"ty":"half"},{"bar":2,"f":0.3062,"ty":"q"},{"bar":2,"f":0.6097,"ty":"half"},{"bar":2,"f":0.4363,"ty":"half"},{"bar":3,"f":0.3586,"ty":"q"},{"bar":3,"f":0.7959,"ty":"q"},{"bar":3,"f":0.7959,"ty":"q"},{"bar":4,"f":0.3062,"ty":"q"},{"bar":4,"f":0.6097,"ty":"half"},{"bar":4,"f":0.4363,"ty":"half"},{"bar":5,"f":0.3086,"ty":"q"},{"bar":5,"f":0.6111,"ty":"half"},{"bar":5,"f":0.4383,"ty":"half"},{"bar":6,"f":0.3086,"ty":"q"},{"bar":6,"f":0.6111,"ty":"half"},{"bar":6,"f":0.4383,"ty":"half"},{"bar":7,"f":0.3568,"ty":"q"},{"bar":7,"f":0.7924,"ty":"q"},{"bar":7,"f":0.7924,"ty":"q"},{"bar":8,"f":0.3126,"ty":"q"},{"bar":8,"f":0.7507,"ty":"q"},{"bar":8,"f":0.7507,"ty":"q"},{"bar":9,"f":0.3006,"ty":"q"},{"bar":9,"f":0.6066,"ty":"half"},{"bar":9,"f":0.4317,"ty":"half"},{"bar":10,"f":0.2805,"ty":"q"},{"bar":10,"f":0.5953,"ty":"half"},{"bar":10,"f":0.4154,"ty":"half"},{"bar":11,"f":0.2494,"ty":"q"},{"bar":11,"f":0.4869,"ty":"e8"},{"bar":11,"f":0.7254,"ty":"q"},{"bar":12,"f":0.3065,"ty":"q"},{"bar":12,"f":0.6099,"ty":"half"},{"bar":12,"f":0.4365,"ty":"half"},{"bar":13,"f":0.3086,"ty":"q"},{"bar":13,"f":0.6111,"ty":"half"},{"bar":13,"f":0.4383,"ty":"half"},{"bar":14,"f":0.2874,"ty":"q"},{"bar":14,"f":0.5991,"ty":"half"},{"bar":14,"f":0.421,"ty":"half"},{"bar":15,"f":0.25,"ty":"q"},{"bar":15,"f":0.4425,"ty":"e8"},{"bar":15,"f":0.5825,"ty":"e8"},{"bar":15,"f":0.8325,"ty":"q"},{"bar":15,"f":0.8325,"ty":"q"},{"bar":16,"f":0.455,"ty":"q"},{"bar":16,"f":0.88,"ty":"q"},{"bar":16,"f":0.88,"ty":"q"},{"bar":17,"f":0.5,"ty":"whole"},{"bar":18,"f":0.5,"ty":"whole"},{"bar":19,"f":0.5,"ty":"whole"},{"bar":20,"f":0.5,"ty":"whole"},{"bar":21,"f":0.5,"ty":"whole"},{"bar":22,"f":0.5,"ty":"whole"},{"bar":23,"f":0.5,"ty":"whole"},{"bar":24,"f":0.5,"ty":"whole"},{"bar":25,"f":0.3507,"ty":"q"},{"bar":25,"f":0.6348,"ty":"half"},{"bar":25,"f":0.4725,"ty":"half"},{"bar":26,"f":0.2301,"ty":"q"},{"bar":26,"f":0.5669,"ty":"half"},{"bar":26,"f":0.3744,"ty":"half"},{"bar":27,"f":0.3586,"ty":"q"},{"bar":27,"f":0.7944,"ty":"q"},{"bar":27,"f":0.7944,"ty":"q"},{"bar":28,"f":0.2533,"ty":"q"},{"bar":28,"f":0.58,"ty":"half"},{"bar":28,"f":0.3933,"ty":"half"},{"bar":29,"f":0.2544,"ty":"q"},{"bar":29,"f":0.5806,"ty":"half"},{"bar":29,"f":0.3942,"ty":"half"},{"bar":30,"f":0.2823,"ty":"q"},{"bar":30,"f":0.7472,"ty":"q"},{"bar":30,"f":0.7472,"ty":"q"},{"bar":31,"f":0.3573,"ty":"q"},{"bar":31,"f":0.6999,"ty":"e8"},{"bar":31,"f":0.9056,"ty":"e8"},{"bar":31,"f":0.9056,"ty":"e8"},{"bar":32,"f":0.3569,"ty":"q"},{"bar":32,"f":0.7019,"ty":"q"},{"bar":32,"f":0.9089,"ty":"e8"},{"bar":32,"f":0.9089,"ty":"e8"},{"bar":33,"f":0.2032,"ty":"e8"},{"bar":33,"f":0.3703,"ty":"e8"},{"bar":33,"f":0.5038,"ty":"e8"},{"bar":33,"f":0.6659,"ty":"e8"},{"bar":33,"f":0.8317,"ty":"e8"},{"bar":34,"f":0.1879,"ty":"e8"},{"bar":34,"f":0.3422,"ty":"e8"},{"bar":34,"f":0.4687,"ty":"e8"},{"bar":34,"f":0.5939,"ty":"e8"},{"bar":34,"f":0.7204,"ty":"e8"},{"bar":34,"f":0.848,"ty":"e8"},{"bar":35,"f":0.2087,"ty":"q"},{"bar":35,"f":0.4428,"ty":"q"},{"bar":35,"f":0.6801,"ty":"q"},{"bar":35,"f":0.8993,"ty":"e8"},{"bar":35,"f":0.8993,"ty":"e8"},{"bar":36,"f":0.2986,"ty":"q"},{"bar":36,"f":0.6054,"ty":"half"},{"bar":36,"f":0.4301,"ty":"half"},{"bar":37,"f":0.5,"ty":"whole"},{"bar":38,"f":0.2382,"ty":"q"},{"bar":38,"f":0.4689,"ty":"q"},{"bar":38,"f":0.6997,"ty":"q"},{"bar":38,"f":0.9068,"ty":"e8"},{"bar":38,"f":0.9068,"ty":"e8"},{"bar":39,"f":0.2636,"ty":"q"},{"bar":39,"f":0.5054,"ty":"half"},{"bar":39,"f":0.9082,"ty":"e8"},{"bar":39,"f":0.9082,"ty":"e8"},{"bar":40,"f":0.2449,"ty":"q"},{"bar":40,"f":0.4692,"ty":"e8"},{"bar":40,"f":0.7903,"ty":"q"},{"bar":40,"f":0.7903,"ty":"q"},{"bar":41,"f":0.3136,"ty":"q"},{"bar":41,"f":0.6139,"ty":"half"},{"bar":41,"f":0.4423,"ty":"half"},{"bar":42,"f":0.3086,"ty":"q"},{"bar":42,"f":0.6111,"ty":"half"},{"bar":42,"f":0.4383,"ty":"half"},{"bar":43,"f":0.3037,"ty":"q"},{"bar":43,"f":0.6083,"ty":"half"},{"bar":43,"f":0.4342,"ty":"half"},{"bar":44,"f":0.3037,"ty":"q"},{"bar":44,"f":0.6083,"ty":"half"},{"bar":44,"f":0.4342,"ty":"half"},{"bar":45,"f":0.2449,"ty":"q"},{"bar":45,"f":0.472,"ty":"e8"},{"bar":45,"f":0.7021,"ty":"q"},{"bar":45,"f":0.9101,"ty":"e8"},{"bar":45,"f":0.9101,"ty":"e8"},{"bar":46,"f":0.3037,"ty":"q"},{"bar":46,"f":0.6083,"ty":"half"},{"bar":46,"f":0.4342,"ty":"half"},{"bar":47,"f":0.5,"ty":"whole"},{"bar":48,"f":0.2412,"ty":"e8"},{"bar":48,"f":0.4705,"ty":"q"},{"bar":48,"f":0.7027,"ty":"q"},{"bar":48,"f":0.9083,"ty":"e8"},{"bar":48,"f":0.9083,"ty":"e8"},{"bar":49,"f":0.3062,"ty":"q"},{"bar":49,"f":0.6097,"ty":"half"},{"bar":49,"f":0.4363,"ty":"half"},{"bar":50,"f":0.3086,"ty":"q"},{"bar":50,"f":0.6111,"ty":"half"},{"bar":50,"f":0.4383,"ty":"half"},{"bar":51,"f":0.2633,"ty":"q"},{"bar":51,"f":0.6243,"ty":"q"},{"bar":51,"f":0.9171,"ty":"e8"},{"bar":51,"f":0.9171,"ty":"e8"},{"bar":52,"f":0.586,"ty":"q"},{"bar":52,"f":0.9082,"ty":"e8"},{"bar":52,"f":0.9082,"ty":"e8"},{"bar":53,"f":0.5,"ty":"whole"},{"bar":54,"f":0.5,"ty":"whole"},{"bar":55,"f":0.5,"ty":"whole"}],"dyns":[{"t":0.85,"x":725.6,"s":"f"},{"t":2.6,"x":1060.0,"s":"ff"},{"t":15.0,"x":3355.5,"s":"ff"},{"t":16.6,"x":3709.3,"s":"ff"},{"t":45.3,"x":8458.4,"s":"ff"},{"t":72.9,"x":14074.0,"s":"f"},{"t":74.6,"x":14410.0,"s":"f"},{"t":76.4,"x":14742.7,"s":"f"},{"t":78.2,"x":15079.4,"s":"f"},{"t":79.9,"x":15392.9,"s":"f"},{"t":84.8,"x":16269.8,"s":"f"},{"t":90.9,"x":17429.6,"s":"f"},{"t":91.85,"x":17620.8,"s":"fz"},{"t":92.75,"x":17800.3,"s":"fz"},{"t":93.65,"x":17975.5,"s":"fz"}],"hits":[{"t":0.8,"d":"X"},{"t":2.5,"d":"R"},{"t":4.19,"d":"R"},{"t":5.96,"d":"R"},{"t":6.82,"d":"L"},{"t":7.77,"d":"R"},{"t":9.52,"d":"R"},{"t":11.25,"d":"R"},{"t":13.02,"d":"R"},{"t":13.88,"d":"L"},{"t":14.94,"d":"X"},{"t":15.64,"d":"R"},{"t":16.53,"d":"R"},{"t":18.36,"d":"R"},{"t":20.13,"d":"R"},{"t":20.85,"d":"R"},{"t":21.08,"d":"L"},{"t":21.76,"d":"L"},{"t":22.05,"d":"R"},{"t":23.8,"d":"R"},{"t":25.57,"d":"R"},{"t":27.38,"d":"R"},{"t":27.72,"d":"R"},{"t":28.08,"d":"L"},{"t":28.45,"d":"L"},{"t":29.04,"d":"X"},{"t":29.9,"d":"R"},{"t":45.5,"d":"R"},{"t":47.2,"d":"R"},{"t":49.13,"d":"R"},{"t":49.95,"d":"L"},{"t":50.78,"d":"R"},{"t":52.53,"d":"R"},{"t":54.26,"d":"R"},{"t":55.1,"d":"R"},{"t":56.29,"d":"R"},{"t":57.1,"d":"R"},{"t":57.49,"d":"L"},{"t":58.03,"d":"R"},{"t":58.8,"d":"R"},{"t":59.19,"d":"L"},{"t":59.69,"d":"R"},{"t":60.06,"d":"R"},{"t":60.32,"d":"L"},{"t":60.56,"d":"R"},{"t":60.88,"d":"R"},{"t":61.11,"d":"L"},{"t":61.45,"d":"R"},{"t":61.77,"d":"R"},{"t":61.99,"d":"L"},{"t":62.21,"d":"R"},{"t":62.43,"d":"L"},{"t":62.64,"d":"R"},{"t":62.84,"d":"L"},{"t":63.14,"d":"R"},{"t":63.54,"d":"L"},{"t":63.95,"d":"R"},{"t":64.36,"d":"L"},{"t":64.94,"d":"R"},{"t":68.16,"d":"R"},{"t":68.6,"d":"L"},{"t":68.99,"d":"R"},{"t":69.37,"d":"L"},{"t":69.92,"d":"R"},{"t":71.11,"d":"R"},{"t":71.64,"d":"L"},{"t":72.05,"d":"L"},{"t":72.45,"d":"R"},{"t":73.31,"d":"L"},{"t":74.97,"d":"L"},{"t":76.72,"d":"L"},{"t":78.45,"d":"L"},{"t":80.18,"d":"R"},{"t":80.59,"d":"L"},{"t":80.99,"d":"R"},{"t":81.41,"d":"L"},{"t":81.96,"d":"R"},{"t":85.26,"d":"R"},{"t":85.67,"d":"L"},{"t":86.06,"d":"R"},{"t":86.43,"d":"L"},{"t":86.98,"d":"R"},{"t":88.74,"d":"L"},{"t":90.43,"d":"R"},{"t":90.98,"d":"R"},{"t":91.75,"d":"R"},{"t":92.68,"d":"R"},{"t":93.51,"d":"R"}],"tm":[[0.547,667.0],[0.8,716.0],[0.8,716.0],[2.263,996.0],[2.5,1041.0],[3.964,1319.0],[4.19,1362.0],[5.78,1643.0],[5.96,1686.0],[6.82,1846.0],[7.544,1986.0],[7.77,2029.0],[9.289,2310.0],[9.52,2354.0],[11.019,2634.0],[11.25,2678.0],[12.844,2958.0],[13.02,3002.0],[13.88,3158.0],[14.729,3300.0],[14.94,3344.0],[14.94,3344.0],[15.64,3478.0],[16.316,3655.0],[16.53,3697.0],[18.189,3989.0],[18.36,4024.0],[20.13,4367.0],[20.137,4367.0],[20.85,4515.0],[21.08,4565.0],[21.76,4714.0],[21.824,4754.0],[22.05,4797.0],[23.569,5077.0],[23.8,5121.0],[25.384,5401.0],[25.57,5445.0],[27.207,5804.0],[27.38,5852.0],[27.72,5964.5],[28.08,6012.5],[28.45,6081.3],[28.785,6221.0],[29.04,6274.2],[29.04,6274.2],[29.9,6490.8],[30.607,6576.0],[32.428,6808.0],[34.25,7040.0],[36.072,7273.0],[37.893,7506.0],[39.715,7738.0],[41.536,7970.0],[43.358,8202.0],[45.18,8434.0],[45.5,8499.0],[47.136,8779.0],[47.2,8792.0],[48.93,9125.0],[49.13,9169.0],[49.95,9327.0],[50.667,9468.0],[50.78,9491.0],[52.414,9813.5],[52.53,9837.0],[54.2,10159.0],[54.26,10184.0],[55.1,10335.0],[56.099,10515.0],[56.29,10558.0],[57.1,10716.0],[57.49,10792.0],[57.804,10856.5],[58.03,10900.0],[58.8,11056.0],[59.19,11135.0],[59.577,11197.0],[59.69,11239.0],[60.06,11318.0],[60.32,11373.0],[60.56,11425.0],[60.88,11503.0],[61.11,11558.0],[61.3,11598.0],[61.45,11640.0],[61.77,11718.0],[61.99,11773.0],[62.21,11827.0],[62.43,11881.0],[62.64,11936.0],[62.84,11991.0],[62.992,12029.0],[63.14,12073.0],[63.54,12182.0],[63.95,12294.0],[64.36,12406.0],[64.731,12501.0],[64.94,12545.0],[66.361,12858.0],[67.991,13091.0],[68.16,13133.0],[68.6,13210.0],[68.99,13289.0],[69.37,13366.0],[69.715,13429.0],[69.92,13472.0],[71.11,13709.0],[71.442,13772.0],[71.64,13817.0],[72.05,13894.0],[72.45,13970.0],[73.069,14113.0],[73.31,14159.0],[74.739,14437.0],[74.97,14481.0],[76.5,14761.0],[76.72,14803.0],[78.23,15085.0],[78.45,15127.0],[79.988,15409.0],[80.18,15453.0],[80.59,15531.0],[80.99,15607.0],[81.41,15687.0],[81.74,15748.0],[81.96,15790.0],[83.395,16072.0],[85.05,16305.0],[85.26,16349.0],[85.67,16424.0],[86.06,16504.0],[86.43,16581.0],[86.754,16643.0],[86.98,16686.0],[88.509,16967.0],[88.74,17011.0],[90.276,17291.0],[90.43,17333.0],[90.98,17446.0],[91.75,17603.0],[92.099,17665.0],[92.68,17787.0],[93.51,17945.0],[93.799,18008.0],[95.499,18240.0],[97.199,18473.0]],"PH":861.0,"ST":177.5,"SP":20.0,"yE":207.5,"yB":237.5,"end":98.9,"restOverlay":[30.6,45.2]};
+(function(){
+"use strict";
+var SVGNS="http://www.w3.org/2000/svg";
+var PH=D.PH, ST=D.ST, SP=D.SP, YB=D.yB, YE=D.yE;
+var EDGES=D.edges, BART=D.barT, NB=EDGES.length-1;
+var TM=D.tm;
+
+function xToBar(x){
+  for(var i=0;i<NB;i++) if(x>=EDGES[i]&&x<EDGES[i+1]) return i;
+  return x<EDGES[0]?0:NB-1;
+}
+function barX(b,f){ return EDGES[b]+f*(EDGES[b+1]-EDGES[b]); }
+function timeToX(t){
+  if(t<=TM[0][0]) return TM[0][1];
+  var n=TM.length;
+  if(t>=TM[n-1][0]) return TM[n-1][1];
+  var lo=0,hi=n-1;
+  while(hi-lo>1){ var mid=(lo+hi)>>1; if(TM[mid][0]<=t) lo=mid; else hi=mid; }
+  var a=TM[lo], b=TM[hi];
+  if(b[0]===a[0]) return b[1];
+  return a[1]+(t-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+}
+
+/* ── audio ── */
+var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null, softLim=null;
+var MASTER_GAIN=1.0, MUSIC_GAIN=1.0, DRUM_DRY=0.34, DRUM_WET=0.13, DRUM_HIT_GAIN=0.95;
+var drumSets={L:[],R:[]}, musicBuf=null, musicAb=null, musicFetch=null, musicSrc=null;
+var startAt=0, songT=0, phase="title", starting=false;
+var outLat=0, syncOffsetSec=0, SYNC_KEY="dvorak.syncMs.v1";
+var A4_REF=440.0, F0={L:123.47, R:164.81};
+
+function fail(m){ var e=document.getElementById("err"); e.style.display="block"; e.textContent=String(m); }
+function measuredOutLat(){
+  if(!AC) return 0;
+  var v=AC.outputLatency;
+  return (typeof v==="number"&&v>0&&v<0.6)?v:0;
+}
+function readSyncOffset(){
+  var ms=0; try{ ms=parseFloat(localStorage.getItem(SYNC_KEY)); }catch(e){ ms=0; }
+  if(!isFinite(ms)) ms=0;
+  return setSyncOffset(ms);
+}
+function setSyncOffset(ms){
+  ms=Math.max(-200,Math.min(200,Math.round(ms/10)*10));
+  syncOffsetSec=ms/1000;
+  try{ localStorage.setItem(SYNC_KEY,String(ms)); }catch(e){}
+  var v=document.getElementById("syncVal");
+  if(v) v.textContent=(ms>0?"+":"")+ms+"ms";
+  return ms;
+}
+function softClipCurve(){
+  var n=4096,c=new Float32Array(n),a=0.85,i;
+  for(i=0;i<n;i++){ var x=i/(n-1)*2-1,ax=Math.abs(x),y;
+    if(ax<=a) y=ax; else y=a+(1-a)*Math.tanh((ax-a)/(1-a));
+    c[i]=x<0?-y:y; }
+  return c;
+}
+function makeIR(dur){
+  var sr=AC.sampleRate,n=Math.floor(dur*sr),buf=AC.createBuffer(2,n,sr);
+  for(var ch=0;ch<2;ch++){
+    var d=buf.getChannelData(ch);
+    for(var i=0;i<n;i++){ var tt=i/n; d[i]=(Math.random()*2-1)*Math.pow(1-tt,2.6)*0.9; }
+    var taps=ch?[0.010,0.026,0.045]:[0.013,0.031,0.052];
+    for(var k=0;k<taps.length;k++){ var idx=Math.floor(taps[k]*sr); if(idx<n) d[idx]+=(k%2?-0.5:0.6); }
+    var prev=0;
+    for(var j=0;j<n;j++){ prev=prev*0.62+d[j]*0.38; d[j]=prev; }
+    var fade=Math.floor(0.002*sr);
+    for(var f=0;f<fade;f++) d[f]*=f/fade;
+  }
+  return buf;
+}
+function makeDrum(f0){
+  var sr=AC.sampleRate,dur=2.6,n=Math.floor(dur*sr);
+  var buf=AC.createBuffer(1,n,sr), d=buf.getChannelData(0);
+  var modes=[[1.000,1.12,2.05],[1.504,0.50,1.05],[1.742,0.38,0.86],[2.000,0.26,0.66],
+             [2.245,0.19,0.53],[2.494,0.14,0.43],[2.800,0.10,0.34],[3.160,0.06,0.27],
+             [3.500,0.045,0.21],[4.060,0.03,0.16]];
+  var i,k,m,ph0=0;
+  for(m=0;m<modes.length;m++){
+    var ratio=modes[m][0],amp=modes[m][1],dec=modes[m][2];
+    var ph=Math.random()*6.283,om=2*Math.PI*f0*ratio/sr,kd=Math.exp(-1/(dec*sr)),e=amp;
+    if(m===0) ph0=ph;
+    for(i=0;i<n;i++){ d[i]+=e*Math.sin(om*i+ph); e*=kd; }
+  }
+  var nt=Math.floor(0.08*sr);
+  for(i=0;i<nt;i++){ d[i]+=0.55*Math.cos(2*Math.PI*f0*i/sr)*Math.exp(-i/(0.012*sr)); }
+  var nc=Math.floor(0.012*sr),ck=0,cf=0.50,cdec=0.004*sr;
+  for(i=0;i<nc;i++){ var w0=Math.random()*2-1; ck=ck*cf+w0*(1-cf); d[i]+=ck*1.6*Math.exp(-i/cdec); }
+  var nb=Math.floor(0.026*sr),lp=0;
+  for(i=0;i<nb;i++){ var w=Math.random()*2-1; lp=lp*0.72+w*0.28; d[i]+=lp*1.25*Math.pow(1-i/nb,2.4); }
+  for(i=0;i<Math.floor(0.9*sr);i++){ d[i]+=0.14*Math.sin(Math.PI*f0*i/sr*2+ph0)*Math.exp(-i/(0.42*sr)); }
+  var peak=0;
+  for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
+  var g2=0.92/(peak||1);
+  for(i=0;i<n;i++){ var v=d[i]*g2*1.25; d[i]=Math.tanh(v)/Math.tanh(1.25); }
+  var fade=Math.floor(0.15*sr);
+  for(i=0;i<fade;i++){ d[n-1-i]*=i/fade; }
+  return buf;
+}
+function ensureAudio(){
+  if(AC) return AC;
+  var Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx){ fail("이 브라우저에서는 소리를 재생할 수 없습니다."); return null; }
+  AC=new Ctx({latencyHint:"interactive"});
+  master=AC.createGain(); master.gain.value=MASTER_GAIN;
+  softLim=AC.createWaveShaper(); softLim.curve=softClipCurve(); softLim.oversample="none";
+  master.connect(softLim); softLim.connect(AC.destination);
+  musicGain=AC.createGain(); musicGain.gain.value=MUSIC_GAIN; musicGain.connect(master);
+  drumDry=AC.createGain(); drumDry.gain.value=DRUM_DRY; drumDry.connect(master);
+  conv=AC.createConvolver(); conv.buffer=makeIR(1.15);
+  drumWet=AC.createGain(); drumWet.gain.value=DRUM_WET; drumWet.connect(conv); conv.connect(master);
+  drumSets.L=[makeDrum(F0.L)]; drumSets.R=[makeDrum(F0.R)];
+  return AC;
+}
+function fillDrumVariants(){
+  if(!AC||drumSets.L.length>=3) return;
+  try{ while(drumSets.L.length<3) drumSets.L.push(makeDrum(F0.L));
+       while(drumSets.R.length<3) drumSets.R.push(makeDrum(F0.R)); }catch(e){}
+}
+function playDrum(which,scale){
+  if(!AC) return;
+  var set=drumSets[which]; if(!set||!set.length) return;
+  var src=AC.createBufferSource();
+  src.buffer=set[(Math.random()*set.length)|0];
+  src.playbackRate.value=0.9993+Math.random()*0.0014;
+  var g=AC.createGain(); g.gain.value=DRUM_HIT_GAIN*(scale||1);
+  if(AC.createStereoPanner){
+    var pan=AC.createStereoPanner(); pan.pan.value=which==="L"?-0.30:0.30;
+    src.connect(g); g.connect(pan); pan.connect(drumDry); pan.connect(drumWet);
+  } else { src.connect(g); g.connect(drumDry); g.connect(drumWet); }
+  src.start(0);
+}
+function dataToBuffer(uri){
+  return new Promise(function(res,rej){
+    try{
+      var i=uri.indexOf(","),head=uri.slice(5,i),body=uri.slice(i+1);
+      if(head.indexOf("base64")<0) throw new Error("not base64");
+      var bin=atob(body),n=bin.length,u8=new Uint8Array(n);
+      for(var k=0;k<n;k++) u8[k]=bin.charCodeAt(k);
+      res(u8.buffer);
+    }catch(e){ rej(e); }
+  });
+}
+var MUSIC_NAMES=["orchestra.mp3?v=1","상미님_드보르작_팀파니_게임_반주.mp3"];
+function prefetchMusic(){
+  if(musicAb) return Promise.resolve(musicAb);
+  if(musicFetch) return musicFetch;
+  var i=0;
+  function attempt(){
+    var name=MUSIC_NAMES[i],got;
+    if(name.indexOf("data:")===0){ got=dataToBuffer(name); }
+    else if(window.fetch){ got=fetch(name).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.arrayBuffer(); }); }
+    else { got=Promise.reject(new Error("no fetch")); }
+    return got.catch(function(e){ i++; if(i<MUSIC_NAMES.length) return attempt(); throw e; });
+  }
+  musicFetch=attempt().then(function(ab){ musicAb=ab; musicFetch=null; return ab; },
+                            function(e){ musicFetch=null; throw e; });
+  return musicFetch;
+}
+function decodeMusic(ab){
+  return new Promise(function(res,rej){
+    var p=AC.decodeAudioData(ab.slice?ab.slice(0):ab,res,rej);
+    if(p&&p.then) p.then(res,rej);
+  }).then(function(b){ musicBuf=b; return b; });
+}
+function ensureMusic(){ if(musicBuf) return Promise.resolve(musicBuf); return prefetchMusic().then(decodeMusic); }
+function startAudio(){
+  if(!ensureAudio()) return Promise.reject(new Error("no audio"));
+  var resumed=(AC.resume?AC.resume():Promise.resolve())||Promise.resolve();
+  return resumed.then(function(){
+    if(AC.state==="running") return null;
+    return AC.resume().then(function(){ if(AC.state!=="running") throw new Error("audio suspended"); });
+  }).then(ensureMusic).then(function(){ outLat=measuredOutLat(); return AC; });
+}
+
+/* ── score drawing ── */
+var layer=document.getElementById("layer");
+function mk(tag,a){ var e=document.createElementNS(SVGNS,tag); for(var k in a) e.setAttribute(k,a[k]); return e; }
+var NOTE_RX=9.6, NOTE_RY=6.6, STEM_W=3.4, STEM_LEN=66;
+var hits=[], stats=null;
+
+function noteHeadY(p){ return p==="E"?YE:YB; }
+
+function addNote(x,p,kind,grace,parent){
+  var y=noteHeadY(p);
+  var g=mk("g",{});
+  if(kind==="roll"){
+    /* 두 개의 굵은 사선(롤) */
+    g.appendChild(mk("path",{d:"M "+(x-16)+" "+(y-3)+" l 34 -13 l 0 9 l -34 13 Z",fill:"#141414"}));
+    g.appendChild(mk("path",{d:"M "+(x-16)+" "+(y+13)+" l 34 -13 l 0 9 l -34 13 Z",fill:"#141414"}));
+    parent.appendChild(g);
+    return g;
+  }
+  var rx=grace?NOTE_RX*0.62:NOTE_RX, ry=grace?NOTE_RY*0.62:NOTE_RY;
+  var head=mk("ellipse",{cx:x.toFixed(1),cy:y.toFixed(1),rx:rx.toFixed(1),ry:ry.toFixed(1),
+    fill:kind==="half"?"#fff":"#141414",stroke:kind==="half"?"#141414":"none",
+    "stroke-width":kind==="half"?4.0:0,
+    transform:"rotate(-18 "+x.toFixed(1)+" "+y.toFixed(1)+")"});
+  g.appendChild(head);
+  var down=(p==="E");
+  var sx=x+(grace?1.6:2.2);
+  var len=grace?STEM_LEN*0.62:STEM_LEN;
+  var sy2=y+(down?len:-len);
+  g.appendChild(mk("line",{x1:sx.toFixed(1),y1:y.toFixed(1),x2:sx.toFixed(1),y2:sy2.toFixed(1),
+    stroke:"#141414","stroke-width":grace?2.2:STEM_W,"stroke-linecap":"butt"}));
+  if(kind==="e8"){
+    var d = down
+      ? "M "+sx.toFixed(1)+" "+(sy2+2).toFixed(1)+" q 12 2 15 -9 q 3 -11 -4 -14 q 6 7 1 13 q -5 6 -12 -2 Z"
+      : "M "+sx.toFixed(1)+" "+(sy2-2).toFixed(1)+" q 12 -2 15 9 q 3 11 -4 14 q 6 -7 1 -13 q -5 -6 -12 2 Z";
+    g.appendChild(mk("path",{d:d,fill:"#141414"}));
+  }
+  parent.appendChild(g);
+  if(!grace){
+    var el={x:x,p:p};
+    var hl=document.createElementNS(SVGNS,"rect");
+    hl.setAttribute("x",(x*1e6).toFixed(0)); /* unused */
+    void 0;
+  }
+  return g;
+}
+
+function addRest(x,ty,parent){
+  if(ty==="q"){
+    var im=mk("image",{x:(x-18).toFixed(1),y:"192",width:"36",height:"76",href:"assets/qrest.png"});
+    parent.appendChild(im);
+  } else if(ty==="e8"){
+    parent.appendChild(mk("image",{x:(x-20).toFixed(1),y:"186",width:"40",height:"50",href:"assets/e8rest.png"}));
+  } else if(ty==="half"){
+    parent.appendChild(mk("rect",{x:(x-13).toFixed(1),y:(YB-SP-9.5).toFixed(1),width:"26",height:"9",fill:"#141414"}));
+  } else {
+    parent.appendChild(mk("rect",{x:(x-13).toFixed(1),y:(YB-SP+1.5).toFixed(1),width:"26",height:"9",fill:"#141414"}));
+  }
+}
+
+var X0=EDGES[0], XEND=EDGES[EDGES.length-1];
+var SCALE_CLEF=null;
+function drawScore(){
+  /* 보표선 */
+  var gStaff=mk("g",{stroke:"#111","stroke-width":2.2,"stroke-linecap":"butt"});
+  for(var i=0;i<5;i++) gStaff.appendChild(mk("line",{x1:514,y1:(ST+i*SP),x2:(XEND+220),y2:(ST+i*SP)}));
+  layer.appendChild(gStaff);
+  /* 마디선 */
+  var gBar=mk("g",{stroke:"#111","stroke-width":3.0});
+  for(var b=0;b<EDGES.length;b++){
+    var x=EDGES[b];
+    if(x>XEND+1) break;
+    gBar.appendChild(mk("line",{x1:x,y1:ST,x2:x,y2:(ST+4*SP)}));
+  }
+  /* 마지막 겹세로줄 */
+  gBar.appendChild(mk("line",{x1:XEND-9,y1:ST,x2:XEND-9,y2:(ST+4*SP)}));
+  layer.appendChild(gBar);
+  /* 시작 블록 */
+  layer.appendChild(mk("image",{x:"514",y:"168",width:"92",height:"104",href:"assets/clef.png"}));
+  var t=mk("text",{x:"300",y:"228","font-family":"'Iowan Old Style',Palatino,Georgia,'Times New Roman',serif",
+    "font-size":"46",fill:"#141414"});
+  t.textContent="Timpani";
+  layer.appendChild(t);
+  /* 쉼표 */
+  D.rests.forEach(function(r){ addRest(barX(r.b,r.f), r.ty, layer); });
+  /* 음표 */
+  D.notes.forEach(function(n){
+    var x=barX(n.b,n.f);
+    n._x=x;
+    var g=addNote(x,n.p,n.k,n.g,layer);
+    n._g=g;
+    var head=g.firstChild;
+    if(n.k!=="roll") n._head=head;
+  });
+  /* 다이나믹 */
+  D.dyns.forEach(function(d){
+    var e=mk("text",{x:d.x.toFixed(1),y:"336","font-family":"'Iowan Old Style',Palatino,Georgia,'Times New Roman',serif",
+      "font-size":"50","font-style":"italic","font-weight":"700",fill:"#141414"});
+    e.textContent=d.s;
+    layer.appendChild(e);
+  });
+}
+
+/* ── layout ── */
+var stage=document.getElementById("stage"), scoreSvg=document.getElementById("score"),
+    drumSvg=document.getElementById("drums"), zoneL=document.getElementById("zoneL"), zoneR=document.getElementById("zoneR"),
+    overlay=document.getElementById("overlay"), hud=document.getElementById("hud");
+var LOCK_W=0, LOCK_H=0, LAY={mode:"land", drumTop:0};
+function layout(){
+  var w=window.innerWidth,h=window.innerHeight;
+  if(!LOCK_W){ LOCK_W=w; LOCK_H=h; }
+  else if(w!==LOCK_W||Math.abs(h-LOCK_H)>120){ LOCK_W=w; LOCK_H=h; }
+  layoutWith(LOCK_W,LOCK_H);
+}
+function layoutWith(vw,vh){
+  var land=(vw/vh)>=1.0;
+  LAY.mode=land?"land":"port";
+  if(land){
+    var s=Math.min(vw/1920,vh/1080);
+    var W=1920*s,H=1080*s,ox=(vw-W)/2, oy=(vh-H)/2;
+    stage.style.width=W+"px"; stage.style.height=H+"px";
+    stage.style.left=ox+"px"; stage.style.top=oy+"px";
+    scoreSvg.setAttribute("viewBox","0 40 1920 350");
+    scoreSvg.style.left="0"; scoreSvg.style.top=(40/1080*H)+"px";
+    scoreSvg.style.height=(350/1080*H)+"px"; scoreSvg.style.width=W+"px";
+    drumSvg.setAttribute("viewBox","440 490 1040 510");
+    drumSvg.style.left="0"; drumSvg.style.top=(490/1080*H)+"px";
+    drumSvg.style.height=(510/1080*H)+"px"; drumSvg.style.width=W+"px";
+    overlay.style.top=(60/1080*H)+"px";
+    zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.top="44%"; zoneL.style.height="56%";
+    zoneR.style.left="50%"; zoneR.style.width="50%"; zoneR.style.top="44%"; zoneR.style.height="56%";
+    LAY.drumTop=490/1080;
+  } else {
+    stage.style.width=vw+"px"; stage.style.height=vh+"px";
+    stage.style.left="0px"; stage.style.top="0px";
+    var vbW=Math.min(940, vw*2.3);
+    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 40 "+vbW.toFixed(1)+" 350");
+    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(10,vh*0.045)+"px";
+    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*350/vbW)+"px";
+    var dh=vw*(510/1040);
+    drumSvg.setAttribute("viewBox","440 490 1040 510");
+    drumSvg.style.left="0"; drumSvg.style.bottom="0"; drumSvg.style.top="auto";
+    drumSvg.style.width=vw+"px"; drumSvg.style.height=dh+"px";
+    overlay.style.top=(vh*0.05)+"px";
+    zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.bottom="0"; zoneL.style.height=dh+"px"; zoneL.style.top="auto";
+    zoneR.style.left="50%"; zoneR.style.width="50%"; zoneR.style.bottom="0"; zoneR.style.height=dh+"px"; zoneR.style.top="auto";
+    LAY.drumTop=vh-dh;
+  }
+}
+window.addEventListener("resize",layout);
+window.addEventListener("orientationchange",function(){ setTimeout(layout,240); });
+
+/* ── scroll ── */
+var CSS_LAYER_T=null;
+function detectCssSvgTransform(){
+  try{
+    var s=document.createElementNS(SVGNS,"svg"); s.setAttribute("width","120"); s.setAttribute("height","40");
+    s.style.position="absolute"; s.style.left="-2000px"; s.style.top="0";
+    var g=document.createElementNS(SVGNS,"g");
+    var r=document.createElementNS(SVGNS,"rect");
+    r.setAttribute("x","0"); r.setAttribute("y","0"); r.setAttribute("width","10"); r.setAttribute("height","10");
+    g.appendChild(r); s.appendChild(g); document.body.appendChild(s);
+    var base=r.getBoundingClientRect().left;
+    g.style.transform="translateX(50px)";
+    var moved=r.getBoundingClientRect().left;
+    document.body.removeChild(s);
+    return (moved-base)>30;
+  }catch(e){ return false; }
+}
+function renderScore(t){
+  var x=timeToX(Math.max(0,t));
+  var dx=x-PH;
+  if(CSS_LAYER_T) layer.style.transform="translateX("+(-dx).toFixed(2)+"px)";
+  else layer.setAttribute("transform","translate("+(-dx).toFixed(1)+",0)");
+}
+
+/* ── game ── */
+var notes=[], missPtr=0, judgeAnim=null;
+var W_PERFECT=0.09, W_GOOD=0.17, W_HIT=0.26;
+var els={score:document.getElementById("hudScore"),judge:document.getElementById("judge"),
+  start:document.getElementById("startScreen"),result:document.getElementById("result"),
+  startBtn:document.getElementById("startBtn")};
+
+function buildChart(){
+  notes=D.hits.map(function(h){ return {t:h.t,d:h.d,done:false,res:null,dom:[]}; });
+  missPtr=0;
+}
+function resetStats(){
+  stats={score:0,combo:0,maxCombo:0,perfect:0,good:0,miss:0,hits:0};
+  notes.forEach(function(n){ n.done=false; n.res=null; });
+  missPtr=0; els.score.textContent="0";
+}
+function accuracy(){
+  var total=stats.perfect+stats.good+stats.miss;
+  if(!total) return 1;
+  return (stats.perfect+stats.good*0.55)/total;
+}
+function judgeText(t){
+  var j=els.judge; j.textContent=t;
+  if(j.animate){
+    if(judgeAnim){ try{ judgeAnim.cancel(); }catch(e){} }
+    judgeAnim=j.animate([{opacity:0,transform:"translate(-50%,-40%)"},{opacity:0.9,offset:0.3},{opacity:0,transform:"translate(-50%,-60%)"}],{duration:500,easing:"ease"});
+    return;
+  }
+  j.className=""; void j.offsetWidth; j.className="show";
+}
+function scanMisses(t){
+  while(missPtr<notes.length){
+    var n=notes[missPtr];
+    if(!n.done && t-n.t>W_HIT){ n.done=true; n.res="miss"; stats.miss++; stats.combo=0;
+      els.score.textContent=stats.score.toLocaleString("en-US"); }
+    if(n.done) missPtr++; else break;
+  }
+}
+function hit(drum){
+  if(phase!=="play"){ playDrum(drum==="L"?"L":"R",1); return; }
+  playDrum(drum,1);
+  if(drum==="L"||drum==="R") drumFX(drum);
+  var t=AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT;
+  var best=null,bestErr=1e9,i,n;
+  for(i=0;i<notes.length;i++){
+    n=notes[i];
+    if(n.done) continue;
+    if(n.d!=="X" && n.d!==drum) continue;
+    var e=Math.abs(t-n.t);
+    if(e<=W_HIT&&e<bestErr){ best=n; bestErr=e; }
+  }
+  if(best){
+    var ad=Math.abs(t-best.t);
+    var res=ad<=W_PERFECT?"perfect":(ad<=W_GOOD?"good":"miss");
+    best.done=true; best.res=res; paintNote(best.t);
+    if(res==="perfect"){ stats.perfect++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(1000*(1+Math.min(stats.combo,50)*0.02)); judgeText("PERFECT"); }
+    else if(res==="good"){ stats.good++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(420*(1+Math.min(stats.combo,50)*0.02)); judgeText("GOOD"); }
+    else { stats.miss++; stats.combo=0; judgeText("MISS"); }
+    stats.maxCombo=Math.max(stats.maxCombo,stats.combo);
+    els.score.textContent=stats.score.toLocaleString("en-US");
+    return;
+  }
+  judgeText("");
+}
+function paintNote(t){
+  var els2=[];
+  D.notes.forEach(function(n){ if(Math.abs(n.t-t)<0.05 && n._head) els2.push(n._head); });
+  els2.forEach(function(h){
+    h.style.fill="#d40006";
+    if(h.animate){
+      try{
+        var a=h.animate([{fill:"#d40006"},{fill:h.getAttribute("fill")==="#fff"?"#ffffff":"#141414"}],{duration:430,easing:"ease-out",fill:"both"});
+        a.onfinish=function(){ try{ a.cancel(); }catch(e){} h.style.fill=""; };
+      }catch(e){}
+    } else { setTimeout(function(){ h.style.fill=""; },430); }
+  });
+}
+var drumAnim={L:null,R:null};
+function drumFX(which){
+  var el=document.getElementById(which==="L"?"drumL":"drumR");
+  if(!el) return;
+  if(el.animate){
+    if(drumAnim[which]){ try{ drumAnim[which].cancel(); }catch(e){} }
+    drumAnim[which]=el.animate([
+      {transform:"translateY(0) scaleY(1)"},
+      {transform:"translateY(9px) scaleY(0.972)",offset:0.35},
+      {transform:"translateY(0) scaleY(1)"}
+    ],{duration:170,easing:"ease-out"});
+  }
+}
+function finishGame(){
+  phase="done";
+  var acc=accuracy();
+  var rank = acc>=0.95?"S":acc>=0.86?"A":acc>=0.72?"B":acc>=0.55?"C":"D";
+  document.getElementById("rRank").textContent=rank;
+  document.getElementById("rScore").textContent=stats.score.toLocaleString("en-US");
+  document.getElementById("rAcc").textContent="정확도 "+Math.round(acc*100)+"%";
+  document.getElementById("rPerfect").textContent=stats.perfect;
+  document.getElementById("rGood").textContent=stats.good;
+  document.getElementById("rMiss").textContent=stats.miss;
+  document.getElementById("rCombo").textContent=stats.maxCombo;
+  els.result.classList.remove("hide");
+  overlay.classList.remove("on");
+}
+function stopAll(){
+  if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; }
+  phase="title"; overlay.classList.remove("on");
+}
+function startGame(){
+  if(phase==="play"||starting) return;
+  starting=true;
+  els.startBtn.disabled=true; els.startBtn.textContent="음악 준비 중…";
+  var unlock=function(){ starting=false; els.startBtn.disabled=false; els.startBtn.textContent="연주 시작"; };
+  startAudio().then(function(){
+    outLat=measuredOutLat();
+    resetStats();
+    els.start.classList.add("hide");
+    els.result.classList.add("hide");
+    var lead=1.6;
+    if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} }
+    musicSrc=AC.createBufferSource();
+    musicSrc.buffer=musicBuf;
+    musicSrc.connect(musicGain);
+    startAt=AC.currentTime+lead;
+    musicSrc.start(startAt);
+    phase="play"; songT=-lead;
+    unlock();
+    if(window.requestIdleCallback) requestIdleCallback(fillDrumVariants,{timeout:800});
+    else setTimeout(fillDrumVariants,120);
+  }).catch(function(e){
+    unlock();
+    fail("음악을 불러오지 못했습니다: "+e.message);
+  });
+}
+
+/* ── loop ── */
+var lastFrame=0, ovOn=false;
+function loop(now){
+  var dt=Math.min(0.05,(now-lastFrame)/1000||0); lastFrame=now;
+  if(phase==="play"){
+    songT=AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT+dt;
+    if(songT>0) scanMisses(songT);
+    if(songT>D.end) finishGame();
+    /* 8마디 쉼 안내 */
+    var show = songT>D.restOverlay[0] && songT<D.restOverlay[1];
+    if(show!==ovOn){ ovOn=show; overlay.classList.toggle("on",show); }
+    if(show){
+      var left=Math.max(1,Math.ceil((D.restOverlay[1]-songT)/1.72));
+      var txt="You have "+left+(left===1?" bar":" bars")+" rest";
+      if(overlay.textContent!==txt) document.getElementById("ovtext").textContent=txt;
+    }
+  } else if(phase==="done"){
+    if(AC) songT=AC.currentTime-startAt-outLat-syncOffsetSec;
+  }
+  renderScore(phase==="play"||phase==="done" ? Math.max(songT,0) : 0);
+  requestAnimationFrame(loop);
+}
+
+/* ── input ── */
+function press(which){
+  hit(which);
+  var z=which==="L"?zoneL:zoneR;
+  z.classList.add("on");
+  setTimeout(function(){ z.classList.remove("on"); },90);
+}
+function bindZone(z,which){
+  z.addEventListener("pointerdown",function(ev){
+    if(ev.cancelable) ev.preventDefault();
+    if(phase==="title"||phase==="done") return;
+    press(which);
+  },{passive:false});
+}
+bindZone(zoneL,"L"); bindZone(zoneR,"R");
+document.addEventListener("keydown",function(e){
+  var k=e.key;
+  if(e.repeat) return;
+  if(k==="ArrowLeft"||k==="a"||k==="A"||k==="f"||k==="F"){ if(phase==="play"){ e.preventDefault(); press("L"); } }
+  else if(k==="ArrowRight"||k==="l"||k==="L"||k==="j"||k==="J"){ if(phase==="play"){ e.preventDefault(); press("R"); } }
+  else if((k===" "||k==="Enter")&&phase!=="play"){ startGame(); }
+});
+els.startBtn.addEventListener("click",startGame);
+document.getElementById("againBtn").addEventListener("click",function(){ els.result.classList.add("hide"); startGame(); });
+document.getElementById("homeBtn").addEventListener("click",function(){
+  stopAll(); els.result.classList.add("hide"); els.start.classList.remove("hide"); els.score.textContent="0";
+});
+document.getElementById("pauseBtn").addEventListener("click",function(){
+  if(phase!=="play") return;
+  if(AC.state==="running"){ AC.suspend(); this.textContent="▶"; }
+  else { AC.resume(); this.textContent="❚❚"; }
+});
+var syncMinus=document.getElementById("syncMinus"), syncPlus=document.getElementById("syncPlus");
+if(syncMinus) syncMinus.addEventListener("click",function(){ setSyncOffset(Math.round(syncOffsetSec*1000)-10); });
+if(syncPlus) syncPlus.addEventListener("click",function(){ setSyncOffset(Math.round(syncOffsetSec*1000)+10); });
+
+/* iOS 확대 방지 */
+var lastTouchEnd=0;
+document.addEventListener("gesturestart",function(e){ e.preventDefault(); },{passive:false});
+[
+ "gesturestart","gesturechange","gestureend"
+].forEach(function(t){ document.addEventListener(t,function(e){ if(e.cancelable) e.preventDefault(); },{passive:false}); });
+document.addEventListener("touchstart",function(e){ if(e.touches&&e.touches.length>1&&e.cancelable) e.preventDefault(); },{passive:false});
+document.getElementById("stage").addEventListener("touchend",function(e){
+  var now=e.timeStamp||Date.now();
+  if(now-lastTouchEnd<320){ if(e.cancelable) e.preventDefault(); lastTouchEnd=0; }
+  else lastTouchEnd=now;
+},{passive:false});
+document.addEventListener("dblclick",function(e){ if(e.cancelable) e.preventDefault(); },{passive:false});
+document.addEventListener("contextmenu",function(e){ e.preventDefault(); },{passive:false});
+
+/* boot */
+CSS_LAYER_T=detectCssSvgTransform();
+if(CSS_LAYER_T && layer.style) layer.style.willChange="transform";
+drawScore();
+buildChart();
+layout();
+resetStats();
+setSyncOffset(readSyncOffset());
+prefetchMusic().then(function(){ window.__musicReady=true; }).catch(function(){});
+requestAnimationFrame(loop);
+
+window.__game={
+  notes:notes, stats:function(){ return stats; }, time:function(){ return songT; },
+  phase:function(){ return phase; }, start:startGame, hit:press,
+  audio:function(){ return AC?{state:AC.state,dur:musicBuf?musicBuf.duration:0}:null; },
+  layoutInfo:function(){ return {mode:LAY.mode, canvas:[stage.style.width,stage.style.height]}; },
+  latency:function(){ return {base:AC?AC.baseLatency:null,output:AC?(AC.outputLatency||0):null,used:outLat,syncMs:Math.round(syncOffsetSec*1000),sr:AC?AC.sampleRate:null}; },
+  counts:function(){ var l=0,r=0,x=0; D.hits.forEach(function(h){ if(h.d==="L")l++; else if(h.d==="R")r++; else x++; }); return {L:l,R:r,X:x,total:D.hits.length}; },
+  preview:function(t){ if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} } musicSrc=null;
+    els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t; overlay.classList.remove("on"); },
+  drumRect:function(){ var r=drumSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; }
+};
+})();
+</script>
+</body>
+</html>
