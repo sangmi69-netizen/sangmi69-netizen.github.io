@@ -60,6 +60,16 @@
   #hud{position:absolute;top:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding:8px 12px;pointer-events:none}
   #hudScore{font-size:11px;letter-spacing:.08em;color:#b8b8b8;font-variant-numeric:tabular-nums;font-family:var(--ui)}
   #pauseBtn{pointer-events:auto;appearance:none;background:none;border:0;padding:4px 2px;font-size:11px;letter-spacing:.12em;color:#c2c2c2;font-family:var(--ui)}
+  /* 연주 화면 싱크 보정 — 악보·팀파니를 가리지 않도록 상단 HUD 안에 아주 작고 연하게.
+     #hud 자체는 pointer-events:none 이라 이 상자만 터치를 받는다. */
+  #hudSync{display:flex;align-items:center;gap:0;pointer-events:auto;white-space:nowrap;margin-right:-4px}
+  #hudSync .slabel{font-size:10px;letter-spacing:.04em;color:#d2d2d2;font-family:var(--ui);padding-left:2px}
+  #hudSync .hsbtn{appearance:none;border:0;background:none;color:#c4c4c4;font-size:12px;line-height:1;
+    padding:6px 7px;font-family:var(--ui);pointer-events:auto;touch-action:none;cursor:pointer;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  #hudSync .hsbtn:active{color:#7d7d7d}
+  #hudSync b{min-width:34px;text-align:center;font-size:11px;font-weight:500;color:#b4b4b4;
+    letter-spacing:0;font-variant-numeric:tabular-nums}
 
   /* ── overlays ── */
   .ov{
@@ -124,6 +134,12 @@
     <div class="zone" id="zoneC"></div>
     <div id="judge"></div>
     <div id="hud">
+      <div id="hudSync" role="group" aria-label="싱크 보정">
+        <span class="slabel">싱크</span>
+        <button class="hsbtn" id="hSyncMinus" aria-label="싱크 보정 줄이기">−</button>
+        <b id="hSyncVal">0ms</b>
+        <button class="hsbtn" id="hSyncPlus" aria-label="싱크 보정 늘리기">＋</button>
+      </div>
       <div id="hudScore">0</div>
       <button id="pauseBtn" aria-label="일시정지">❚❚</button>
     </div>
@@ -250,8 +266,13 @@ function setSyncOffset(ms){
   ms=Math.max(-200,Math.min(200,Math.round(ms/10)*10));
   syncOffsetSec=ms/1000;
   try{ localStorage.setItem(SYNC_KEY,String(ms)); }catch(e){}
-  var v=document.getElementById("syncVal");
-  if(v) v.textContent=(ms>0?"+":"")+ms+"ms";
+  /* 시작 화면과 연주 화면(HUD)이 같은 값을 함께 보여준다. */
+  var txt=(ms>0?"+":ms<0?"−":"")+Math.abs(ms)+"ms";
+  var ids=["syncVal","hSyncVal"], i;
+  for(i=0;i<ids.length;i++){
+    var v=document.getElementById(ids[i]);
+    if(v) v.textContent=txt;
+  }
   return ms;
 }
 /* ── 기준 음높이 ──────────────────────────────────────────────
@@ -909,10 +930,27 @@ document.getElementById("pauseBtn").addEventListener("click", function(){
   if(AC.state==="running"){ AC.suspend(); this.textContent="▶"; }
   else { AC.resume(); this.textContent="❚❚"; }
 });
-/* 싱크 보정 (− / 0 / +) — 시작 화면에만 있고 연주 화면은 그대로 깨끗하다. */
+/* 싱크 보정 (− / 0 / +) — 시작 화면과 연주 화면(HUD) 두 곳에서 같은 값을 조절한다.
+   연주 중에는 음악·빨간 선이 움직이는 도중에 눌러야 하므로 HUD 쪽은 pointerdown
+   에서 바로 반영한다(클릭 지연·더블탭 취소의 영향을 받지 않는다).
+   팀파니 존은 #canvas 안의 zoneF/zoneC 이고 HUD 가 위(z-index 6)에 있지만,
+   혹시라도 이벤트가 새지 않도록 preventDefault·stopPropagation 으로 막는다. */
+function nudgeSync(delta, ev){
+  if(ev){
+    if(ev.cancelable) ev.preventDefault();
+    ev.stopPropagation();
+  }
+  setSyncOffset(Math.round(syncOffsetSec*1000)+delta);
+}
 var syncMinus=document.getElementById("syncMinus"), syncPlus=document.getElementById("syncPlus");
-if(syncMinus) syncMinus.addEventListener("click", function(){ setSyncOffset(Math.round(syncOffsetSec*1000)-10); });
-if(syncPlus) syncPlus.addEventListener("click", function(){ setSyncOffset(Math.round(syncOffsetSec*1000)+10); });
+if(syncMinus) syncMinus.addEventListener("click", function(){ nudgeSync(-10); });
+if(syncPlus) syncPlus.addEventListener("click", function(){ nudgeSync(10); });
+[["hSyncMinus",-10],["hSyncPlus",10]].forEach(function(pr){
+  var el=document.getElementById(pr[0]);
+  if(!el) return;
+  el.addEventListener("pointerdown", function(ev){ nudgeSync(pr[1], ev); }, {passive:false});
+  el.addEventListener("click", function(ev){ ev.stopPropagation(); });
+});
 document.addEventListener("gesturestart", function(e){ e.preventDefault(); }, {passive:false});
 
 /* ══════════════════ iOS Safari 확대(더블탭·핀치) 차단 ══════════════════
