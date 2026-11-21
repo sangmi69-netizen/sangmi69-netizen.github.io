@@ -401,10 +401,9 @@ function drawScore(){
     var a=D.notes[i], c=D.notes[i+1];
     if(a.k!=="e8"||c.k!=="e8"||a.b!==c.b) continue;
     var dx=c._x-a._x;
-    if(dx<20||dx>90) continue;
+    if(dx<20||dx>95) continue;
     var ya=noteHeadY(a.p), yc=noteHeadY(c.p);
-    if((a.p==="E")!==(c.p==="E")) continue;
-    var down=(a.p==="E");
+    var down=(a.p==="E"||a.p===c.p);
     var x1=a._x+5.6, x2=c._x+5.6;
     var y1=ya+(down?STEM_LEN:-STEM_LEN), y2=yc+(down?STEM_LEN:-STEM_LEN);
     var w=Math.abs(y2-y1);
