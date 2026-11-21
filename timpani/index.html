@@ -197,9 +197,11 @@ function fail(m){ errBox.style.display="block"; errBox.textContent=String(m); }
    orchestra.mp3 실측: peak −4.9dBFS(0.567) / RMS −25dB. 팀파니 합성 버퍼는
    peak 0.92로 정규화돼 있어 예전에는 팀파니 쪽이 반주보다 훨씬 컸고,
    master의 컴프레서(-6dB, ratio 6)가 반주까지 눌러 묻혔다.
-   → 팀파니 버스 0.62/0.26 → 0.30/0.12 (약 46%), 반주 게인 0.85 → 1.55.
-      컴프레서 대신 0지연 소프트클립으로 피크만 다듬어 반주가 눌리지 않게 한다. */
-var MASTER_GAIN=1.0, MUSIC_GAIN=1.55, DRUM_DRY=0.30, DRUM_WET=0.12, DRUM_HIT_GAIN=0.95;
+   → 팀파니 버스 0.62/0.26 → 0.30/0.12 (약 46%), 반주 게인 0.85 → 1.25(+3.9dB).
+      컴프레서 대신 0지연 소프트클립(0.85 이하 통과)으로 반주가 눌리지 않게 한다.
+      실측(브라우저 디코드): 반주 버퍼 peak 0.752 → 출력 peak 0.94, RMS 0.081.
+      팀파니 타격 peak 0.275 → 반주가 기본, 팀파니가 그 위에 얹힌다. */
+var MASTER_GAIN=1.0, MUSIC_GAIN=1.25, DRUM_DRY=0.30, DRUM_WET=0.12, DRUM_HIT_GAIN=0.95;
 var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null, softLim=null;
 var HITS=0, lastHitWall=0, lastHitCtx=0;   /* 지연 확인용 계측 */
 var drumSets={F:[],C:[]}, musicBuf=null, musicSrc=null;
@@ -242,9 +244,10 @@ function ensureAudio(){
   drumSets.C=[makeDrum(F0.C),makeDrum(F0.C),makeDrum(F0.C)];
   return AC;
 }
-/* 0.72 이하는 그대로, 넘는 부분만 tanh로 눌러 ±1.0에 점근하는 0지연 소프트클립. */
+/* 0.85 이하는 그대로, 넘는 부분만 tanh로 눌러 ±1.0에 점근하는 0지연 소프트클립.
+   (반주·팀파니가 동시에 피크일 때만 아주 약하게 다듬는다.) */
 function softClipCurve(){
-  var n=4096, c=new Float32Array(n), a=0.72, i;
+  var n=4096, c=new Float32Array(n), a=0.85, i;
   for(i=0;i<n;i++){
     var x=i/(n-1)*2-1, ax=Math.abs(x), y;
     if(ax<=a) y=ax; else y=a+(1-a)*Math.tanh((ax-a)/(1-a));
