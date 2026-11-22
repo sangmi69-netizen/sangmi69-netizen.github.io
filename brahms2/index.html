@@ -418,15 +418,16 @@ function layout(fw,fh){
   } else {
     stage.style.width=vw+"px"; stage.style.height=vh+"px";
     stage.style.left="0px"; stage.style.top="0px";
-    /* 세로 화면 — 재생선을 화면 가운데 두고 악보를 확대 */
-    var vbW=Math.min(1120, vw*1.62);
-    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 40 "+vbW.toFixed(1)+" 380");
-    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(14,vh*0.045)+"px";
-    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*380/vbW)+"px";
-    var dw=vw*0.985, dh=dw*DRUM_H/DRUM_W;
-    drumArea.style.left=((vw-dw)/2)+"px";
+    /* 세로 화면 — 악보 띠를 확대해 재생선을 왼쪽 38.7%(영상과 같은 비율)에 둔다 */
+    var vbW=Math.min(760, Math.max(500, vw*1.36));
+    var vbH=210, y0=128;
+    scoreSvg.setAttribute("viewBox",(PH-vbW*0.387).toFixed(1)+" "+y0+" "+vbW.toFixed(1)+" "+vbH);
+    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(12,vh*0.055)+"px";
+    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*vbH/vbW)+"px";
+    var dw=vw, dh=dw*DRUM_H/DRUM_W;
+    drumArea.style.left="0px";
     drumArea.style.top="auto";
-    drumArea.style.bottom=Math.max(6,vh*0.022)+"px";
+    drumArea.style.bottom=Math.max(8,vh*0.03)+"px";
     drumArea.style.width=dw+"px";
     drumArea.style.height=dh+"px";
   }
