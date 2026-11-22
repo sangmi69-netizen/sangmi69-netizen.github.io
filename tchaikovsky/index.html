@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ffffff'/%3E%3Cellipse cx='16' cy='12.5' rx='12' ry='4.6' fill='%23f4ead6' stroke='%23111' stroke-width='2'/%3E%3Cpath d='M4 12.5 L8 25 Q16 29 24 25 L28 12.5' fill='%23e08a2e' stroke='%23111' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>팀파니 모먼트 — 차이콥스키 교향곡 4번</title>
+<style>
+  :root{ --ink:#141414; --red:#d40006; --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0;background:#fff;overflow:hidden}
+  html{touch-action:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{font-family:var(--ui);color:var(--ink);overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+  #app{position:fixed;inset:0;background:#fff;touch-action:none}
+  #stage{position:absolute;inset:0;background:#fff;touch-action:none;overflow:hidden}
+  svg{display:block;position:absolute;touch-action:none;overflow:visible}
+  #score{left:0;top:0;width:100%}
+  #drums{left:0;top:0;width:100%}
+  #layer{backface-visibility:hidden}
+  .zone{position:absolute;z-index:4;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .zone.on{background:rgba(212,0,6,.03)}
+  #judge{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:clamp(15px,3.6vw,21px);letter-spacing:.2em;color:var(--red);opacity:0;pointer-events:none;z-index:7;font-weight:600}
+  #hud{position:absolute;top:0;right:0;z-index:6;display:flex;align-items:center;gap:8px;padding:6px 10px;pointer-events:none}
+  #hudScore{font-size:11px;letter-spacing:.08em;color:#c4c4c4;font-variant-numeric:tabular-nums}
+  #pauseBtn{pointer-events:auto;appearance:none;background:none;border:0;padding:4px 2px;font-size:11px;letter-spacing:.12em;color:#c9c9c9}
+  #syncHud{pointer-events:auto;display:flex;align-items:center;gap:2px;font-size:10.5px;color:#b8b8b8;letter-spacing:.02em;padding:2px 4px;border-radius:8px}
+  #syncHud:active{background:rgba(0,0,0,.03)}
+  #syncHud .sl{color:#b8b8b8;margin-right:3px}
+  #syncHud b{min-width:34px;text-align:center;font-weight:500;font-size:10px;color:#a4a4a4;font-variant-numeric:tabular-nums}
+  #syncHud .sbtn{appearance:none;border:0;background:none;color:#a9a9a9;font-size:13px;line-height:1;padding:5px 7px;font-family:var(--ui)}
+  .ov{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 22px;background:#fff;transition:opacity .3s ease,visibility .3s}
+  .ov.hide{opacity:0;visibility:hidden;pointer-events:none}
+  .ov h1{font-size:clamp(21px,5.6vw,32px);font-weight:600;letter-spacing:.01em;margin:0 0 8px}
+  .ov h1 em{font-style:normal;color:var(--red)}
+  .ov .sub{font-size:clamp(11.5px,3.1vw,13.5px);color:#6c6c6c;line-height:1.75;margin:0 0 18px}
+  .rule{width:36px;height:2px;background:var(--red);border-radius:2px;margin:0 auto 15px}
+  .legend{display:flex;gap:22px;margin:0 0 20px;font-size:11.5px;color:#777;align-items:center}
+  .legend div{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .legend b{font-size:14px;color:#222;font-weight:600}
+  .legend b.red{color:var(--red)}
+  .led{width:54px;height:34px;display:block}
+  .btn{appearance:none;border:0;cursor:pointer;font-family:var(--ui);font-size:15px;font-weight:600;letter-spacing:.02em;color:#fff;background:#111;padding:13px 32px;border-radius:999px}
+  .btn:active{transform:translateY(1px)}
+  .btn[disabled]{opacity:.4}
+  .btn.ghost{background:#fff;color:#222;box-shadow:inset 0 0 0 1.4px rgba(0,0,0,.16)}
+  .hint{margin-top:13px;font-size:11px;color:#9a9a9a;line-height:1.7}
+  .credit{position:absolute;left:0;right:0;bottom:8px;font-size:9.5px;color:#a9a9a9;text-align:center;line-height:1.6;padding:0 16px}
+  .credit a{color:#8d8d8d}
+  #result .rank{font-size:clamp(44px,13vw,70px);line-height:.95;color:var(--red);margin:0 0 4px}
+  #result .big{font-size:clamp(21px,5.8vw,29px);font-variant-numeric:tabular-nums;margin:2px 0}
+  #result .acc{font-size:12px;color:#7a7a7a;margin-bottom:16px}
+  .stats{display:flex;gap:18px;margin-bottom:20px}
+  .stats div{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .stats b{font-size:16px;font-variant-numeric:tabular-nums}
+  .stats span{font-size:9px;letter-spacing:.1em;color:#9a9a9a;text-transform:uppercase}
+  .row{display:flex;gap:10px}
+  #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#2b1b1b;color:#ffd9d3;font-size:11px;padding:8px 10px;border-radius:8px;display:none;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <svg id="score" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+      <g id="layer"></g>
+      <line id="playhead" x1="739.5" y1="108" x2="739.5" y2="352" stroke="#d40006" stroke-width="12"></line>
+    </svg>
+    <svg id="drums" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+      <ellipse id="skinL" cx="665" cy="585" rx="250" ry="86" fill="#000" opacity="0"></ellipse>
+      <ellipse id="skinR" cx="1240" cy="590" rx="236" ry="82" fill="#000" opacity="0"></ellipse>
+      <image id="imgL" x="376" y="492" width="587" height="566" href="assets/drum_left.png"></image>
+      <image id="imgR" x="958" y="492" width="556" height="566" href="assets/drum_right.png"></image>
+    </svg>
+    <div class="zone" id="zoneL"></div>
+    <div class="zone" id="zoneR"></div>
+    <div id="judge"></div>
+    <div id="hud">
+      <div id="syncHud">
+        <span class="sl">싱크</span>
+        <button class="sbtn" id="syncMinus" aria-label="싱크 보정 줄이기">−</button>
+        <b id="syncVal">0ms</b>
+        <button class="sbtn" id="syncPlus" aria-label="싱크 보정 늘리기">＋</button>
+      </div>
+      <div id="hudScore">0</div>
+      <button id="pauseBtn" aria-label="일시정지">❚❚</button>
+    </div>
+  </div>
+
+  <div class="ov" id="startScreen">
+    <h1>팀파니 <em>모먼트</em></h1>
+    <div class="rule"></div>
+    <p class="sub">차이콥스키 교향곡 4번 바단조 4악장 · 알레그로 콘 푸오코<br>왼쪽 팀파니는 아래 음, 오른쪽 팀파니는 위 음입니다.</p>
+    <div class="legend">
+      <div><b>F</b><span>왼쪽 팀파니</span></div>
+      <div><b class="red">C</b><span>오른쪽 팀파니</span></div>
+    </div>
+    <button class="btn" id="startBtn">연주 시작</button>
+    <div class="hint">화면 왼쪽 절반을 누르면 왼쪽 드럼, 오른쪽 절반은 오른쪽 드럼<br>마지막 팀파니 롤은 계속 두드려 주세요 · 연주 중 오른쪽 위 ‘싱크 − 0ms ＋’로 미세 조정</div>
+    <div class="credit">연주: London Philharmonic Orchestra “Timpani Moments – Tchaikovsky: Symphony 4” · 작곡 P. I. Tchaikovsky<br>
+      <a href="https://youtu.be/OCV2U-_lOPU" target="_blank" rel="noopener">youtu.be/OCV2U-_lOPU</a></div>
+  </div>
+
+  <div class="ov hide" id="result">
+    <div class="rank" id="rRank">A</div>
+    <div class="big" id="rScore">0</div>
+    <div class="acc" id="rAcc">정확도 100%</div>
+    <div class="stats">
+      <div><b id="rPerfect">0</b><span>Perfect</span></div>
+      <div><b id="rGood">0</b><span>Good</span></div>
+      <div><b id="rMiss">0</b><span>Miss</span></div>
+      <div><b id="rCombo">0</b><span>Max Combo</span></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="againBtn">다시 연주</button>
+      <button class="btn ghost" id="homeBtn">처음으로</button>
+    </div>
+  </div>
+</div>
+<div id="err"></div>
+
+<script>
+var D = {"tab":[[2.08,739.5],[2.12,743.2],[2.16,747.4],[2.2,752.0],[2.24,757.0],[2.28,762.3],[2.32,767.9],[2.36,773.8],[2.4,779.9],[2.44,786.3],[2.48,792.9],[2.52,799.7],[2.56,806.8],[2.6,813.9],[2.64,821.3],[2.68,828.8],[2.72,836.6],[2.76,844.5],[2.8,852.5],[2.84,860.6],[2.88,868.9],[2.92,877.3],[2.96,885.8],[3.0,894.5],[3.04,903.3],[3.08,912.3],[3.12,921.3],[3.16,930.4],[3.2,939.7],[3.24,949.0],[3.28,958.5],[3.32,968.1],[3.36,977.7],[3.4,987.5],[3.44,990.3],[3.48,991.3],[3.52,993.1],[3.56,995.5],[3.6,998.6],[3.64,1002.4],[3.68,1006.7],[3.72,1011.6],[3.76,1017.1],[3.8,1023.0],[3.84,1029.4],[3.88,1036.2],[3.92,1043.4],[3.96,1051.1],[4.0,1059.0],[4.04,1067.2],[4.08,1075.7],[4.12,1084.4],[4.16,1093.4],[4.2,1102.4],[4.24,1111.7],[4.28,1121.0],[4.32,1130.4],[4.36,1139.8],[4.4,1149.3],[4.44,1158.6],[4.48,1168.0],[4.52,1178.0],[4.56,1189.3],[4.6,1201.4],[4.64,1213.8],[4.68,1226.1],[4.72,1237.7],[4.76,1248.3],[4.8,1257.4],[4.84,1264.4],[4.88,1269.0],[4.92,1270.7],[4.96,1275.0],[5.0,1285.1],[5.04,1299.1],[5.08,1315.1],[5.12,1331.1],[5.16,1345.2],[5.2,1355.4],[5.24,1359.6],[5.28,1363.1],[5.32,1371.9],[5.36,1384.7],[5.4,1399.9],[5.44,1416.6],[5.48,1433.2],[5.52,1448.6],[5.56,1461.3],[5.6,1470.1],[5.64,1473.6],[5.68,1477.5],[5.72,1486.5],[5.76,1498.8],[5.8,1512.9],[5.84,1527.0],[5.88,1539.3],[5.92,1548.3],[5.96,1552.3],[6.0,1558.2],[6.04,1573.8],[6.08,1595.1],[6.12,1618.3],[6.16,1639.7],[6.2,1655.2],[6.24,1661.2],[6.28,1661.2],[6.32,1662.6],[6.36,1664.8],[6.4,1668.0],[6.44,1671.9],[6.48,1676.6],[6.52,1682.0],[6.56,1687.9],[6.6,1694.5],[6.64,1701.7],[6.68,1709.3],[6.72,1717.3],[6.76,1725.7],[6.8,1734.5],[6.84,1743.5],[6.88,1752.8],[6.92,1762.3],[6.96,1771.8],[7.0,1781.5],[7.04,1791.2],[7.08,1800.8],[7.12,1810.4],[7.16,1819.9],[7.2,1829.1],[7.24,1838.2],[7.28,1847.0],[7.32,1856.8],[7.36,1867.4],[7.4,1878.3],[7.44,1889.0],[7.48,1899.0],[7.52,1907.6],[7.56,1914.4],[7.6,1919.0],[7.64,1920.5],[7.68,1921.1],[7.72,1923.0],[7.76,1926.2],[7.8,1930.6],[7.84,1936.0],[7.88,1942.4],[7.92,1949.7],[7.96,1957.7],[8.0,1966.2],[8.04,1975.3],[8.08,1984.8],[8.12,1994.5],[8.16,2004.5],[8.2,2014.5],[8.24,2024.3],[8.28,2034.1],[8.32,2043.5],[8.36,2052.6],[8.4,2061.2],[8.44,2069.2],[8.48,2076.4],[8.52,2082.8],[8.56,2088.2],[8.6,2092.6],[8.64,2095.8],[8.68,2097.8],[8.72,2098.3],[8.76,2101.9],[8.8,2109.6],[8.84,2120.3],[8.88,2133.1],[8.92,2146.9],[8.96,2160.7],[9.0,2173.5],[9.04,2184.2],[9.08,2191.9],[9.12,2195.5],[9.16,2198.2],[9.2,2205.3],[9.24,2216.3],[9.28,2230.3],[9.32,2246.6],[9.36,2264.6],[9.4,2283.5],[9.44,2302.6],[9.48,2321.1],[9.52,2338.4],[9.56,2354.4],[9.6,2369.5],[9.64,2384.1],[9.68,2398.4],[9.72,2412.9],[9.76,2427.9],[9.8,2443.8],[9.84,2460.5],[9.88,2477.2],[9.92,2493.5],[9.96,2509.0],[10.0,2523.3],[10.04,2536.0],[10.08,2546.6],[10.12,2554.8],[10.16,2560.1],[10.2,2562.0],[10.24,2566.8],[10.28,2578.9],[10.32,2596.8],[10.36,2618.3],[10.4,2641.7],[10.44,2665.1],[10.48,2686.6],[10.52,2704.4],[10.56,2716.6],[10.6,2721.3],[10.64,2725.9],[10.68,2737.4],[10.72,2754.0],[10.76,2773.5],[10.8,2794.1],[10.84,2813.6],[10.88,2830.2],[10.92,2841.8],[10.96,2846.4],[11.0,2850.8],[11.04,2862.2],[11.08,2878.6],[11.12,2898.0],[11.16,2918.3],[11.2,2937.7],[11.24,2954.2],[11.28,2965.5],[11.32,2970.0],[11.36,2974.2],[11.4,2984.2],[11.44,2998.0],[11.48,3013.7],[11.52,3029.5],[11.56,3043.3],[11.6,3053.2],[11.64,3057.5],[11.68,3062.4],[11.72,3073.5],[11.76,3089.0],[11.8,3107.1],[11.84,3126.1],[11.88,3144.3],[11.92,3159.8],[11.96,3170.9],[12.0,3175.8],[12.04,3178.0],[12.08,3183.7],[12.12,3192.4],[12.16,3203.6],[12.2,3216.9],[12.24,3232.0],[12.28,3248.3],[12.32,3265.6],[12.36,3283.3],[12.4,3301.0],[12.44,3318.3],[12.48,3334.7],[12.52,3349.9],[12.56,3363.4],[12.6,3374.7],[12.64,3383.6],[12.68,3389.4],[12.72,3391.9],[12.76,3394.0],[12.8,3399.3],[12.84,3407.5],[12.88,3418.2],[12.92,3431.0],[12.96,3445.6],[13.0,3461.6],[13.04,3478.6],[13.08,3496.4],[13.12,3514.5],[13.16,3532.6],[13.2,3550.3],[13.24,3567.2],[13.28,3583.0],[13.32,3597.3],[13.36,3609.8],[13.4,3620.0],[13.44,3627.7],[13.48,3632.5],[13.52,3634.0],[13.56,3636.0],[13.6,3640.5],[13.64,3647.3],[13.68,3656.3],[13.72,3667.0],[13.76,3679.4],[13.8,3693.2],[13.84,3708.2],[13.88,3724.3],[13.92,3741.1],[13.96,3758.3],[14.0,3776.1],[14.04,3793.8],[14.08,3811.4],[14.12,3828.7],[14.16,3845.4],[14.2,3861.4],[14.24,3876.4],[14.28,3890.2],[14.32,3902.4],[14.36,3913.2],[14.4,3922.0],[14.44,3928.7],[14.48,3933.1],[14.52,3934.9],[14.56,3944.7],[14.6,3965.6],[14.64,3986.5],[14.68,3996.2],[14.72,4011.5],[14.76,4044.2],[14.8,4076.8],[14.84,4092.2],[14.88,4094.9],[14.92,4101.8],[14.96,4112.1],[15.0,4125.3],[15.04,4140.9],[15.08,4158.3],[15.12,4176.8],[15.16,4195.9],[15.2,4215.1],[15.24,4233.7],[15.28,4251.1],[15.32,4266.7],[15.36,4280.1],[15.4,4290.5],[15.44,4297.5],[15.48,4300.3],[15.52,4301.9],[15.56,4305.7],[15.6,4311.3],[15.64,4318.7],[15.68,4327.8],[15.72,4338.4],[15.76,4350.2],[15.8,4363.3],[15.84,4377.4],[15.88,4392.4],[15.92,4408.2],[15.96,4424.6],[16.0,4441.4],[16.04,4458.6],[16.08,4475.8],[16.12,4493.1],[16.16,4510.3],[16.2,4527.1],[16.24,4543.6],[16.28,4559.6],[16.32,4575.6],[16.36,4591.1],[16.4,4606.6],[16.44,4621.6],[16.48,4636.4],[16.52,4650.9],[16.56,4665.0],[16.6,4678.9],[16.64,4692.2],[16.68,4705.2],[16.72,4717.8],[16.76,4730.0],[16.8,4741.7],[16.84,4752.9],[16.88,4763.7],[16.92,4773.9],[16.96,4783.6],[17.0,4792.7],[17.04,4801.2],[17.08,4809.2],[17.12,4816.6],[17.16,4823.4],[17.2,4829.4],[17.24,4834.9],[17.28,4839.6],[17.32,4843.6],[17.36,4846.8],[17.4,4849.3],[17.44,4851.1],[17.48,4852.1],[17.52,4857.3],[17.56,4870.5],[17.6,4890.4],[17.64,4915.2],[17.68,4943.4],[17.72,4973.3],[17.76,5003.4],[17.8,5032.2],[17.84,5058.0],[17.88,5079.2],[17.92,5094.3],[17.96,5105.6],[18.0,5116.6],[18.04,5127.1],[18.08,5137.6],[18.12,5147.8],[18.16,5157.9],[18.2,5168.0],[18.24,5178.2],[18.28,5188.5],[18.32,5199.2],[18.36,5210.0],[18.4,5221.1],[18.44,5232.6],[18.48,5244.7],[18.52,5257.4],[18.56,5271.1],[18.6,5285.7],[18.64,5301.5],[18.68,5319.0],[18.72,5337.9],[18.76,5357.6],[18.8,5377.2],[18.84,5396.0],[18.88,5413.3],[18.92,5428.3],[18.96,5440.3],[19.0,5448.6],[19.04,5452.3],[19.08,5455.9],[19.12,5464.7],[19.16,5477.2],[19.2,5492.0],[19.24,5507.4],[19.28,5522.2],[19.32,5534.7],[19.36,5543.5],[19.4,5547.1],[19.44,5551.5],[19.48,5562.5],[19.52,5578.1],[19.56,5596.6],[19.6,5616.1],[19.64,5634.5],[19.68,5650.2],[19.72,5661.2],[19.76,5665.5],[19.8,5670.0],[19.84,5680.8],[19.88,5695.8],[19.92,5712.9],[19.96,5730.0],[20.0,5745.0],[20.04,5755.8],[20.08,5760.3],[20.12,5764.5],[20.16,5775.3],[20.2,5791.3],[20.24,5811.6],[20.28,5835.3],[20.32,5860.9],[20.36,5887.6],[20.4,5914.2],[20.44,5939.7],[20.48,5963.0],[20.52,5983.0],[20.56,5999.3],[20.6,6012.3],[20.64,6023.0],[20.68,6031.8],[20.72,6039.5],[20.76,6046.6],[20.8,6053.7],[20.84,6061.6],[20.88,6070.8],[20.92,6082.2],[20.96,6096.2],[21.0,6113.4],[21.04,6130.5],[21.08,6144.1],[21.12,6155.1],[21.16,6164.6],[21.2,6173.5],[21.24,6182.9],[21.28,6193.8],[21.32,6207.1],[21.36,6223.8],[21.4,6242.1],[21.44,6259.5],[21.48,6275.8],[21.52,6291.2],[21.56,6305.8],[21.6,6319.5],[21.64,6332.2],[21.68,6344.2],[21.72,6350.3],[21.76,6366.0],[21.8,6388.4],[21.84,6414.8],[21.88,6442.6],[21.92,6469.1],[21.96,6491.5],[22.0,6507.1],[22.04,6513.4],[22.08,6518.6],[22.12,6532.7],[22.16,6552.7],[22.2,6575.7],[22.24,6598.7],[22.28,6618.7],[22.32,6632.8],[22.36,6638.0],[22.4,6643.2],[22.44,6657.3],[22.48,6677.2],[22.52,6700.0],[22.56,6722.9],[22.6,6742.8],[22.64,6756.8],[22.68,6762.0],[22.72,6765.6],[22.76,6774.6],[22.8,6787.8],[22.84,6803.8],[22.88,6821.1],[22.92,6838.5],[22.96,6854.5],[23.0,6867.6],[23.04,6876.7],[23.08,6880.2],[23.12,6897.2],[23.16,6933.2],[23.2,6969.2],[23.24,6986.2],[23.28,6989.6],[23.32,6998.6],[23.36,7012.1],[23.4,7029.1],[23.44,7048.6],[23.48,7069.6],[23.52,7091.1],[23.56,7112.2],[23.6,7131.7],[23.64,7148.7],[23.68,7162.2],[23.72,7171.2],[23.76,7174.7],[23.8,7183.6],[23.84,7203.6],[23.88,7223.6],[23.92,7232.6],[23.96,7235.4],[24.0,7242.2],[24.04,7252.6],[24.08,7265.8],[24.12,7281.4],[24.16,7298.4],[24.2,7316.5],[24.24,7334.9],[24.28,7352.9],[24.32,7370.0],[24.36,7385.5],[24.4,7398.7],[24.44,7409.1],[24.48,7415.9],[24.52,7418.6],[24.56,7434.6],[24.6,7469.1],[24.64,7503.6],[24.68,7519.6],[24.72,7524.3],[24.76,7536.2],[24.8,7553.7],[24.84,7575.2],[24.88,7599.2],[24.92,7623.9],[24.96,7647.8],[25.0,7669.3],[25.04,7686.8],[25.08,7698.7],[25.12,7703.4],[25.16,7708.8],[25.2,7720.5],[25.24,7735.4],[25.28,7750.3],[25.32,7762.0],[25.36,7767.4],[25.4,7771.9],[25.44,7783.8],[25.48,7801.3],[25.52,7822.8],[25.56,7846.8],[25.6,7871.5],[25.64,7895.5],[25.68,7917.0],[25.72,7934.5],[25.76,7946.3],[25.8,7950.9],[25.84,7956.4],[25.88,7971.1],[25.92,7991.1],[25.96,8013.1],[26.0,8033.1],[26.04,8047.8],[26.08,8053.3],[26.12,8059.3],[26.16,8074.5],[26.2,8094.8],[26.24,8116.1],[26.28,8134.5],[26.32,8146.0],[26.36,8153.1],[26.4,8161.4],[26.44,8176.3],[26.48,8194.3],[26.52,8209.4],[26.56,8222.8],[26.6,8235.6],[26.64,8249.3],[26.68,8264.3],[26.72,8278.5],[26.76,8289.2],[26.8,8293.5],[26.84,8300.2],[26.88,8316.0],[26.92,8335.9],[26.96,8355.0],[27.0,8369.2],[27.04,8380.7],[27.08,8394.2],[27.12,8414.7],[27.16,8435.2],[27.2,8449.1],[27.24,8461.0],[27.28,8475.4],[27.32,8497.5],[27.36,8528.0],[27.4,8555.5],[27.44,8567.7],[27.48,8577.3],[27.52,8599.3],[27.56,8624.4],[27.6,8643.7],[27.64,8654.4],[27.68,8661.2],[27.72,8669.4],[27.76,8683.8],[27.8,8700.4],[27.84,8712.8],[27.88,8722.8],[27.92,8732.1],[27.96,8742.6],[28.0,8756.1],[28.04,8772.0],[28.08,8787.3],[28.12,8799.0],[28.16,8803.8],[28.2,8810.0],[28.24,8824.8],[28.28,8844.3],[28.32,8864.3],[28.36,8880.6],[28.4,8890.3],[28.44,8897.0],[28.48,8906.3],[28.52,8923.7],[28.56,8942.5],[28.6,8955.4],[28.64,8967.5],[28.68,8983.9],[28.72,9008.7],[28.76,9037.7],[28.8,9061.8],[28.84,9072.2],[28.88,9078.3],[28.92,9093.5],[28.96,9113.6],[29.0,9134.5],[29.04,9151.7],[29.08,9161.9],[29.12,9168.6],[29.16,9177.1],[29.2,9192.7],[29.24,9213.5],[29.28,9233.3],[29.32,9252.4],[29.36,9270.4],[29.4,9286.7],[29.44,9299.9],[29.48,9308.9],[29.52,9312.1],[29.56,9318.1],[29.6,9332.7],[29.64,9352.1],[29.68,9372.1],[29.72,9388.9],[29.76,9399.0],[29.8,9405.9],[29.84,9415.3],[29.88,9433.0],[29.92,9451.2],[29.96,9461.6],[30.0,9468.8],[30.04,9477.1],[30.08,9491.2],[30.12,9523.0],[30.16,9562.6],[30.2,9582.2],[30.24,9586.8],[30.28,9598.2],[30.32,9614.5],[30.36,9633.8],[30.4,9654.0],[30.44,9673.2],[30.48,9689.5],[30.52,9701.0],[30.56,9705.5],[30.6,9709.1],[30.64,9718.3],[30.68,9731.9],[30.72,9748.4],[30.76,9766.4],[30.8,9784.3],[30.84,9800.7],[30.88,9814.3],[30.92,9823.6],[30.96,9827.1],[31.0,9831.7],[31.04,9843.1],[31.08,9859.4],[31.12,9878.6],[31.16,9898.7],[31.2,9917.9],[31.24,9934.2],[31.28,9945.6],[31.32,9950.2],[31.36,9956.9],[31.4,9973.8],[31.44,9997.5],[31.48,10024.7],[31.52,10051.9],[31.56,10075.6],[31.6,10092.6],[31.64,10099.2],[31.68,10103.9],[31.72,10115.8],[31.76,10132.8],[31.8,10152.8],[31.84,10174.0],[31.88,10194.1],[31.92,10211.1],[31.96,10223.0],[32.0,10227.7],[32.04,10236.9],[32.08,10258.9],[32.12,10287.1],[32.16,10315.4],[32.2,10337.3],[32.24,10346.6],[32.28,10350.5],[32.32,10360.0],[32.36,10373.8],[32.4,10390.3],[32.44,10408.3],[32.48,10426.3],[32.52,10442.8],[32.56,10456.6],[32.6,10466.1],[32.64,10470.1],[32.68,10475.9],[32.72,10490.1],[32.76,10510.3],[32.8,10534.1],[32.84,10559.0],[32.88,10582.8],[32.92,10603.0],[32.96,10617.2],[33.0,10623.0],[33.04,10623.6],[33.08,10625.1],[33.12,10627.2],[33.16,10630.2],[33.2,10634.0],[33.24,10638.1],[33.28,10643.0],[33.32,10648.3],[33.36,10654.2],[33.4,10660.6],[33.44,10667.4],[33.48,10674.5],[33.52,10682.1],[33.56,10689.9],[33.6,10698.0],[33.64,10706.2],[33.68,10714.7],[33.72,10723.2],[33.76,10731.8],[33.8,10740.5],[33.84,10749.2],[33.88,10757.8],[33.92,10766.3],[33.96,10774.7],[34.0,10782.9],[34.04,10790.8],[34.08,10798.5],[34.12,10805.8],[34.16,10812.6],[34.2,10819.3],[34.24,10825.6],[34.28,10831.5],[34.32,10836.7],[34.36,10841.5],[34.4,10845.5],[34.44,10849.0],[34.48,10851.8],[34.52,10853.9],[34.56,10855.2],[34.6,10855.5],[34.64,10855.5],[34.68,10855.5],[34.72,10855.9],[34.76,10856.6],[34.8,10857.5],[34.84,10858.6],[34.88,10859.9],[34.92,10861.4],[34.96,10863.1],[35.0,10865.1],[35.04,10867.3],[35.08,10869.7],[35.12,10872.2],[35.16,10874.9],[35.2,10877.7],[35.24,10880.7],[35.28,10883.7],[35.32,10886.9],[35.36,10890.2],[35.4,10893.6],[35.44,10897.2],[35.48,10900.7],[35.52,10904.4],[35.56,10908.2],[35.6,10912.0],[35.64,10916.0],[35.68,10919.9],[35.72,10923.9],[35.76,10927.9],[35.8,10931.9],[35.84,10936.0],[35.88,10940.2],[35.92,10944.3],[35.96,10948.4],[36.0,10952.5],[36.04,10956.5],[36.08,10960.6],[36.12,10964.7],[36.16,10968.7],[36.2,10972.7],[36.24,10976.7],[36.28,10980.5],[36.32,10984.4],[36.36,10988.2],[36.4,10991.9],[36.44,10995.5],[36.48,10999.0],[36.52,11002.3],[36.56,11005.4],[36.6,11008.6],[36.64,11011.6],[36.68,11014.6],[36.72,11017.4],[36.76,11020.1],[36.8,11022.7],[36.84,11025.0],[36.88,11027.2],[36.92,11029.2],[36.96,11031.1],[37.0,11032.8],[37.04,11034.3],[37.08,11035.5],[37.12,11036.6],[37.16,11037.5],[37.2,11038.2]],"notes":[{"x":1274.6,"t":4.957,"p":"U"},{"x":1361.8,"t":5.265,"p":"U"},{"x":2195.8,"t":9.124,"p":"L"},{"x":2319.3,"t":9.476,"p":"L"},{"x":2442.5,"t":9.797,"p":"L"},{"x":2566.1,"t":10.234,"p":"L"},{"x":2722.7,"t":10.612,"p":"L"},{"x":2846.8,"t":10.964,"p":"L"},{"x":2969.9,"t":11.319,"p":"U"},{"x":3056.3,"t":11.629,"p":"U"},{"x":3174.5,"t":11.99,"p":"L"},{"x":3388.3,"t":12.672,"p":"L"},{"x":3632.8,"t":13.487,"p":"L"},{"x":3935.8,"t":14.524,"p":"U"},{"x":3996.2,"t":14.68,"p":"U"},{"x":4087.8,"t":14.829,"p":"L"},{"x":4302.3,"t":15.524,"p":"L"},{"x":4546.6,"t":16.248,"p":"L"},{"x":4850.8,"t":17.434,"p":"U"},{"x":4910.9,"t":17.633,"p":"U"},{"x":5093.0,"t":17.916,"p":"U"},{"x":5153.3,"t":18.142,"p":"U"},{"x":5303.4,"t":18.644,"p":"U"},{"x":5364.8,"t":18.775,"p":"U"},{"x":5545.2,"t":19.379,"p":"L"},{"x":5606.5,"t":19.58,"p":"L"},{"x":5756.8,"t":20.049,"p":"U"},{"x":5817.3,"t":20.25,"p":"U"},{"x":5972.6,"t":20.499,"p":"U"},{"x":6097.0,"t":20.962,"p":"U"},{"x":6221.2,"t":21.354,"p":"L"},{"x":6345.8,"t":21.691,"p":"U"},{"x":6512.1,"t":22.032,"p":"L"},{"x":6635.8,"t":22.343,"p":"U"},{"x":6758.8,"t":22.655,"p":"U"},{"x":6881.8,"t":23.084,"p":"U"},{"x":6986.4,"t":23.243,"p":"L"},{"x":7045.7,"t":23.434,"p":"L"},{"x":7169.6,"t":23.713,"p":"U"},{"x":7232.3,"t":23.919,"p":"L"},{"x":7292.0,"t":24.145,"p":"L"},{"x":7415.0,"t":24.475,"p":"U"},{"x":7519.8,"t":24.681,"p":"L"},{"x":7579.3,"t":24.847,"p":"L"},{"x":7702.7,"t":25.113,"p":"U"},{"x":7765.7,"t":25.347,"p":"L"},{"x":7825.5,"t":25.524,"p":"L"},{"x":7948.5,"t":25.779,"p":"U"},{"x":8053.2,"t":26.079,"p":"L"},{"x":8113.5,"t":26.235,"p":"U"},{"x":8174.0,"t":26.434,"p":"L"},{"x":8233.3,"t":26.593,"p":"U"},{"x":8292.5,"t":26.791,"p":"L"},{"x":8353.7,"t":26.957,"p":"U"},{"x":8412.4,"t":27.116,"p":"L"},{"x":8474.0,"t":27.276,"p":"U"},{"x":8563.3,"t":27.425,"p":"L"},{"x":8623.2,"t":27.558,"p":"U"},{"x":8682.7,"t":27.757,"p":"L"},{"x":8742.6,"t":27.96,"p":"U"},{"x":8801.1,"t":28.137,"p":"L"},{"x":8862.1,"t":28.316,"p":"U"},{"x":8921.3,"t":28.515,"p":"L"},{"x":8981.9,"t":28.675,"p":"U"},{"x":9072.0,"t":28.839,"p":"L"},{"x":9132.2,"t":28.995,"p":"U"},{"x":9192.3,"t":29.199,"p":"L"},{"x":9251.3,"t":29.318,"p":"U"},{"x":9310.5,"t":29.5,"p":"L"},{"x":9371.0,"t":29.678,"p":"U"},{"x":9429.8,"t":29.873,"p":"L"},{"x":9490.4,"t":30.078,"p":"U"},{"x":9581.1,"t":30.198,"p":"L"},{"x":9703.5,"t":30.542,"p":"L"},{"x":9824.1,"t":30.926,"p":"L"},{"x":9946.7,"t":31.29,"p":"L"},{"x":10100.5,"t":31.651,"p":"L"},{"x":10222.5,"t":31.959,"p":"L"},{"x":10343.5,"t":32.227,"p":"L"},{"x":10465.7,"t":32.598,"p":"L"}],"rolls":[{"x":10625.4,"t0":33.085,"t1":34.976,"p":"L"},{"x":10863.9,"t0":34.976,"t1":37.2,"p":"L"}],"end":37.6,"w":12219,"h":216,"ph":739.5};
+(function(){
+"use strict";
+var SVGNS="http://www.w3.org/2000/svg";
+var PH=D.ph;
+var TAB=D.tab;              /* [[t,x],...] 연주시각 -> 악보 내용 x */
+var NOTES=D.notes;          /* [{x,t,p}] p:"L"(왼쪽·아래) | "U"(오른쪽·위) */
+var ROLLS=D.rolls;          /* [{x,t0,t1,p}] 트레몰로(롤) 구간 */
+var END=D.end;              /* 끝나는 시각(초) */
+var SCORE_W=D.w, SCORE_Y=120, SCORE_H=D.h;
+
+function timeToX(t){
+  var n=TAB.length;
+  if(t<=TAB[0][0]) return TAB[0][1];
+  if(t>=TAB[n-1][0]) return TAB[n-1][1];
+  var lo=0,hi=n-1;
+  while(hi-lo>1){ var mid=(lo+hi)>>1; if(TAB[mid][0]<=t) lo=mid; else hi=mid; }
+  var a=TAB[lo], b=TAB[hi];
+  if(b[0]===a[0]) return b[1];
+  return a[1]+(t-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+}
+
+/* ── audio ── */
+var AC=null, master=null, musicGain=null, timpDry=null, timpWet=null, conv=null, softLim=null;
+var MASTER_GAIN=1.0, MUSIC_GAIN=1.0, TIMP_DRY=0.62, TIMP_WET=0.20, TIMP_HIT_GAIN=0.95;
+var F_L=87.31, F_U=130.81;     /* 왼쪽 F2, 오른쪽 C3 */
+var drumSets={L:[],U:[]}, musicBuf=null, musicFetch=null, musicSrc=null;
+var startAt=0, songT=0, phase="title", starting=false;
+var outLat=0, syncOffsetSec=0, SYNC_KEY="timpani4.syncMs.v1";
+
+function fail(m){ var e=document.getElementById("err"); e.style.display="block"; e.textContent=String(m); }
+function measuredOutLat(){
+  if(!AC) return 0;
+  var v=AC.outputLatency;
+  return (typeof v==="number"&&v>0&&v<0.6)?v:0;
+}
+function readSyncOffset(){
+  var ms=0; try{ ms=parseFloat(localStorage.getItem(SYNC_KEY)); }catch(e){ ms=0; }
+  if(!isFinite(ms)) ms=0;
+  return setSyncOffset(ms);
+}
+function setSyncOffset(ms){
+  ms=Math.max(-200,Math.min(200,Math.round(ms/10)*10));
+  syncOffsetSec=ms/1000;
+  try{ localStorage.setItem(SYNC_KEY,String(ms)); }catch(e){}
+  var v=document.getElementById("syncVal");
+  if(v) v.textContent=(ms>0?"+":"")+ms+"ms";
+  return ms;
+}
+function softClipCurve(){
+  var n=4096,c=new Float32Array(n),a=0.85,i;
+  for(i=0;i<n;i++){ var x=i/(n-1)*2-1,ax=Math.abs(x),y;
+    if(ax<=a) y=ax; else y=a+(1-a)*Math.tanh((ax-a)/(1-a));
+    c[i]=x<0?-y:y; }
+  return c;
+}
+function makeIR(dur){
+  var sr=AC.sampleRate,n=Math.floor(dur*sr),buf=AC.createBuffer(2,n,sr);
+  for(var ch=0;ch<2;ch++){
+    var d=buf.getChannelData(ch);
+    for(var i=0;i<n;i++){ var tt=i/n; d[i]=(Math.random()*2-1)*Math.pow(1-tt,2.6)*0.8; }
+    var taps=ch?[0.011,0.027,0.045]:[0.014,0.031,0.052];
+    for(var k=0;k<taps.length;k++){ var idx=Math.floor(taps[k]*sr); if(idx<n) d[idx]+=(k%2?-0.45:0.55); }
+    var prev=0;
+    for(var j=0;j<n;j++){ prev=prev*0.58+d[j]*0.42; d[j]=prev; }
+    var fade=Math.floor(0.002*sr);
+    for(var f=0;f<fade;f++) d[f]*=f/fade;
+  }
+  return buf;
+}
+
+/* ── 팀파니 타격음: 0ms 어택, 실제 진동 모드, 말렛 트랜지언트 ── */
+function makeDrum(f0){
+  var sr=AC.sampleRate, dur=2.4, n=Math.floor(dur*sr);
+  var buf=AC.createBuffer(1,n,sr), d=buf.getChannelData(0);
+  var modes=[[1.000,1.14,2.00],[1.504,0.50,1.05],[1.742,0.38,0.86],[2.000,0.26,0.66],
+             [2.245,0.19,0.53],[2.494,0.14,0.43],[2.800,0.10,0.34],[3.160,0.06,0.27],
+             [3.500,0.045,0.21],[4.060,0.03,0.16]];
+  var i,k,m,ph0=0;
+  for(m=0;m<modes.length;m++){
+    var ratio=modes[m][0], amp=modes[m][1], dec=modes[m][2];
+    var ph=Math.random()*6.283, om=2*Math.PI*f0*ratio/sr, kd=Math.exp(-1/(dec*sr)), e=amp;
+    if(m===0) ph0=ph;
+    for(i=0;i<n;i++){ d[i]+=e*Math.sin(om*i+ph); e*=kd; }
+  }
+  var nt=Math.floor(0.08*sr);
+  for(i=0;i<nt;i++){ d[i]+=0.55*Math.cos(2*Math.PI*f0*i/sr)*Math.exp(-i/(0.012*sr)); }
+  var nc=Math.floor(0.012*sr), ck=0, cf=0.50, cdec=0.004*sr;
+  for(i=0;i<nc;i++){
+    var w0=Math.random()*2-1;
+    ck=ck*cf+w0*(1-cf);
+    d[i]+=ck*1.6*Math.exp(-i/cdec);
+  }
+  var nb=Math.floor(0.026*sr), lp=0;
+  for(i=0;i<nb;i++){ var w=Math.random()*2-1; lp=lp*0.72+w*0.28; d[i]+=lp*1.25*Math.pow(1-i/nb,2.4); }
+  for(i=0;i<Math.floor(0.9*sr);i++){ d[i]+=0.14*Math.sin(Math.PI*f0*i/sr*2+ph0)*Math.exp(-i/(0.42*sr)); }
+  var peak=0;
+  for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
+  var g2=0.92/(peak||1);
+  for(i=0;i<n;i++){ var v=d[i]*g2*1.25; d[i]=Math.tanh(v)/Math.tanh(1.25); }
+  var fade=Math.floor(0.15*sr);
+  for(i=0;i<fade;i++){ d[n-1-i]*=i/fade; }
+  return buf;
+}
+function ensureAudio(){
+  if(AC) return AC;
+  var Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx){ fail("이 브라우저에서는 소리를 재생할 수 없습니다."); return null; }
+  AC=new Ctx({latencyHint:"interactive"});
+  master=AC.createGain(); master.gain.value=MASTER_GAIN;
+  softLim=AC.createWaveShaper(); softLim.curve=softClipCurve(); softLim.oversample="none";
+  master.connect(softLim); softLim.connect(AC.destination);
+  musicGain=AC.createGain(); musicGain.gain.value=MUSIC_GAIN; musicGain.connect(master);
+  timpDry=AC.createGain(); timpDry.gain.value=TIMP_DRY; timpDry.connect(master);
+  conv=AC.createConvolver(); conv.buffer=makeIR(1.25);
+  timpWet=AC.createGain(); timpWet.gain.value=TIMP_WET; timpWet.connect(conv); conv.connect(master);
+  drumSets.L=[makeDrum(F_L)]; drumSets.U=[makeDrum(F_U)];
+  return AC;
+}
+function fillDrumVariants(){
+  if(!AC) return;
+  try{
+    while(drumSets.L.length<3) drumSets.L.push(makeDrum(F_L));
+    while(drumSets.U.length<3) drumSets.U.push(makeDrum(F_U));
+  }catch(e){}
+}
+function playDrum(which, scale){
+  if(!AC) return;
+  var set=drumSets[which];
+  if(!set||!set.length) return;
+  var src=AC.createBufferSource();
+  src.buffer=set[(Math.random()*set.length)|0];
+  src.playbackRate.value=0.9993+Math.random()*0.0014;
+  var g=AC.createGain(); g.gain.value=TIMP_HIT_GAIN*(scale||1);
+  if(AC.createStereoPanner){
+    var pan=AC.createStereoPanner(); pan.pan.value = which==="L" ? -0.30 : 0.30;
+    src.connect(g); g.connect(pan); pan.connect(timpDry); pan.connect(timpWet);
+  } else { src.connect(g); g.connect(timpDry); g.connect(timpWet); }
+  src.start(0);
+  HITS++; lastHitWall=nowMs();
+}
+function dataToBuffer(uri){
+  return new Promise(function(res,rej){
+    try{
+      var i=uri.indexOf(","),head=uri.slice(5,i),body=uri.slice(i+1);
+      if(head.indexOf("base64")<0) throw new Error("not base64");
+      var bin=atob(body),n=bin.length,u8=new Uint8Array(n);
+      for(var k=0;k<n;k++) u8[k]=bin.charCodeAt(k);
+      res(u8.buffer);
+    }catch(e){ rej(e); }
+  });
+}
+var MUSIC_NAMES=["orchestra.mp3?v=1"];
+function prefetchMusic(){
+  if(musicAb) return Promise.resolve(musicAb);
+  if(musicFetch) return musicFetch;
+  var i=0;
+  function attempt(){
+    var name=MUSIC_NAMES[i],got;
+    if(name.indexOf("data:")===0){ got=dataToBuffer(name); }
+    else if(window.fetch){ got=fetch(name).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.arrayBuffer(); }); }
+    else { got=Promise.reject(new Error("no fetch")); }
+    return got.catch(function(e){ i++; if(i<MUSIC_NAMES.length) return attempt(); throw e; });
+  }
+  musicFetch=attempt().then(function(ab){ musicAb=ab; musicFetch=null; return ab; },
+                            function(e){ musicFetch=null; throw e; });
+  return musicFetch;
+}
+var musicAb=null;
+function decodeMusic(ab){
+  return new Promise(function(res,rej){
+    var p=AC.decodeAudioData(ab.slice?ab.slice(0):ab,res,rej);
+    if(p&&p.then) p.then(res,rej);
+  }).then(function(b){ musicBuf=b; return b; });
+}
+function ensureMusic(){ if(musicBuf) return Promise.resolve(musicBuf); return prefetchMusic().then(decodeMusic); }
+function startAudio(){
+  if(!ensureAudio()) return Promise.reject(new Error("no audio"));
+  var resumed=(AC.resume?AC.resume():Promise.resolve())||Promise.resolve();
+  return resumed.then(function(){
+    if(AC.state==="running") return null;
+    return AC.resume().then(function(){ if(AC.state!=="running") throw new Error("audio suspended"); });
+  }).then(ensureMusic).then(function(){ outLat=measuredOutLat(); return AC; });
+}
+
+/* ── score ── */
+var layer=document.getElementById("layer");
+function mk(tag,a){ var e=document.createElementNS(SVGNS,tag); for(var k in a) e.setAttribute(k,a[k]); return e; }
+function buildScore(){
+  var img=mk("image",{x:0,y:SCORE_Y,width:SCORE_W,height:SCORE_H,href:"score.png"});
+  img.setAttribute("preserveAspectRatio","none");
+  layer.appendChild(img);
+  for(var i=0;i<NOTES.length;i++){
+    var n=NOTES[i];
+    var cy=n.p==="U"?232:278;
+    var el=mk("ellipse",{cx:n.x.toFixed(1),cy:String(cy),rx:"19",ry:"13",fill:"#d40006",opacity:"0",
+      transform:"rotate(-14 "+n.x.toFixed(1)+" "+cy+")"});
+    layer.appendChild(el);
+    n._el=el; n._f=0;
+  }
+  for(var r=0;r<ROLLS.length;r++){
+    var R=ROLLS[r];
+    var gg=mk("rect",{x:R.x-24,y:"196",width:"48",height:"112",rx:"8",fill:"#d40006",opacity:"0"});
+    layer.appendChild(gg); R._el=gg;
+  }
+}
+
+/* ── layout ── */
+var stage=document.getElementById("stage"), drumSvg=document.getElementById("drums"),
+    scoreSvg=document.getElementById("score"), playhead=document.getElementById("playhead"),
+    zoneL=document.getElementById("zoneL"), zoneR=document.getElementById("zoneR");
+var LOCK_W=0, LOCK_H=0, LAY={mode:"land"};
+function layout(){
+  var w=window.innerWidth,h=window.innerHeight;
+  if(!LOCK_W){ LOCK_W=w; LOCK_H=h; }
+  else if(w!==LOCK_W||Math.abs(h-LOCK_H)>120){ LOCK_W=w; LOCK_H=h; }
+  layoutWith(LOCK_W,LOCK_H);
+}
+function layoutWith(vw,vh){
+  var land=(vw/vh)>=1.0;
+  LAY.mode=land?"land":"port";
+  var dh;
+  if(land){
+    var s=Math.min(vw/1920,vh/1080);
+    var W=1920*s,H=1080*s,ox=(vw-W)/2, oy=(vh-H)/2;
+    stage.style.width=W+"px"; stage.style.height=H+"px";
+    stage.style.left=ox+"px"; stage.style.top=oy+"px";
+    scoreSvg.setAttribute("viewBox","0 0 1920 430");
+    scoreSvg.style.left="0"; scoreSvg.style.top="0";
+    scoreSvg.style.width=W+"px"; scoreSvg.style.height=(430/1080*H)+"px";
+    drumSvg.setAttribute("viewBox","0 450 1920 630");
+    drumSvg.style.left="0"; drumSvg.style.top=(450/1080*H)+"px";
+    drumSvg.style.width=W+"px"; drumSvg.style.height=(630/1080*H)+"px";
+    playhead.setAttribute("y1","0"); playhead.setAttribute("y2","420");
+    dh=H;
+  } else {
+    stage.style.width=vw+"px"; stage.style.height=vh+"px";
+    stage.style.left="0px"; stage.style.top="0px";
+    var vbW=Math.min(780, vw*2.0);
+    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 106 "+vbW.toFixed(1)+" 250");
+    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(12,vh*0.05)+"px";
+    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*250/vbW)+"px";
+    drumSvg.setAttribute("viewBox","340 470 1250 600");
+    drumSvg.style.left="0"; drumSvg.style.bottom="0"; drumSvg.style.top="auto";
+    drumSvg.style.width=vw+"px"; drumSvg.style.height=(vw*600/1250)+"px";
+    playhead.setAttribute("y1","108"); playhead.setAttribute("y2","352");
+    dh=vh*0.52;
+  }
+  var zt=land? (vh*0.55) : (vh*0.48);
+  zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.top=zt+"px"; zoneL.style.height=Math.max(60,vh-zt)+"px";
+  zoneR.style.left="50%"; zoneR.style.width="50%"; zoneR.style.top=zt+"px"; zoneR.style.height=Math.max(60,vh-zt)+"px";
+}
+window.addEventListener("resize",layout);
+window.addEventListener("orientationchange",function(){ setTimeout(layout,240); });
+
+/* ── scroll ── */
+var CSS_LAYER_T=null;
+function detectCssSvgTransform(){
+  try{
+    var s=document.createElementNS(SVGNS,"svg"); s.setAttribute("width","120"); s.setAttribute("height","40");
+    s.style.position="absolute"; s.style.left="-2000px"; s.style.top="0";
+    var g=document.createElementNS(SVGNS,"g");
+    var r=document.createElementNS(SVGNS,"rect");
+    r.setAttribute("x","0"); r.setAttribute("y","0"); r.setAttribute("width","10"); r.setAttribute("height","10");
+    g.appendChild(r); s.appendChild(g); document.body.appendChild(s);
+    var base=r.getBoundingClientRect().left;
+    g.style.transform="translateX(50px)";
+    var moved=r.getBoundingClientRect().left;
+    document.body.removeChild(s);
+    return (moved-base)>30;
+  }catch(e){ return false; }
+}
+function renderScore(t){
+  var x=timeToX(Math.max(0,t));
+  var dx=x-PH;
+  if(CSS_LAYER_T) layer.style.transform="translateX("+(-dx).toFixed(2)+"px)";
+  else layer.setAttribute("transform","translate("+(-dx).toFixed(1)+",0)");
+}
+
+/* ── game ── */
+var missPtr=0, judgeAnim=null, stats=null, HITS=0, lastHitWall=0;
+var W_PERFECT=0.09, W_GOOD=0.17, W_HIT=0.26;
+var els={score:document.getElementById("hudScore"),judge:document.getElementById("judge"),
+  start:document.getElementById("startScreen"),result:document.getElementById("result"),
+  startBtn:document.getElementById("startBtn")};
+function nowMs(){ return (window.performance&&performance.now)?performance.now():Date.now(); }
+
+function resetStats(){
+  stats={score:0,combo:0,maxCombo:0,perfect:0,good:0,miss:0,hits:0,roll:0};
+  NOTES.forEach(function(n){ n.done=false; n.res=null; });
+  missPtr=0; els.score.textContent="0";
+}
+function accuracy(){
+  var total=stats.perfect+stats.good+stats.miss;
+  if(!total) return 1;
+  return (stats.perfect+stats.good*0.55)/total;
+}
+function judgeText(t){
+  var j=els.judge; j.textContent=t;
+  if(j.animate){
+    if(judgeAnim){ try{ judgeAnim.cancel(); }catch(e){} }
+    judgeAnim=j.animate([{opacity:0,transform:"translate(-50%,-40%)"},{opacity:0.9,offset:0.3},{opacity:0,transform:"translate(-50%,-60%)"}],{duration:500,easing:"ease"});
+    return;
+  }
+  j.style.opacity=0.9; setTimeout(function(){ j.style.opacity=0; },420);
+}
+function scanMisses(t){
+  while(missPtr<NOTES.length){
+    var n=NOTES[missPtr];
+    if(!n.done && t-n.t>W_HIT){ n.done=true; n.res="miss"; stats.miss++; stats.combo=0;
+      els.score.textContent=stats.score.toLocaleString("en-US"); }
+    if(n.done) missPtr++; else break;
+  }
+}
+function flashNote(n){
+  var el=n._el; if(!el) return;
+  el.style.transition="none"; el.style.opacity="0.85";
+  void el.getBoundingClientRect();
+  el.style.transition="opacity .45s ease-out"; el.style.opacity="0";
+}
+function activeRoll(t){
+  for(var i=0;i<ROLLS.length;i++){
+    var R=ROLLS[i];
+    if(t>=R.t0-0.06 && t<=R.t1) return R;
+  }
+  return null;
+}
+function hit(which){
+  playDrum(which,1);
+  pulse(which);
+  if(phase!=="play") return;
+  var t=AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT;
+  var best=null,bestErr=1e9,i,n;
+  for(i=0;i<NOTES.length;i++){
+    n=NOTES[i];
+    if(n.done||n.p!==which) continue;
+    var e=Math.abs(t-n.t);
+    if(e<=W_HIT&&e<bestErr){ best=n; bestErr=e; }
+  }
+  if(best){
+    var ad=Math.abs(t-best.t);
+    var res=ad<=W_PERFECT?"perfect":(ad<=W_GOOD?"good":"miss");
+    best.done=true; best.res=res; flashNote(best);
+    if(res==="perfect"){ stats.perfect++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(1000*(1+Math.min(stats.combo,50)*0.02)); judgeText("PERFECT"); }
+    else if(res==="good"){ stats.good++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(420*(1+Math.min(stats.combo,50)*0.02)); judgeText("GOOD"); }
+    else { stats.miss++; stats.combo=0; judgeText("MISS"); }
+    stats.maxCombo=Math.max(stats.maxCombo,stats.combo);
+    els.score.textContent=stats.score.toLocaleString("en-US");
+    return;
+  }
+  /* 롤 구간은 계속 두드릴수록 점수 */
+  var R=activeRoll(t);
+  if(R && R.p===which){
+    stats.roll++; stats.hits++;
+    stats.score+=Math.round(stats.combo>8?70:60);
+    els.score.textContent=stats.score.toLocaleString("en-US");
+    if(R._el){ R._el.style.opacity="0.16"; }
+    return;
+  }
+  /* 같은 시각의 다른 드럼을 쳤다면 놓친 것으로 */
+  for(var j=0;j<NOTES.length;j++){
+    var m=NOTES[j];
+    if(m.done||m.p===which) continue;
+    if(Math.abs(t-m.t)<=W_HIT){
+      m.done=true; m.res="miss"; stats.miss++; stats.combo=0;
+      judgeText("MISS"); els.score.textContent=stats.score.toLocaleString("en-US");
+      return;
+    }
+  }
+  judgeText("");
+}
+
+/* ── drum hit animation ── */
+var hitAt={L:-9,U:-9};
+function pulse(which){ hitAt[which]=AC?AC.currentTime:nowMs()/1000; }
+var imgL=document.getElementById("imgL"), imgR=document.getElementById("imgR"),
+    skinL=document.getElementById("skinL"), skinR=document.getElementById("skinR");
+function updateDrums(t){
+  var now=AC?AC.currentTime:nowMs()/1000;
+  [[ "L",imgL,skinL,665 ],["U",imgR,skinR,1240]].forEach(function(a){
+    var dt=now-hitAt[a[0]];
+    var k=(dt>=0&&dt<0.30)?(1-dt/0.30):0;
+    if(dt>=0&&dt>0.30) k=0;
+    var dy=(dt>=0&&dt<0.34)? 7*k*k*Math.cos(dt*46) : 0;
+    var rot=(dt>=0&&dt<0.34)? (a[0]==="L"?-1:1)*0.9*k*Math.sin(dt*30) : 0;
+    a[1].setAttribute("transform","translate(0,"+dy.toFixed(2)+") rotate("+rot.toFixed(2)+" "+a[3]+" 530)");
+    if(a[2]) a[2].setAttribute("opacity",(k*0.05).toFixed(3));
+  });
+  for(var i=0;i<ROLLS.length;i++){
+    var R=ROLLS[i];
+    if(!R._el) continue;
+    var on=(t>=R.t0-0.06&&t<=R.t1);
+    R._el.setAttribute("opacity", on?"0.13":"0");
+  }
+}
+
+function finishGame(){
+  phase="done";
+  var acc=accuracy();
+  var rank = acc>=0.95?"S":acc>=0.86?"A":acc>=0.72?"B":acc>=0.55?"C":"D";
+  document.getElementById("rRank").textContent=rank;
+  document.getElementById("rScore").textContent=stats.score.toLocaleString("en-US");
+  document.getElementById("rAcc").textContent="정확도 "+Math.round(acc*100)+"%";
+  document.getElementById("rPerfect").textContent=stats.perfect;
+  document.getElementById("rGood").textContent=stats.good;
+  document.getElementById("rMiss").textContent=stats.miss;
+  document.getElementById("rCombo").textContent=stats.maxCombo;
+  els.result.classList.remove("hide");
+}
+function stopAll(){
+  if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; }
+  phase="title";
+}
+function startGame(){
+  if(phase==="play"||starting) return;
+  starting=true;
+  els.startBtn.disabled=true; els.startBtn.textContent="음악 준비 중…";
+  var unlock=function(){ starting=false; els.startBtn.disabled=false; els.startBtn.textContent="연주 시작"; };
+  startAudio().then(function(){
+    outLat=measuredOutLat();
+    resetStats();
+    els.start.classList.add("hide");
+    els.result.classList.add("hide");
+    var lead=1.2;
+    if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} }
+    musicSrc=AC.createBufferSource();
+    musicSrc.buffer=musicBuf;
+    musicSrc.connect(musicGain);
+    startAt=AC.currentTime+lead;
+    musicSrc.start(startAt);
+    phase="play"; songT=-lead;
+    hitAt.L=-9; hitAt.U=-9;
+    unlock();
+    if(window.requestIdleCallback) requestIdleCallback(fillDrumVariants,{timeout:900});
+    else setTimeout(fillDrumVariants,150);
+  }).catch(function(e){
+    unlock();
+    fail("음악을 불러오지 못했습니다: "+e.message);
+  });
+}
+
+/* ── loop ── */
+var lastFrame=0;
+function loop(now){
+  var dt=Math.min(0.05,(now-lastFrame)/1000||0); lastFrame=now;
+  if(phase==="play"){
+    songT=AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT+dt;
+    if(songT>0) scanMisses(songT);
+    if(songT>END) finishGame();
+  } else if(phase==="done"){
+    if(AC) songT=Math.min(END+1.2,AC.currentTime-startAt-outLat-syncOffsetSec);
+  }
+  updateDrums(phase==="play"||phase==="done"?Math.max(songT,0):0);
+  renderScore(phase==="play"||phase==="done" ? Math.max(songT,0) : 0);
+  requestAnimationFrame(loop);
+}
+
+/* ── input ── */
+function press(which){
+  hit(which);
+  var z=which==="L"?zoneL:zoneR;
+  z.classList.add("on");
+  setTimeout(function(){ z.classList.remove("on"); },110);
+}
+[[zoneL,"L"],[zoneR,"U"]].forEach(function(p){
+  var el=p[0], which=p[1];
+  el.addEventListener("pointerdown",function(ev){
+    if(ev.cancelable) ev.preventDefault();
+    if(phase==="title"||phase==="done") return;
+    press(which);
+  },{passive:false});
+});
+document.addEventListener("keydown",function(e){
+  var k=e.key;
+  if(e.repeat) return;
+  if(k===" "||k==="Enter"){
+    e.preventDefault();
+    if(phase==="play") press("L"); else if(phase!=="done") startGame();
+    return;
+  }
+  if(k==="ArrowLeft"||k==="a"||k==="A"||k==="f"||k==="F"||k==="z"||k==="Z"){
+    if(phase==="play"){ e.preventDefault(); press("L"); }
+    return;
+  }
+  if(k==="ArrowRight"||k==="ArrowUp"||k==="l"||k==="L"||k==="j"||k==="J"||k==="x"||k==="X"){
+    if(phase==="play"){ e.preventDefault(); press("U"); }
+  }
+});
+els.startBtn.addEventListener("click",startGame);
+document.getElementById("againBtn").addEventListener("click",function(){ els.result.classList.add("hide"); startGame(); });
+document.getElementById("homeBtn").addEventListener("click",function(){
+  stopAll(); els.result.classList.add("hide"); els.start.classList.remove("hide"); els.score.textContent="0";
+});
+document.getElementById("pauseBtn").addEventListener("click",function(){
+  if(phase!=="play") return;
+  if(AC.state==="running"){ AC.suspend(); this.textContent="▶"; }
+  else { AC.resume(); this.textContent="❚❚"; }
+});
+(function(){
+  var syncMinus=document.getElementById("syncMinus"), syncPlus=document.getElementById("syncPlus");
+  function bindBtn(el, delta){
+    if(!el) return;
+    var stop=function(ev){ ev.stopPropagation(); if(ev.cancelable) ev.preventDefault(); };
+    ["pointerdown","touchstart","mousedown"].forEach(function(t){ el.addEventListener(t,stop,{passive:false}); });
+    el.addEventListener("click",function(ev){
+      ev.stopPropagation(); ev.preventDefault();
+      setSyncOffset(Math.round(syncOffsetSec*1000)+delta);
+    });
+  }
+  bindBtn(syncMinus,-10); bindBtn(syncPlus,+10);
+})();
+
+/* iOS 확대 방지 */
+var lastTouchEnd=0;
+["gesturestart","gesturechange","gestureend"].forEach(function(t){ document.addEventListener(t,function(e){ if(e.cancelable) e.preventDefault(); },{passive:false}); });
+document.addEventListener("touchstart",function(e){ if(e.touches&&e.touches.length>1&&e.cancelable) e.preventDefault(); },{passive:false});
+document.getElementById("stage").addEventListener("touchend",function(e){
+  var now=e.timeStamp||Date.now();
+  if(now-lastTouchEnd<320){ if(e.cancelable) e.preventDefault(); lastTouchEnd=0; }
+  else lastTouchEnd=now;
+},{passive:false});
+document.addEventListener("dblclick",function(e){ if(e.cancelable) e.preventDefault(); },{passive:false});
+document.addEventListener("contextmenu",function(e){ e.preventDefault(); },{passive:false});
+
+/* boot */
+CSS_LAYER_T=detectCssSvgTransform();
+if(CSS_LAYER_T && layer.style) layer.style.willChange="transform";
+buildScore();
+layout();
+resetStats();
+setSyncOffset(readSyncOffset());
+prefetchMusic().then(function(){ window.__musicReady=true; }).catch(function(){});
+requestAnimationFrame(loop);
+
+window.__game={
+  notes:NOTES, rolls:ROLLS, stats:function(){ return stats; }, time:function(){ return songT; },
+  phase:function(){ return phase; }, start:startGame, hit:press,
+  audio:function(){ return AC?{state:AC.state,dur:musicBuf?musicBuf.duration:0}:null; },
+  layoutInfo:function(){ return {mode:LAY.mode, canvas:[stage.style.width,stage.style.height]}; },
+  latency:function(){ return {base:AC?AC.baseLatency:null,output:AC?(AC.outputLatency||0):0,used:outLat,syncMs:Math.round(syncOffsetSec*1000),sr:AC?AC.sampleRate:null}; },
+  counts:function(){ return {total:NOTES.length, first:NOTES[0].t, last:NOTES[NOTES.length-1].t, rolls:ROLLS.length}; },
+  preview:function(t){
+    if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} } musicSrc=null;
+    els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t;
+    startAt=(AC?AC.currentTime:0) - outLat - syncOffsetSec - t;
+    if(AC && AC.suspend){ try{ AC.suspend(); }catch(e){} }
+  },
+  drumRect:function(){ var r=drumSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
+  scoreRect:function(){ var r=scoreSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
+  finish:function(){ finishGame(); },
+  layoutFor:function(w,h){ layoutWith(w,h); stage.style.left="0px"; stage.style.top="0px"; return LAY.mode; },
+  autoplay:function(on){
+    if(window.__auto){ window.__auto.forEach(function(id){ clearTimeout(id); }); window.__auto=null; }
+    if(!on) return 0;
+    window.__auto=[];
+    var now=songT;
+    NOTES.forEach(function(n){
+      var dt=(n.t-now)*1000;
+      if(dt<-200||dt>200000) return;
+      var id=setTimeout(function(){ if(phase==="play") press(n.p); },Math.max(0,dt));
+      window.__auto.push(id);
+    });
+    ROLLS.forEach(function(R){
+      var t=R.t0;
+      while(t<R.t1-0.02){
+        var dt=(t-now)*1000;
+        if(dt>=0&&dt<200000){
+          var id=setTimeout(function(){ if(phase==="play") press(R.p); },dt);
+          window.__auto.push(id);
+        }
+        t+=0.085;
+      }
+    });
+    return window.__auto.length;
+  },
+  drumStats:function(){
+    var set=drumSets.L; if(!set||!set.length) return null;
+    var b=set[0], d=b.getChannelData(0), sr=b.sampleRate, n=d.length, i, peak=0;
+    for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
+    var env=[];
+    [0,0.002,0.01,0.03,0.1,0.3,0.6,1.2,2.0].forEach(function(t){
+      var i0=Math.min(n-1,Math.floor(t*sr)), i1=Math.min(n,i0+Math.floor(0.01*sr)), s2=0, k;
+      for(k=i0;k<i1;k++) s2+=d[k]*d[k];
+      env.push([t, Math.round(Math.sqrt(s2/Math.max(1,i1-i0))*1000)/1000]);
+    });
+    return {dur:+b.duration.toFixed(2), peak:+peak.toFixed(3), rms:env};
+  }
+};
+})();
+</script>
+</body>
+</html>
