@@ -323,7 +323,7 @@ function buildScore(){
   }
   for(var r=0;r<ROLLS.length;r++){
     var R=ROLLS[r];
-    var gg=mk("rect",{x:R.x-24,y:"196",width:"48",height:"112",rx:"8",fill:"#d40006",opacity:"0"});
+    var gg=mk("ellipse",{cx:R.x.toFixed(1),cy:"278",rx:"36",ry:"22",fill:"#d40006",opacity:"0"});
     layer.appendChild(gg); R._el=gg;
   }
 }
@@ -364,7 +364,7 @@ function layoutWith(vw,vh){
     scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(10,vh*0.045)+"px";
     scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*236/vbW)+"px";
     drumSvg.setAttribute("viewBox","360 486 1180 580");
-    drumSvg.style.left="0"; drumSvg.style.bottom=Math.max(10,vh*0.035)+"px"; drumSvg.style.top="auto";
+    drumSvg.style.left="0"; drumSvg.style.bottom=Math.max(18,vh*0.07)+"px"; drumSvg.style.top="auto";
     drumSvg.style.width=vw+"px"; drumSvg.style.height=(vw*580/1180)+"px";
     playhead.setAttribute("y1","108"); playhead.setAttribute("y2","352");
     dh=vh*0.52;
@@ -479,7 +479,7 @@ function hit(which){
     stats.roll++; stats.hits++;
     stats.score+=Math.round(stats.combo>8?70:60);
     els.score.textContent=stats.score.toLocaleString("en-US");
-    if(R._el){ R._el.style.opacity="0.16"; }
+    if(R._el){ R._el.style.opacity="0.35"; }
     return;
   }
   /* 같은 시각의 다른 드럼을 쳤다면 놓친 것으로 */
@@ -515,7 +515,7 @@ function updateDrums(t){
     var R=ROLLS[i];
     if(!R._el) continue;
     var on=(t>=R.t0-0.06&&t<=R.t1);
-    R._el.setAttribute("opacity", on?"0.13":"0");
+    R._el.setAttribute("opacity", on?"0.35":"0");
   }
 }
 
