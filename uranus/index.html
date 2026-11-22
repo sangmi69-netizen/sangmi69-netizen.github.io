@@ -42,7 +42,7 @@
   .legend div{display:flex;flex-direction:column;align-items:center;gap:5px}
   .legend b{font-size:15px;color:#222;font-weight:600}
   .legend b.red{color:var(--red)}
-  .legend img{height:34px;image-rendering:auto}
+  .legend img{height:42px;image-rendering:auto}
   .btn{appearance:none;border:0;cursor:pointer;font-family:var(--ui);font-size:15px;font-weight:600;letter-spacing:.02em;color:#fff;background:#111;padding:13px 32px;border-radius:999px}
   .btn:active{transform:translateY(1px)}
   .btn[disabled]{opacity:.4}
@@ -718,7 +718,7 @@ resetStats();
 setSyncOffset(readSyncOffset());
 try{
   document.getElementById("lgBD").src=FR.bd[0].f;
-  document.getElementById("lgCym").src=FR.cym[10].f;
+  document.getElementById("lgCym").src=FR.cym[0].f;
 }catch(e){}
 prefetchMusic().then(function(){ window.__musicReady=true; }).catch(function(){});
 requestAnimationFrame(loop);
