@@ -399,8 +399,8 @@ var stage=document.getElementById("stage"), drumArea=document.getElementById("dr
 var LAY={mode:"land"};
 var DRUM_X0=368, DRUM_X1=1520, DRUM_Y0=488, DRUM_H=574, DRUM_W=1152;
 
-function layout(){
-  var vw=window.innerWidth, vh=window.innerHeight;
+function layout(fw,fh){
+  var vw=fw||window.innerWidth, vh=fh||window.innerHeight;
   var land=(vw/vh)>=1.0;
   LAY.mode=land?"land":"port";
   if(land){
@@ -409,7 +409,7 @@ function layout(){
     stage.style.width=W+"px"; stage.style.height=H+"px";
     stage.style.left=Math.max(0,(vw-W)/2)+"px"; stage.style.top=Math.max(0,(vh-H)/2)+"px";
     scoreSvg.setAttribute("viewBox","0 40 1920 380");
-    scoreSvg.style.left="0"; scoreSvg.style.top="0";
+    scoreSvg.style.left="0"; scoreSvg.style.top=(40/1080*H)+"px";
     scoreSvg.style.width=W+"px"; scoreSvg.style.height=(380/1080*H)+"px";
     drumArea.style.left=(DRUM_X0/1920*W)+"px";
     drumArea.style.top=(DRUM_Y0/1080*H)+"px";
@@ -431,7 +431,7 @@ function layout(){
     drumArea.style.height=dh+"px";
   }
   placeGlows();
-  placeZones();
+  placeZones(vw,vh);
 }
 function placeGlows(){
   var w=drumArea.clientWidth, h=drumArea.clientHeight;
@@ -446,12 +446,12 @@ function placeGlows(){
   glowR.style.left=(Rx-Rrx)+"px"; glowR.style.top=(Ry-Rry)+"px";
   glowR.style.width=(Rrx*2)+"px"; glowR.style.height=(Rry*2)+"px";
 }
-function placeZones(){
-  var vw=window.innerWidth, vh=window.innerHeight;
+function placeZones(vw,vh){
+  vw=vw||window.innerWidth; vh=vh||window.innerHeight;
   zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.top="0"; zoneL.style.height=vh+"px";
   zoneR.style.left="50%"; zoneR.style.width="50%"; zoneR.style.top="0"; zoneR.style.height=vh+"px";
 }
-window.addEventListener("resize",layout);
+window.addEventListener("resize",function(){ layout(); });
 window.addEventListener("orientationchange",function(){ setTimeout(layout,240); });
 
 /* ── scroll ── */
@@ -749,7 +749,7 @@ window.__game={
     });
     return out;
   },
-  layoutFor:function(w,h){ window.__forceW=w; window.__forceH=h; },
+  layoutFor:function(w,h){ layout(w,h); stage.style.left="0px"; stage.style.top="0px"; return LAY.mode; },
   autoplay:function(on){
     if(window.__auto){ window.__auto.forEach(function(id){ clearTimeout(id); }); window.__auto=null; }
     if(!on) return 0;
