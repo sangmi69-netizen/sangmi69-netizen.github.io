@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ffffff'/%3E%3Cellipse cx='16' cy='13' rx='9.5' ry='3.4' fill='%23f2e6d3' stroke='%23241a12' stroke-width='2'/%3E%3Cpath d='M7 13v6.5c0 2 4 3.6 9 3.6s9-1.6 9-3.6V13' fill='%23c8792f' stroke='%23241a12' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>팀파니 모먼트 — 베토벤 교향곡 5번</title>
+<style>
+  :root{
+    --ink:#141414;
+    --red:#e0392c;
+    --pink:#e26d7d;
+    --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0;background:#fff;overflow:hidden}
+  html{touch-action:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{font-family:var(--ui);color:var(--ink);overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+  #app{position:fixed;inset:0;background:#fff;touch-action:none}
+  #stage{position:absolute;background:#fff;touch-action:none;overflow:hidden}
+  svg{display:block;position:absolute;touch-action:none;overflow:hidden}
+  #scoreSvg{z-index:1;left:0;top:0}
+  #layer{backface-visibility:hidden}
+
+  /* 팀파니 그림 — 영상 프레임에서 그대로 오려낸 두 대 */
+  #drumArea{position:absolute;z-index:2;pointer-events:none;touch-action:none}
+  #drumArea img{position:absolute;top:0;display:block;transform-origin:50% 92%;will-change:transform;pointer-events:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  #drumL{left:0;width:50.85%}
+  #drumR{left:50.85%;width:49.15%}
+  .glow{position:absolute;border-radius:50%;pointer-events:none;opacity:0;mix-blend-mode:multiply;
+    background:radial-gradient(closest-side,rgba(255,186,104,.92),rgba(255,199,128,.55) 58%,rgba(255,214,160,0) 100%)}
+  .drum-dip{animation:dip .17s ease-out}
+  @keyframes dip{
+    0%{transform:translateY(0) scaleY(1)}
+    32%{transform:translateY(1.0%) scaleY(.986)}
+    100%{transform:translateY(0) scaleY(1)}
+  }
+
+  .zone{position:absolute;z-index:4;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+  .zone.on{background:rgba(224,57,44,.035)}
+
+  #judge{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);font-size:clamp(14px,3.4vw,20px);
+    letter-spacing:.18em;color:var(--red);opacity:0;pointer-events:none;z-index:7;font-weight:600}
+  #judge.show{animation:jp .5s ease forwards}
+  @keyframes jp{0%{opacity:0;transform:translate(-50%,-40%)}30%{opacity:.95}100%{opacity:0;transform:translate(-50%,-60%)}}
+
+  #hud{position:absolute;top:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding:7px 11px;pointer-events:none}
+  #hudScore{font-size:11px;letter-spacing:.08em;color:#b9b9b9;font-variant-numeric:tabular-nums}
+  #pauseBtn{pointer-events:auto;appearance:none;background:none;border:0;padding:5px 3px;font-size:11px;letter-spacing:.12em;color:#c4c4c4}
+  /* 싱크 보정 — 아주 작고 연하게, 터치 영역은 넉넉히 두되 발동은 click에서만 */
+  #hudSync{display:flex;align-items:center;pointer-events:auto;white-space:nowrap;margin-right:-5px}
+  #hudSync .slabel{font-size:10px;letter-spacing:.04em;color:#cfcfcf;padding-left:2px}
+  #hudSync .hsbtn{appearance:none;border:0;background:none;color:#c2c2c2;font-size:12px;line-height:1;
+    padding:11px 12px;margin:-7px -3px;font-family:var(--ui);pointer-events:auto;touch-action:none;cursor:pointer;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  #hudSync .hsbtn:active{color:#7d7d7d}
+  #hudSync b{width:40px;text-align:center;font-size:11px;font-weight:500;color:#b2b2b2;font-variant-numeric:tabular-nums}
+
+  .ov{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:26px 22px;background:#fff;transition:opacity .3s ease,visibility .3s}
+  .ov.hide{opacity:0;visibility:hidden;pointer-events:none}
+  .ov h1{font-size:clamp(20px,5.4vw,30px);font-weight:600;letter-spacing:.01em;margin:0 0 8px}
+  .ov h1 em{font-style:normal;color:var(--red)}
+  .ov .sub{font-size:clamp(11.5px,3.1vw,13.5px);color:#6c6c6c;line-height:1.7;margin:0 0 18px}
+  .rule{width:36px;height:2px;background:var(--red);border-radius:2px;margin:0 auto 15px}
+  .legend{display:flex;gap:28px;margin:0 0 20px;font-size:11.5px;color:#777}
+  .legend div{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .legend b{font-size:15px;color:#222;font-weight:600}
+  .legend b.red{color:var(--red)}
+  .btn{appearance:none;border:0;cursor:pointer;font-family:var(--ui);font-size:15px;font-weight:600;letter-spacing:.02em;
+    color:#fff;background:#111;padding:13px 32px;border-radius:999px}
+  .btn:active{transform:translateY(1px)}
+  .btn[disabled]{opacity:.4}
+  .btn.ghost{background:#fff;color:#222;box-shadow:inset 0 0 0 1.4px rgba(0,0,0,.16)}
+  .hint{margin-top:13px;font-size:11px;color:#9a9a9a;line-height:1.7}
+  .credit{position:absolute;left:0;right:0;bottom:10px;font-size:9.5px;color:#a9a9a9;text-align:center;line-height:1.6;padding:0 16px}
+  .credit a{color:#8d8d8d}
+  #result .rank{font-size:clamp(44px,13vw,70px);line-height:.95;color:var(--red);margin:0 0 4px}
+  #result .big{font-size:clamp(21px,5.8vw,29px);font-variant-numeric:tabular-nums;margin:2px 0}
+  #result .acc{font-size:12px;color:#7a7a7a;margin-bottom:16px}
+  .stats{display:flex;gap:18px;margin-bottom:20px}
+  .stats div{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .stats b{font-size:16px;font-variant-numeric:tabular-nums}
+  .stats span{font-size:9px;letter-spacing:.1em;color:#9a9a9a;text-transform:uppercase}
+  .row{display:flex;gap:10px}
+  #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#2b1b1b;color:#ffd9d3;font-size:11px;
+    padding:8px 10px;border-radius:8px;display:none;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <svg id="scoreSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+      <g id="layer"></g>
+      <line id="playhead" x1="851" y1="89" x2="851" y2="421" stroke="#e26d7d" stroke-width="4" stroke-linecap="butt"></line>
+    </svg>
+    <div id="drumArea">
+      <img id="drumL" src="assets/drum_left.png" alt="" draggable="false">
+      <img id="drumR" src="assets/drum_right.png" alt="" draggable="false">
+      <div class="glow" id="glowL"></div>
+      <div class="glow" id="glowR"></div>
+    </div>
+    <div class="zone" id="zoneL"></div>
+    <div class="zone" id="zoneR"></div>
+    <div id="judge"></div>
+    <div id="hud">
+      <div id="hudSync" role="group" aria-label="싱크 보정">
+        <span class="slabel">싱크</span>
+        <button class="hsbtn" id="hSyncMinus" aria-label="싱크 보정 줄이기">−</button>
+        <b id="hSyncVal">0ms</b>
+        <button class="hsbtn" id="hSyncPlus" aria-label="싱크 보정 늘리기">＋</button>
+      </div>
+      <div id="hudScore">0</div>
+      <button id="pauseBtn" aria-label="일시정지">❚❚</button>
+    </div>
+  </div>
+
+  <div class="ov" id="startScreen">
+    <h1>팀파니 <em>모먼트</em></h1>
+    <div class="rule"></div>
+    <p class="sub">베토벤 교향곡 5번 1악장 · Allegro con brio<br>영상 0:38부터 · 악보가 가리키는 팀파니를 두드려 보세요.</p>
+    <div class="legend">
+      <div><b>도</b><span>왼쪽 팀파니 · A</span></div>
+      <div><b class="red">솔</b><span>오른쪽 팀파니 · L</span></div>
+    </div>
+    <button class="btn" id="startBtn">연주 시작</button>
+    <div class="hint">왼쪽·오른쪽 팀파니를 직접 터치하거나<br>← → / A L 키로 연주할 수 있어요</div>
+    <div class="credit">연주: London Philharmonic Orchestra “Timpani Moments – Beethoven 5: I. Allegro con brio” · 작곡 L. van Beethoven<br>
+      <a href="https://youtu.be/MQB3_V7kKSY" target="_blank" rel="noopener">youtu.be/MQB3_V7kKSY</a></div>
+  </div>
+
+  <div class="ov hide" id="result">
+    <div class="rank" id="rRank">A</div>
+    <div class="big" id="rScore">0</div>
+    <div class="acc" id="rAcc">정확도 100%</div>
+    <div class="stats">
+      <div><b id="rPerfect">0</b><span>Perfect</span></div>
+      <div><b id="rGood">0</b><span>Good</span></div>
+      <div><b id="rMiss">0</b><span>Miss</span></div>
+      <div><b id="rCombo">0</b><span>Max Combo</span></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="againBtn">다시 연주</button>
+      <button class="btn ghost" id="homeBtn">처음으로</button>
+    </div>
+  </div>
+</div>
+<div id="err"></div>
+
+<script>
+var D = {"tab":[[0.0,851.0],[0.05,851.0],[0.1,851.0],[0.15,851.0],[0.2,851.0],[0.25,851.0],[0.3,851.0],[0.35,851.0],[0.4,851.0],[0.45,851.0],[0.5,851.0],[0.55,851.0],[0.6,851.0],[0.65,851.0],[0.7,851.0],[0.75,851.0],[0.8,851.0],[0.85,854.51],[0.9,861.68],[0.95,867.24],[1.0,876.63],[1.05,883.41],[1.1,894.3],[1.15,901.99],[1.2,914.02],[1.25,922.47],[1.3,937.49],[1.35,948.12],[1.4,964.07],[1.45,974.66],[1.5,990.62],[1.55,1001.19],[1.6,1017.15],[1.65,1027.82],[1.7,1043.75],[1.75,1054.37],[1.8,1070.34],[1.85,1080.97],[1.9,1096.93],[1.95,1107.56],[2.0,1124.33],[2.05,1135.6],[2.1,1152.35],[2.15,1163.6],[2.2,1180.34],[2.25,1191.58],[2.3,1208.38],[2.35,1219.59],[2.4,1236.36],[2.45,1247.59],[2.5,1264.41],[2.55,1275.62],[2.6,1291.03],[2.65,1300.79],[2.7,1315.45],[2.75,1325.19],[2.8,1339.77],[2.85,1349.53],[2.9,1364.16],[2.95,1373.88],[3.0,1388.51],[3.05,1398.27],[3.1,1412.95],[3.15,1422.67],[3.2,1437.34],[3.25,1447.13],[3.3,1461.79],[3.35,1471.04],[3.4,1484.88],[3.45,1494.13],[3.5,1507.97],[3.55,1517.18],[3.6,1531.04],[3.65,1540.27],[3.7,1554.12],[3.75,1563.34],[3.8,1577.2],[3.85,1586.39],[3.9,1600.26],[3.95,1609.45],[4.0,1623.35],[4.05,1632.54],[4.1,1646.37],[4.15,1655.59],[4.2,1669.02],[4.25,1677.86],[4.3,1691.19],[4.35,1700.03],[4.4,1713.36],[4.45,1722.24],[4.5,1735.55],[4.55,1744.41],[4.6,1757.74],[4.65,1766.61],[4.7,1779.87],[4.75,1788.72],[4.8,1802.04],[4.85,1810.93],[4.9,1824.24],[4.95,1833.08],[5.0,1846.41],[5.05,1855.28],[5.1,1868.61],[5.15,1877.46],[5.2,1890.79],[5.25,1899.67],[5.3,1916.35],[5.35,1927.56],[5.4,1944.3],[5.45,1955.49],[5.5,1972.26],[5.55,1983.42],[5.6,2000.18],[5.65,2012.05],[5.7,2030.95],[5.75,2043.5],[5.8,2062.37],[5.85,2074.93],[5.9,2093.81],[5.95,2106.41],[6.0,2125.29],[6.05,2137.89],[6.1,2156.8],[6.15,2169.4],[6.2,2188.27],[6.25,2200.62],[6.3,2218.91],[6.35,2231.11],[6.4,2249.42],[6.45,2261.59],[6.5,2279.86],[6.55,2292.04],[6.6,2310.33],[6.65,2322.51],[6.7,2340.78],[6.75,2352.95],[6.8,2371.24],[6.85,2383.36],[6.9,2401.49],[6.95,2413.55],[7.0,2431.63],[7.05,2443.71],[7.1,2461.85],[7.15,2473.96],[7.2,2492.06],[7.25,2504.09],[7.3,2522.23],[7.35,2534.29],[7.4,2552.36],[7.45,2564.41],[7.5,2582.4],[7.55,2594.36],[7.6,2612.36],[7.65,2624.35],[7.7,2642.32],[7.75,2654.29],[7.8,2672.29],[7.85,2684.27],[7.9,2702.26],[7.95,2714.24],[8.0,2732.25],[8.05,2744.25],[8.1,2762.05],[8.15,2773.88],[8.2,2791.61],[8.25,2803.44],[8.3,2821.19],[8.35,2833.07],[8.4,2850.82],[8.45,2862.66],[8.5,2880.38],[8.55,2892.22],[8.6,2910.0],[8.65,2921.83],[8.7,2939.56],[8.75,2950.77],[8.8,2967.52],[8.85,2978.76],[8.9,2995.62],[8.95,3006.86],[9.0,3023.67],[9.05,3034.91],[9.1,3051.78],[9.15,3062.98],[9.2,3079.84],[9.25,3091.04],[9.3,3107.92],[9.35,3119.17],[9.4,3135.52],[9.45,3145.73],[9.5,3161.14],[9.55,3171.37],[9.6,3186.73],[9.65,3196.99],[9.7,3212.39],[9.75,3222.64],[9.8,3238.01],[9.85,3248.27],[9.9,3263.62],[9.95,3273.85],[10.0,3289.2],[10.05,3299.4],[10.1,3314.74],[10.15,3324.96],[10.2,3340.25],[10.25,3350.47],[10.3,3365.83],[10.35,3376.09],[10.4,3391.44],[10.45,3401.67],[10.5,3417.01],[10.55,3427.23],[10.6,3442.59],[10.65,3452.84],[10.7,3470.01],[10.75,3482.14],[10.8,3500.29],[10.85,3512.42],[10.9,3530.62],[10.95,3542.71],[11.0,3560.95],[11.05,3573.04],[11.1,3591.21],[11.15,3603.29],[11.2,3621.46],[11.25,3633.57],[11.3,3651.79],[11.35,3663.92],[11.4,3682.08],[11.45,3694.19],[11.5,3712.37],[11.55,3724.47],[11.6,3741.34],[11.65,3752.71],[11.7,3769.62],[11.75,3780.92],[11.8,3797.88],[11.85,3809.1],[11.9,3826.04],[11.95,3837.32],[12.0,3854.27],[12.05,3865.61],[12.1,3882.53],[12.15,3893.8],[12.2,3910.76],[12.25,3922.22],[12.3,3939.33],[12.35,3950.77],[12.4,3967.93],[12.45,3979.38],[12.5,3996.49],[12.55,4007.93],[12.6,4025.04],[12.65,4036.48],[12.7,4053.62],[12.75,4065.09],[12.8,4082.25],[12.85,4093.74],[12.9,4112.67],[12.95,4125.23],[13.0,4144.13],[13.05,4156.68],[13.1,4175.62],[13.15,4188.25],[13.2,4207.15],[13.25,4219.77],[13.3,4238.69],[13.35,4251.32],[13.4,4270.26],[13.45,4282.94],[13.5,4300.44],[13.55,4312.15],[13.6,4329.65],[13.65,4341.4],[13.7,4358.92],[13.75,4370.59],[13.8,4388.15],[13.85,4399.8],[13.9,4417.28],[13.95,4428.94],[14.0,4446.43],[14.05,4458.11],[14.1,4477.48],[14.15,4491.02],[14.2,4511.36],[14.25,4524.9],[14.3,4545.31],[14.35,4558.81],[14.4,4578.18],[14.45,4589.69],[14.5,4607.0],[14.55,4618.57],[14.6,4635.9],[14.65,4647.45],[14.7,4664.66],[14.75,4676.21],[14.8,4693.54],[14.85,4705.1],[14.9,4722.37],[14.95,4733.89],[15.0,4751.22],[15.05,4763.86],[15.1,4782.81],[15.15,4795.43],[15.2,4814.39],[15.25,4827.01],[15.3,4845.97],[15.35,4858.62],[15.4,4877.54],[15.45,4890.16],[15.5,4909.11],[15.55,4921.77],[15.6,4940.6],[15.65,4953.07],[15.7,4971.86],[15.75,4984.31],[15.8,5003.09],[15.85,5015.54],[15.9,5034.28],[15.95,5046.75],[16.0,5065.53],[16.05,5078.04],[16.1,5096.85],[16.15,5109.35],[16.2,5128.09],[16.25,5140.58],[16.3,5159.37],[16.35,5171.88],[16.4,5193.43],[16.45,5208.61],[16.5,5231.38],[16.55,5246.54],[16.6,5269.29],[16.65,5284.45],[16.7,5307.27],[16.75,5322.42],[16.8,5345.2],[16.85,5360.39],[16.9,5381.26],[16.95,5392.64],[17.0,5409.68],[17.05,5421.08],[17.1,5438.07],[17.15,5449.45],[17.2,5466.44],[17.25,5477.87],[17.3,5494.87],[17.35,5506.24],[17.4,5523.29],[17.45,5534.68],[17.5,5552.76],[17.55,5565.17],[17.6,5583.73],[17.65,5596.11],[17.7,5614.66],[17.75,5627.05],[17.8,5645.59],[17.85,5657.96],[17.9,5676.53],[17.95,5688.92],[18.0,5707.52],[18.05,5719.97],[18.1,5738.83],[18.15,5751.33],[18.2,5770.15],[18.25,5782.7],[18.3,5801.51],[18.35,5814.08],[18.4,5832.91],[18.45,5845.42],[18.5,5864.22],[18.55,5876.76],[18.6,5895.58],[18.65,5908.14],[18.7,5926.96],[18.75,5939.46],[18.8,5958.23],[18.85,5970.76],[18.9,5992.55],[18.95,6008.06],[19.0,6031.38],[19.05,6046.89],[19.1,6070.21],[19.15,6085.71],[19.2,6109.01],[19.25,6124.57],[19.3,6147.86],[19.35,6163.31],[19.4,6184.0],[19.45,6196.91],[19.5,6216.36],[19.55,6229.31],[19.6,6248.67],[19.65,6261.63],[19.7,6281.01],[19.75,6293.97],[19.8,6313.37],[19.85,6326.28],[19.9,6345.64],[19.95,6358.64],[20.0,6378.07],[20.05,6391.0],[20.1,6410.43],[20.15,6425.24],[20.2,6447.46],[20.25,6462.33],[20.3,6484.51],[20.35,6499.37],[20.4,6521.61],[20.45,6536.43],[20.5,6558.65],[20.55,6573.51],[20.6,6595.8],[20.65,6609.61],[20.7,6628.93],[20.75,6641.72],[20.8,6661.03],[20.85,6673.92],[20.9,6693.23],[20.95,6706.04],[21.0,6725.25],[21.05,6738.13],[21.1,6757.34],[21.15,6770.18],[21.2,6789.42],[21.25,6802.26],[21.3,6821.51],[21.35,6834.34],[21.4,6855.31],[21.45,6871.55],[21.5,6895.9],[21.55,6912.11],[21.6,6936.41],[21.65,6952.63],[21.7,6976.99],[21.75,6993.18],[21.8,7017.43],[21.85,7033.63],[21.9,7052.34],[21.95,7063.0],[22.0,7079.1],[22.05,7089.85],[22.1,7105.83],[22.15,7116.51],[22.2,7132.57],[22.25,7143.29],[22.3,7159.34],[22.35,7170.07],[22.4,7186.12],[22.45,7196.85],[22.5,7213.34],[22.55,7224.96],[22.6,7242.44],[22.65,7254.07],[22.7,7271.54],[22.75,7283.13],[22.8,7300.51],[22.85,7312.13],[22.9,7329.62],[22.95,7341.23],[23.0,7358.66],[23.05,7370.3],[23.1,7387.74],[23.15,7399.4],[23.2,7416.77],[23.25,7428.4],[23.3,7445.85],[23.35,7460.03],[23.4,7485.08],[23.45,7501.67],[23.5,7526.74],[23.55,7543.32],[23.6,7568.36],[23.65,7584.87],[23.7,7609.95],[23.75,7626.64],[23.8,7649.52],[23.85,7661.87],[23.9,7680.42],[23.95,7692.82],[24.0,7711.39],[24.05,7723.72],[24.1,7742.32],[24.15,7754.74],[24.2,7773.26],[24.25,7785.65],[24.3,7804.24],[24.35,7816.59],[24.4,7835.1],[24.45,7847.48],[24.5,7866.09],[24.55,7878.49],[24.6,7900.99],[24.65,7917.31],[24.7,7941.82],[24.75,7958.23],[24.8,7982.76],[24.85,7999.16],[24.9,8023.75],[24.95,8040.05],[25.0,8064.55],[25.05,8080.88],[25.1,8097.77],[25.15,8109.14],[25.2,8126.12],[25.25,8137.5],[25.3,8154.53],[25.35,8165.85],[25.4,8182.73],[25.45,8194.09],[25.5,8211.09],[25.55,8222.43],[25.6,8239.41],[25.65,8250.74],[25.7,8267.74],[25.75,8281.27],[25.8,8304.66],[25.85,8320.29],[25.9,8343.7],[25.95,8359.32],[26.0,8382.86],[26.05,8398.53],[26.1,8422.02],[26.15,8437.65],[26.2,8461.15],[26.25,8476.83],[26.3,8500.27],[26.35,8515.87],[26.4,8533.84],[26.45,8544.01],[26.5,8559.3],[26.55,8569.45],[26.6,8584.6],[26.65,8594.66],[26.7,8609.88],[26.75,8620.07],[26.8,8635.27],[26.85,8645.44],[26.9,8660.66],[26.95,8670.82],[27.0,8687.63],[27.05,8700.99],[27.1,8721.08],[27.15,8734.46],[27.2,8754.59],[27.25,8768.04],[27.3,8788.11],[27.35,8801.51],[27.4,8821.59],[27.45,8835.05],[27.5,8855.1],[27.55,8867.54],[27.6,8884.8],[27.65,8896.25],[27.7,8913.48],[27.75,8924.95],[27.8,8942.09],[27.85,8953.64],[27.9,8970.86],[27.95,8982.32],[28.0,8999.6],[28.05,9011.04],[28.1,9028.25],[28.15,9039.75],[28.2,9056.2],[28.25,9066.8],[28.3,9082.79],[28.35,9093.44],[28.4,9109.42],[28.45,9120.02],[28.5,9136.05],[28.55,9146.7],[28.6,9162.7],[28.65,9173.32],[28.7,9189.29],[28.75,9199.89],[28.8,9215.85],[28.85,9227.28],[28.9,9245.57],[28.95,9257.72],[29.0,9275.98],[29.05,9288.14],[29.1,9306.42],[29.15,9318.6],[29.2,9336.83],[29.25,9349.03],[29.3,9367.3],[29.35,9379.47],[29.4,9397.72],[29.45,9408.37],[29.5,9421.99],[29.55,9431.1],[29.6,9444.73],[29.65,9453.76],[29.7,9467.4],[29.75,9476.51],[29.8,9490.17],[29.85,9499.24],[29.9,9512.88],[29.95,9521.92],[30.0,9535.56],[30.05,9544.63],[30.1,9558.33],[30.15,9567.41],[30.2,9581.09],[30.25,9591.09],[30.3,9607.46],[30.35,9618.34],[30.4,9634.68],[30.45,9645.58],[30.5,9662.0],[30.55,9672.91],[30.6,9689.26],[30.65,9700.17],[30.7,9716.53],[30.75,9727.44],[30.8,9743.78],[30.85,9754.69],[30.9,9771.05],[30.95,9781.92],[31.0,9798.28],[31.05,9809.2],[31.1,9825.56],[31.15,9836.47],[31.2,9852.85],[31.25,9863.77],[31.3,9880.12],[31.35,9891.01],[31.4,9907.36],[31.45,9918.25],[31.5,9934.59],[31.55,9947.21],[31.6,9968.72],[31.65,9983.08],[31.7,10004.61],[31.75,10018.9],[31.8,10040.44],[31.85,10054.75],[31.9,10076.31],[31.95,10090.61],[32.0,10112.12],[32.05,10126.46],[32.1,10147.98],[32.15,10162.31],[32.2,10183.84],[32.25,10198.21],[32.3,10221.26],[32.35,10236.57],[32.4,10259.62],[32.45,10274.97],[32.5,10298.01],[32.55,10313.38],[32.6,10336.43],[32.65,10351.73],[32.7,10374.76],[32.75,10390.08],[32.8,10406.62],[32.85,10417.69],[32.9,10434.26],[32.95,10445.28],[33.0,10461.88],[33.05,10472.91],[33.1,10489.48],[33.15,10500.52],[33.2,10517.18],[33.25,10528.23],[33.3,10544.79],[33.35,10555.83],[33.4,10570.66],[33.45,10580.58],[33.5,10595.41],[33.55,10605.32],[33.6,10620.18],[33.65,10630.11],[33.7,10644.93],[33.75,10654.83],[33.8,10669.67],[33.85,10679.55],[33.9,10694.41],[33.95,10704.31],[34.0,10719.16],[34.05,10729.32],[34.1,10745.17],[34.15,10755.67],[34.2,10771.48],[34.25,10782.0],[34.3,10797.77],[34.35,10808.29],[34.4,10824.1],[34.45,10834.6],[34.5,10850.42],[34.55,10860.93],[34.6,10876.74],[34.65,10887.21],[34.7,10904.49],[34.75,10916.05],[34.8,10933.34],[34.85,10944.94],[34.9,10962.25],[34.95,10973.84],[35.0,10991.17],[35.05,11002.73],[35.1,11020.02],[35.15,11031.61],[35.2,11048.93],[35.25,11060.92],[35.3,11079.53],[35.35,11091.92],[35.4,11110.55],[35.45,11122.95],[35.5,11141.58],[35.55,11153.93],[35.6,11172.55],[35.65,11184.93],[35.7,11203.56],[35.75,11215.92],[35.8,11234.58],[35.85,11246.92],[35.9,11265.5],[35.95,11277.86],[36.0,11296.5],[36.05,11311.38],[36.1,11333.85],[36.15,11348.8],[36.2,11371.18],[36.25,11386.12],[36.3,11408.58],[36.35,11423.47],[36.4,11445.91],[36.45,11460.89],[36.5,11483.31],[36.55,11496.71],[36.6,11514.58],[36.65,11526.47],[36.7,11544.32],[36.75,11556.22],[36.8,11574.06],[36.85,11585.94],[36.9,11603.78],[36.95,11615.7],[37.0,11633.56],[37.05,11645.48],[37.1,11663.36],[37.15,11675.26],[37.2,11693.12],[37.25,11705.04],[37.3,11722.91],[37.35,11734.79],[37.4,11752.63],[37.45,11764.52],[37.5,11782.38],[37.55,11794.29],[37.6,11812.16],[37.65,11824.07],[37.7,11841.94],[37.75,11853.84],[37.8,11868.47],[37.85,11877.22],[37.9,11890.37],[37.95,11899.12],[38.0,11912.27],[38.05,11921.03],[38.1,11934.14],[38.15,11942.88],[38.2,11956.03],[38.25,11964.79],[38.3,11977.93],[38.35,11986.7],[38.4,11999.85],[38.45,12008.59],[38.5,12021.72],[38.55,12032.57],[38.6,12052.06],[38.65,12065.01],[38.7,12084.43],[38.75,12097.39],[38.8,12116.82],[38.85,12129.79],[38.9,12149.15],[38.95,12162.06],[39.0,12181.53],[39.05,12194.47],[39.1,12213.17],[39.15,12225.35],[39.2,12243.67],[39.25,12255.88],[39.3,12274.25],[39.35,12286.49],[39.4,12304.87],[39.45,12317.05],[39.5,12335.4],[39.55,12347.62],[39.6,12365.98],[39.65,12378.18],[39.7,12398.51],[39.75,12412.79],[39.8,12434.29],[39.85,12448.54],[39.9,12470.21],[39.95,12484.53],[40.0,12505.98],[40.05,12520.22],[40.1,12541.71],[40.15,12555.98],[40.2,12577.34],[40.25,12589.48],[40.3,12604.62],[40.35,12614.71],[40.4,12629.91],[40.45,12640.0],[40.5,12655.08],[40.55,12665.14],[40.6,12680.2],[40.65,12690.29],[40.7,12705.39],[40.75,12715.47],[40.8,12730.58],[40.85,12740.68],[40.9,12757.65],[40.95,12769.61],[41.0,12787.55],[41.05,12799.52],[41.1,12817.42],[41.15,12829.37],[41.2,12847.24],[41.25,12859.2],[41.3,12877.16],[41.35,12889.13],[41.4,12907.07],[41.45,12919.04],[41.5,12936.69],[41.55,12948.08],[41.6,12965.11],[41.65,12976.58],[41.7,12993.58],[41.75,13005.0],[41.8,13021.86],[41.85,13033.29],[41.9,13050.26],[41.95,13061.77],[42.0,13078.76],[42.05,13090.15],[42.1,13107.09],[42.15,13118.68],[42.2,13136.24],[42.25,13147.86],[42.3,13165.45],[42.35,13176.99],[42.4,13194.4],[42.45,13205.87],[42.5,13223.26],[42.55,13234.8],[42.6,13252.39],[42.65,13264.03],[42.7,13281.53],[42.75,13292.68],[42.8,13308.49],[42.85,13318.97],[42.9,13334.71],[42.95,13345.07],[43.0,13360.87],[43.05,13371.19],[43.1,13371.15],[43.1,13371.15]],"notes":[{"x":1672,"t":4.217,"d":"L","y":152},{"x":1826,"t":4.917,"d":"L","y":156},{"x":1904,"t":5.312,"d":"L","y":156},{"x":2012,"t":5.671,"d":"R","y":127},{"x":2198,"t":6.24,"d":"L","y":156},{"x":2386,"t":6.873,"d":"R","y":127},{"x":2573,"t":7.459,"d":"R","y":127},{"x":2759,"t":8.11,"d":"L","y":156},{"x":2946,"t":8.771,"d":"L","y":156},{"x":3140,"t":9.392,"d":"L","y":152},{"x":3304,"t":10.048,"d":"L","y":152},{"x":3462,"t":10.722,"d":"R","y":127},{"x":3541,"t":10.96,"d":"R","y":127},{"x":3726,"t":11.555,"d":"L","y":156},{"x":3913,"t":12.21,"d":"R","y":127},{"x":4100,"t":12.846,"d":"R","y":127},{"x":4286,"t":13.415,"d":"L","y":156},{"x":4471,"t":14.106,"d":"L","y":156},{"x":4579,"t":14.404,"d":"R","y":127},{"x":5182,"t":16.399,"d":"L","y":156},{"x":5240,"t":16.55,"d":"L","y":156},{"x":5296,"t":16.684,"d":"L","y":156},{"x":5379,"t":16.895,"d":"R","y":127},{"x":5982,"t":18.895,"d":"L","y":156},{"x":6036,"t":19.017,"d":"L","y":156},{"x":6091,"t":19.168,"d":"L","y":156},{"x":6174,"t":19.376,"d":"R","y":127},{"x":6418,"t":20.172,"d":"L","y":156},{"x":6472,"t":20.288,"d":"L","y":156},{"x":6527,"t":20.451,"d":"L","y":156},{"x":6610,"t":20.689,"d":"R","y":127},{"x":6853,"t":21.444,"d":"L","y":156},{"x":6909,"t":21.548,"d":"L","y":156},{"x":6963,"t":21.705,"d":"L","y":156},{"x":7045,"t":21.88,"d":"R","y":120},{"x":7213,"t":22.523,"d":"R","y":127},{"x":7456,"t":23.33,"d":"R","y":127},{"x":7511,"t":23.452,"d":"R","y":127},{"x":7566,"t":23.597,"d":"R","y":127},{"x":7649,"t":23.829,"d":"R","y":127},{"x":7892,"t":24.58,"d":"R","y":127},{"x":7947,"t":24.716,"d":"R","y":127},{"x":8001,"t":24.854,"d":"R","y":127},{"x":8085,"t":25.062,"d":"R","y":127},{"x":8328,"t":25.866,"d":"R","y":127},{"x":8383,"t":26.0,"d":"R","y":127},{"x":8438,"t":26.163,"d":"R","y":127},{"x":8521,"t":26.364,"d":"R","y":127},{"x":10204,"t":32.263,"d":"R","y":127},{"x":10258,"t":32.396,"d":"R","y":127},{"x":10313,"t":32.549,"d":"R","y":127},{"x":10395,"t":32.765,"d":"R","y":120},{"x":10560,"t":33.364,"d":"R","y":120},{"x":10726,"t":34.034,"d":"R","y":120},{"x":10892,"t":34.664,"d":"R","y":120},{"x":11058,"t":35.238,"d":"R","y":127},{"x":11302,"t":36.018,"d":"R","y":127},{"x":11356,"t":36.166,"d":"R","y":127},{"x":11411,"t":36.308,"d":"R","y":127},{"x":11495,"t":36.544,"d":"R","y":127},{"x":11863,"t":37.808,"d":"L","y":156},{"x":12589,"t":40.248,"d":"L","y":147}],"end":42.6};
+(function(){
+"use strict";
+
+/* ══════════════════════════════════════════════════════════════
+   영상(youtu.be/MQB3_V7kKSY) 0:38~ 에서 픽셀 단위로 복원한 악보.
+   · 위상상관으로 프레임을 정렬해 이어 붙인 악보 띠 = score.png
+   · 좌표계는 영상의 1920×1080 픽셀 좌표 (score.png 는 y 85~385)
+   · tab: [시간(초), 재생선 위치의 악보 x]
+   ══════════════════════════════════════════════════════════════ */
+var TAB=D.tab, NOTES=D.notes, END=D.end;
+var PH=851;                         /* 재생선 x (영상과 같은 위치) */
+var SCORE_W=14395, SCORE_Y=75, SCORE_H=422;
+
+function timeToX(t){
+  var n=TAB.length;
+  if(t<=TAB[0][0]) return TAB[0][1];
+  if(t>=TAB[n-1][0]) return TAB[n-1][1];
+  var lo=0,hi=n-1;
+  while(hi-lo>1){ var m=(lo+hi)>>1; if(TAB[m][0]<=t) lo=m; else hi=m; }
+  var a=TAB[lo], b=TAB[hi];
+  if(b[0]===a[0]) return b[1];
+  return a[1]+(t-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+}
+
+/* ── audio ── */
+var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null, softLim=null;
+var MASTER_GAIN=1.0, MUSIC_GAIN=0.66, DRUM_DRY=0.30, DRUM_WET=0.115, DRUM_HIT_GAIN=1.0;
+var drumSets={L:[],R:[]}, musicBuf=null, musicFetch=null, musicSrc=null, musicAb=null;
+var startAt=0, songT=0, phase="title", starting=false;
+var outLat=0, syncOffsetSec=0, SYNC_KEY="beethoven5.syncMs.v1";
+
+function fail(m){ var e=document.getElementById("err"); e.style.display="block"; e.textContent=String(m); }
+function measuredOutLat(){
+  if(!AC) return 0;
+  var v=AC.outputLatency;
+  return (typeof v==="number"&&v>0&&v<0.6)?v:0;
+}
+function readSyncOffset(){
+  var ms=0; try{ ms=parseFloat(localStorage.getItem(SYNC_KEY)); }catch(e){ ms=0; }
+  if(!isFinite(ms)) ms=0;
+  return setSyncOffset(ms);
+}
+function setSyncOffset(ms){
+  ms=Math.max(-200,Math.min(200,Math.round(ms/10)*10));
+  syncOffsetSec=ms/1000;
+  try{ localStorage.setItem(SYNC_KEY,String(ms)); }catch(e){}
+  var v=document.getElementById("hSyncVal");
+  if(v) v.textContent=(ms>0?"+":"")+ms+"ms";
+  return ms;
+}
+function softClipCurve(){
+  var n=4096,c=new Float32Array(n),a=0.85,i;
+  for(i=0;i<n;i++){ var x=i/(n-1)*2-1,ax=Math.abs(x),y;
+    if(ax<=a) y=ax; else y=a+(1-a)*Math.tanh((ax-a)/(1-a));
+    c[i]=x<0?-y:y; }
+  return c;
+}
+function makeIR(dur){
+  /* 오케스트라 홀 — 팀파니 여운이 홀에 퍼지는 느낌 */
+  var sr=AC.sampleRate,n=Math.floor(dur*sr),buf=AC.createBuffer(2,n,sr);
+  for(var ch=0;ch<2;ch++){
+    var d=buf.getChannelData(ch);
+    for(var i=0;i<n;i++){ var tt=i/n; d[i]=(Math.random()*2-1)*Math.pow(1-tt,2.4)*0.9; }
+    var taps=ch?[0.013,0.029,0.048]:[0.016,0.033,0.055];
+    for(var k=0;k<taps.length;k++){ var idx=Math.floor(taps[k]*sr); if(idx<n) d[idx]+=(k%2?-0.42:0.52); }
+    var prev=0;
+    for(var j=0;j<n;j++){ prev=prev*0.62+d[j]*0.38; d[j]=prev; }
+    var fade=Math.floor(0.002*sr);
+    for(var f=0;f<fade;f++) d[f]*=f/fade;
+  }
+  return buf;
+}
+
+/* ── 팀파니 한 대: 0 ms 어택, 가죽 머리 모드 + 케틀 공명 + 펠트 말렛 ──
+   f0 은 영상 음원의 조율에 맞춘다(왼쪽 도 ≈146.8Hz, 오른쪽 라 ≈110Hz). */
+function makeTimpani(f0, size){
+  var sr=AC.sampleRate, dur=2.6, n=Math.floor(dur*sr);
+  var buf=AC.createBuffer(2,n,sr);
+  for(var ch=0;ch<2;ch++){
+    var d=buf.getChannelData(ch), i, t;
+    var nz=new Float32Array(n);
+    for(i=0;i<n;i++) nz[i]=Math.random()*2-1;
+    /* 1) 기본음 — 타격 직후 살짝 높았다가 내려앉는 아주 짧은 피치 글라이드 */
+    var ph=0;
+    for(i=0;i<n;i++){
+      t=i/sr;
+      var fr=f0*(1+0.012*Math.exp(-t/0.02));
+      ph+=2*Math.PI*fr/sr;
+      d[i]=Math.sin(ph)*Math.exp(-t/(0.95*size))*(1-Math.exp(-t/0.0011))*0.92;
+    }
+    /* 2) 가죽 모드 (1.50, 1.98, 2.44, 2.94 배) — 팀파니 특유의 둥근 배음 */
+    var modes=[[1.50,0.34,0.55],[1.98,0.26,0.42],[2.44,0.15,0.30],[2.94,0.09,0.22]];
+    for(var m=0;m<modes.length;m++){
+      var mul=modes[m][0], amp=modes[m][1], dec=modes[m][2]*size;
+      for(i=0;i<n;i++){
+        t=i/sr;
+        d[i]+=Math.sin(2*Math.PI*f0*mul*t+0.8*m)*Math.exp(-t/dec)*amp*(1-Math.exp(-t/0.0015));
+      }
+    }
+    /* 3) 케틀(구리 통) 공명 — 기본음보다 조금 높은 얇은 울림 */
+    for(i=0;i<n;i++){
+      t=i/sr;
+      d[i]+=Math.sin(2*Math.PI*f0*1.18*t+1.7)*Math.exp(-t/(0.30*size))*0.10;
+    }
+    /* 4) 펠트 말렛의 둔탁한 타격 — 320 Hz 대역 여음 */
+    var fbp=2*Math.sin(Math.PI*320/sr), q=0.62, l1=0, a2=0;
+    for(i=0;i<n;i++){
+      t=i/sr;
+      l1+=fbp*a2;
+      var hp=nz[i]-l1-q*a2;
+      a2+=fbp*hp;
+      d[i]+=a2*Math.exp(-t/0.028)*0.55;
+    }
+    /* 5) 아주 짧은 어택 클릭 (0 ms 시작을 살린다) */
+    var o=0, prev=0, aH=0.87, nc=Math.floor(0.014*sr);
+    for(i=0;i<nc;i++){
+      o=aH*(o+nz[i]-prev); prev=nz[i];
+      d[i]+=o*Math.exp(-i/(0.0026*sr))*0.42;
+    }
+    /* 6) 말렛 아래 낮은 '텅' — 55~90 Hz 대역 */
+    var lp=0;
+    for(i=0;i<n;i++){
+      t=i/sr;
+      lp=0.0045*nz[i]+0.9955*lp;
+      d[i]+=lp*Math.exp(-t/(0.20*size))*0.30;
+    }
+    /* normalize + soft clip */
+    var peak=0;
+    for(i=0;i<n;i++){ var av=Math.abs(d[i]); if(av>peak) peak=av; }
+    var g=0.95/(peak||1);
+    for(i=0;i<n;i++){ var v=d[i]*g; d[i]=Math.tanh(v*1.15)/Math.tanh(1.15)*0.96; }
+    var fade=Math.floor(0.45*sr);
+    for(i=0;i<fade;i++){ d[n-1-i]*=(i/fade); }
+  }
+  return buf;
+}
+function ensureAudio(){
+  if(AC) return AC;
+  var Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx){ fail("이 브라우저에서는 소리를 재생할 수 없습니다."); return null; }
+  AC=new Ctx({latencyHint:"interactive"});
+  master=AC.createGain(); master.gain.value=MASTER_GAIN;
+  softLim=AC.createWaveShaper(); softLim.curve=softClipCurve(); softLim.oversample="none";
+  master.connect(softLim); softLim.connect(AC.destination);
+  musicGain=AC.createGain(); musicGain.gain.value=MUSIC_GAIN; musicGain.connect(master);
+  drumDry=AC.createGain(); drumDry.gain.value=DRUM_DRY; drumDry.connect(master);
+  conv=AC.createConvolver(); conv.buffer=makeIR(1.5);
+  drumWet=AC.createGain(); drumWet.gain.value=DRUM_WET; drumWet.connect(conv); conv.connect(master);
+  drumSets.L=[makeTimpani(130.81,1.12)];  /* 왼쪽 · 도(C3) — 큰 북 */
+  drumSets.R=[makeTimpani(196.00,1.0)];   /* 오른쪽 · 솔(G3) */
+  return AC;
+}
+function fillDrumVariants(){
+  if(!AC) return;
+  try{
+    while(drumSets.L.length<3) drumSets.L.push(makeTimpani(130.81,1.12));
+    while(drumSets.R.length<3) drumSets.R.push(makeTimpani(196.00,1.0));
+  }catch(e){}
+}
+function playDrum(side,scale){
+  if(!AC) return;
+  var set=drumSets[side]||drumSets.L;
+  if(!set.length) set=drumSets.L;
+  var src=AC.createBufferSource();
+  src.buffer=set[(Math.random()*set.length)|0];
+  src.playbackRate.value=0.995+Math.random()*0.01;
+  var g=AC.createGain(); g.gain.value=DRUM_HIT_GAIN*(scale||1);
+  var panv = side==="L" ? -0.16 : 0.16;
+  if(AC.createStereoPanner){
+    var pan=AC.createStereoPanner(); pan.pan.value=panv+(Math.random()*2-1)*0.04;
+    src.connect(g); g.connect(pan); pan.connect(drumDry); pan.connect(drumWet);
+  } else { src.connect(g); g.connect(drumDry); g.connect(drumWet); }
+  src.start(0);
+}
+function dataToBuffer(uri){
+  return new Promise(function(res,rej){
+    try{
+      var i=uri.indexOf(","),head=uri.slice(5,i),body=uri.slice(i+1);
+      if(head.indexOf("base64")<0) throw new Error("not base64");
+      var bin=atob(body),n=bin.length,u8=new Uint8Array(n);
+      for(var k=0;k<n;k++) u8[k]=bin.charCodeAt(k);
+      res(u8.buffer);
+    }catch(e){ rej(e); }
+  });
+}
+var MUSIC_NAMES=["orchestra.mp3?v=1"];
+function prefetchMusic(){
+  if(musicAb) return Promise.resolve(musicAb);
+  if(musicFetch) return musicFetch;
+  var i=0;
+  function attempt(){
+    var name=MUSIC_NAMES[i],got;
+    if(name.indexOf("data:")===0){ got=dataToBuffer(name); }
+    else if(window.fetch){ got=fetch(name).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.arrayBuffer(); }); }
+    else { got=Promise.reject(new Error("no fetch")); }
+    return got.catch(function(e){ i++; if(i<MUSIC_NAMES.length) return attempt(); throw e; });
+  }
+  musicFetch=attempt().then(function(ab){ musicAb=ab; musicFetch=null; return ab; },
+                            function(e){ musicFetch=null; throw e; });
+  return musicFetch;
+}
+function decodeMusic(ab){
+  return new Promise(function(res,rej){
+    var p=AC.decodeAudioData(ab.slice?ab.slice(0):ab,res,rej);
+    if(p&&p.then) p.then(res,rej);
+  }).then(function(b){ musicBuf=b; return b; });
+}
+function ensureMusic(){ if(musicBuf) return Promise.resolve(musicBuf); return prefetchMusic().then(decodeMusic); }
+function startAudio(){
+  if(!ensureAudio()) return Promise.reject(new Error("no audio"));
+  var resumed=(AC.resume?AC.resume():Promise.resolve())||Promise.resolve();
+  return resumed.then(function(){
+    if(AC.state==="running") return null;
+    return AC.resume().then(function(){ if(AC.state!=="running") throw new Error("audio suspended"); });
+  }).then(ensureMusic).then(function(){ outLat=measuredOutLat(); return AC; });
+}
+
+/* ── score ── */
+var layer=document.getElementById("layer"), scoreSvg=document.getElementById("scoreSvg");
+var playhead=document.getElementById("playhead");
+function mk(tag,a){ var e=document.createElementNS("http://www.w3.org/2000/svg",tag); for(var k in a) e.setAttribute(k,a[k]); return e; }
+var flashEls=[];
+function buildScore(){
+  var img=mk("image",{x:0,y:SCORE_Y,width:SCORE_W,height:SCORE_H,href:"score.png"});
+  img.setAttribute("preserveAspectRatio","none");
+  img.setAttribute("image-rendering","auto");
+  layer.appendChild(img);
+  for(var i=0;i<NOTES.length;i++){
+    var n=NOTES[i];
+    /* 판정 피드백 — 음표 머리 위에 잠깐 번지는 표시 */
+    var el=mk("ellipse",{cx:n.x.toFixed(1),cy:(SCORE_Y+n.y).toFixed(1),rx:"26",ry:"18",fill:"none",
+      stroke:"#e0392c","stroke-width":"3",opacity:"0"});
+    layer.appendChild(el);
+    flashEls.push(el); n._el=el;
+  }
+}
+
+/* ── layout ── */
+var stage=document.getElementById("stage"), drumArea=document.getElementById("drumArea"),
+    zoneL=document.getElementById("zoneL"), zoneR=document.getElementById("zoneR"),
+    drumL=document.getElementById("drumL"), drumR=document.getElementById("drumR"),
+    glowL=document.getElementById("glowL"), glowR=document.getElementById("glowR");
+var LAY={mode:"land"};
+var DRUM_X0=360, DRUM_X1=1540, DRUM_Y0=480, DRUM_H=580, DRUM_W=1180;
+
+function layout(fw,fh){
+  var vw=fw||window.innerWidth, vh=fh||window.innerHeight;
+  var land=(vw/vh)>=1.0;
+  LAY.mode=land?"land":"port";
+  if(land){
+    var s=Math.min(vw/1920,vh/1080);
+    var W=1920*s,H=1080*s;
+    stage.style.width=W+"px"; stage.style.height=H+"px";
+    stage.style.left=Math.max(0,(vw-W)/2)+"px"; stage.style.top=Math.max(0,(vh-H)/2)+"px";
+    scoreSvg.setAttribute("viewBox","0 60 1920 440");
+    scoreSvg.style.left="0"; scoreSvg.style.top=(60/1080*H)+"px";
+    scoreSvg.style.width=W+"px"; scoreSvg.style.height=(440/1080*H)+"px";
+    drumArea.style.left=(DRUM_X0/1920*W)+"px";
+    drumArea.style.top=(DRUM_Y0/1080*H)+"px";
+    drumArea.style.width=(DRUM_W/1920*W)+"px";
+    drumArea.style.height=(DRUM_H/1080*H)+"px";
+  } else {
+    stage.style.width=vw+"px"; stage.style.height=vh+"px";
+    stage.style.left="0px"; stage.style.top="0px";
+    /* 세로 화면 — 악보 띠를 확대해 재생선을 왼쪽 38.7%(영상과 같은 비율)에 둔다 */
+    var vbW=Math.min(760, Math.max(400, vw*1.15));
+    var vbH=440, y0=60;   /* 악보 띠 전체(동적 표기·셈여림까지) — 위아래로 잘리지 않게 */
+    scoreSvg.setAttribute("viewBox",(PH-vbW*0.387).toFixed(1)+" "+y0+" "+vbW.toFixed(1)+" "+vbH);
+    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(14,vh*0.05)+"px";
+    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*vbH/vbW)+"px";
+    var dw=vw, dh=dw*DRUM_H/DRUM_W;
+    drumArea.style.left="0px";
+    drumArea.style.top="auto";
+    drumArea.style.bottom=Math.max(26,vh*0.09)+"px";
+    drumArea.style.width=dw+"px";
+    drumArea.style.height=dh+"px";
+  }
+  placeGlows();
+  placeZones(vw,vh);
+}
+function placeGlows(){
+  var w=drumArea.clientWidth, h=drumArea.clientHeight;
+  if(!w) return;
+  var sc=w/DRUM_W;                        /* 클 수록 확대 */
+  /* 왼쪽 북 머리: 오려낸 그림 좌표 (291.5,126.2) 반지름 (253,87) */
+  var Lx=291.5*sc, Ly=126.2*sc, Lrx=215*sc, Lry=74*sc;
+  glowL.style.left=(Lx-Lrx)+"px"; glowL.style.top=(Ly-Lry)+"px";
+  glowL.style.width=(Lrx*2)+"px"; glowL.style.height=(Lry*2)+"px";
+  /* 오른쪽 북 머리: 그림 좌표 (301.5,128.5) + 오른쪽 그림이 시작하는 600 */
+  var Rx=(600+301.5)*sc, Ry=128.5*sc, Rrx=196*sc, Rry=68*sc;
+  glowR.style.left=(Rx-Rrx)+"px"; glowR.style.top=(Ry-Rry)+"px";
+  glowR.style.width=(Rrx*2)+"px"; glowR.style.height=(Rry*2)+"px";
+}
+function placeZones(vw,vh){
+  vw=vw||window.innerWidth; vh=vh||window.innerHeight;
+  zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.top="0"; zoneL.style.height=vh+"px";
+  zoneR.style.left="50%"; zoneR.style.width="50%"; zoneR.style.top="0"; zoneR.style.height=vh+"px";
+}
+window.addEventListener("resize",function(){ layout(); });
+window.addEventListener("orientationchange",function(){ setTimeout(layout,240); });
+
+/* ── scroll ── */
+var CSS_LAYER_T=null;
+function detectCssSvgTransform(){
+  try{
+    var s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("width","120"); s.setAttribute("height","40");
+    s.style.position="absolute"; s.style.left="-2000px"; s.style.top="0";
+    var g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    var r=document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute("x","0"); r.setAttribute("y","0"); r.setAttribute("width","10"); r.setAttribute("height","10");
+    g.appendChild(r); s.appendChild(g); document.body.appendChild(s);
+    var base=r.getBoundingClientRect().left;
+    g.style.transform="translateX(50px)";
+    var moved=r.getBoundingClientRect().left;
+    document.body.removeChild(s);
+    return (moved-base)>30;
+  }catch(e){ return false; }
+}
+function renderScore(t){
+  var x=timeToX(Math.max(0,t));
+  var dx=x-PH;
+  if(CSS_LAYER_T) layer.style.transform="translateX("+(-dx).toFixed(2)+"px)";
+  else layer.setAttribute("transform","translate("+(-dx).toFixed(1)+",0)");
+}
+
+/* ── game ── */
+var missPtr=0, stats=null, judgeAnim=null;
+var W_PERFECT=0.075, W_GOOD=0.135, W_HIT=0.20;
+var els={score:document.getElementById("hudScore"),judge:document.getElementById("judge"),
+  start:document.getElementById("startScreen"),result:document.getElementById("result"),
+  startBtn:document.getElementById("startBtn")};
+
+function resetStats(){
+  stats={score:0,combo:0,maxCombo:0,perfect:0,good:0,miss:0,hits:0};
+  NOTES.forEach(function(n){ n.done=false; n.res=null; });
+  missPtr=0; els.score.textContent="0";
+}
+function accuracy(){
+  var total=stats.perfect+stats.good+stats.miss;
+  if(!total) return 1;
+  return (stats.perfect+stats.good*0.55)/total;
+}
+function judgeText(t){
+  var j=els.judge; j.textContent=t;
+  j.classList.remove("show"); void j.offsetWidth; j.classList.add("show");
+}
+function scanMisses(t){
+  while(missPtr<NOTES.length){
+    var n=NOTES[missPtr];
+    if(!n.done && t-n.t>W_HIT){ n.done=true; n.res="miss"; stats.miss++; stats.combo=0;
+      els.score.textContent=stats.score.toLocaleString("en-US"); }
+    if(n.done) missPtr++; else break;
+  }
+}
+function flashNote(n){
+  var el=n._el; if(!el) return;
+  el.style.transition="none"; el.style.opacity="0.85";
+  void el.getBoundingClientRect();
+  el.style.transition="opacity .45s ease-out"; el.style.opacity="0";
+}
+
+/* ── 타격 그림 — 영상의 두 북을 그대로 쓰고, 맞을 때 살짝 눌리는 움직임만 더한다 ── */
+var glowUntil={L:0,R:0}, dipUntil={L:0,R:0};
+function strikeFX(side){
+  var now=AC?AC.currentTime:performance.now()/1000;
+  glowUntil[side]=now+0.20;
+  dipUntil[side]=now+0.17;
+  var img=side==="L"?drumL:drumR;
+  img.classList.remove("drum-dip"); void img.offsetWidth; img.classList.add("drum-dip");
+}
+function updateFX(){
+  var now=AC?AC.currentTime:performance.now()/1000;
+  [["L",glowL],["R",glowR]].forEach(function(p){
+    var dl=glowUntil[p[0]]-now;
+    p[1].style.opacity = dl>0 ? (0.62*Math.min(1,dl/0.20)).toFixed(3) : "0";
+  });
+}
+
+function hit(side){
+  playDrum(side,1);
+  strikeFX(side);
+  if(phase!=="play") return;
+  var t=AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT;
+  var best=null,bestErr=1e9,i,n;
+  for(i=0;i<NOTES.length;i++){
+    n=NOTES[i];
+    if(n.done||n.d!==side) continue;
+    var e=Math.abs(t-n.t);
+    if(e<=W_HIT&&e<bestErr){ best=n; bestErr=e; }
+  }
+  if(best){
+    var res = bestErr<=W_PERFECT?"perfect":(bestErr<=W_GOOD?"good":"miss");
+    best.done=true; best.res=res; flashNote(best);
+    if(res==="perfect"){ stats.perfect++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(1000*(1+Math.min(stats.combo,50)*0.02)); judgeText("PERFECT"); }
+    else if(res==="good"){ stats.good++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(420*(1+Math.min(stats.combo,50)*0.02)); judgeText("GOOD"); }
+    else { stats.miss++; stats.combo=0; judgeText("MISS"); }
+    stats.maxCombo=Math.max(stats.maxCombo,stats.combo);
+    els.score.textContent=stats.score.toLocaleString("en-US");
+    return;
+  }
+}
+
+function fadeMusicOut(){
+  if(!AC||!musicSrc) return;
+  try{
+    var t0=AC.currentTime;
+    musicGain.gain.cancelScheduledValues(t0);
+    musicGain.gain.setValueAtTime(musicGain.gain.value,t0);
+    musicGain.gain.linearRampToValueAtTime(0,t0+2.2);
+    var src=musicSrc;
+    setTimeout(function(){ try{ src.stop(0); }catch(e){} },2400);
+    musicSrc=null;
+  }catch(e){}
+}
+function finishGame(){
+  if(phase!=="play") return;
+  phase="done";
+  fadeMusicOut();
+  var acc=accuracy();
+  var rank = acc>=0.95?"S":acc>=0.86?"A":acc>=0.72?"B":acc>=0.55?"C":"D";
+  document.getElementById("rRank").textContent=rank;
+  document.getElementById("rScore").textContent=stats.score.toLocaleString("en-US");
+  document.getElementById("rAcc").textContent="정확도 "+Math.round(acc*100)+"%";
+  document.getElementById("rPerfect").textContent=stats.perfect;
+  document.getElementById("rGood").textContent=stats.good;
+  document.getElementById("rMiss").textContent=stats.miss;
+  document.getElementById("rCombo").textContent=stats.maxCombo;
+  els.result.classList.remove("hide");
+}
+function stopAll(){
+  if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; }
+  if(AC&&musicGain){ try{ musicGain.gain.cancelScheduledValues(AC.currentTime); musicGain.gain.setValueAtTime(MUSIC_GAIN,AC.currentTime); }catch(e){} }
+  phase="title";
+}
+function startGame(){
+  if(phase==="play"||starting) return;
+  starting=true;
+  els.startBtn.disabled=true; els.startBtn.textContent="음악 준비 중…";
+  var unlock=function(){ starting=false; els.startBtn.disabled=false; els.startBtn.textContent="연주 시작"; };
+  startAudio().then(function(){
+    outLat=measuredOutLat();
+    resetStats();
+    els.start.classList.add("hide");
+    els.result.classList.add("hide");
+    var lead=1.4;
+    if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} }
+    musicGain.gain.cancelScheduledValues(AC.currentTime);
+    musicGain.gain.setValueAtTime(MUSIC_GAIN,AC.currentTime);
+    musicSrc=AC.createBufferSource();
+    musicSrc.buffer=musicBuf;
+    musicSrc.connect(musicGain);
+    startAt=AC.currentTime+lead;
+    musicSrc.start(startAt);
+    phase="play"; songT=-lead;
+    unlock();
+    if(window.requestIdleCallback) requestIdleCallback(fillDrumVariants,{timeout:1200});
+    else setTimeout(fillDrumVariants,200);
+  }).catch(function(e){
+    unlock();
+    fail("음악을 불러오지 못했습니다: "+e.message);
+  });
+}
+
+/* ── loop ── */
+var lastFrame=0;
+function loop(now){
+  var dt=Math.min(0.05,(now-lastFrame)/1000||0); lastFrame=now;
+  if(phase==="play"){
+    songT=AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT+dt;
+    if(songT>0) scanMisses(songT);
+    if(songT>END) finishGame();
+  } else if(phase==="done"){
+    if(AC) songT=Math.min(END+1,AC.currentTime-startAt-outLat-syncOffsetSec);
+  }
+  updateFX();
+  renderScore(phase==="play"||phase==="done" ? Math.max(songT,0) : 0);
+  requestAnimationFrame(loop);
+}
+
+/* ── input ── */
+function press(side){
+  hit(side);
+  var z=side==="L"?zoneL:zoneR;
+  z.classList.add("on");
+  setTimeout(function(){ z.classList.remove("on"); },110);
+}
+[["zoneL","L"],["zoneR","R"]].forEach(function(p){
+  var el=document.getElementById(p[0]), side=p[1];
+  el.addEventListener("pointerdown",function(ev){
+    if(ev.cancelable) ev.preventDefault();
+    if(phase==="title"||phase==="done") return;
+    press(side);
+  },{passive:false});
+});
+document.addEventListener("keydown",function(e){
+  var k=e.key;
+  if(e.repeat) return;
+  if(k===" "||k==="Enter"){
+    e.preventDefault();
+    if(phase==="play") press("L"); else if(phase!=="done") startGame();
+    return;
+  }
+  if(k==="ArrowLeft"||k==="a"||k==="A"||k==="f"||k==="F"){ if(phase==="play"){ e.preventDefault(); press("L"); } return; }
+  if(k==="ArrowRight"||k==="l"||k==="L"||k==="j"||k==="J"||k==="ArrowUp"||k==="ArrowDown"){ if(phase==="play"){ e.preventDefault(); press("R"); } }
+});
+els.startBtn.addEventListener("click",startGame);
+document.getElementById("againBtn").addEventListener("click",function(){ els.result.classList.add("hide"); startGame(); });
+document.getElementById("homeBtn").addEventListener("click",function(){
+  stopAll(); els.result.classList.add("hide"); els.start.classList.remove("hide"); els.score.textContent="0";
+});
+document.getElementById("pauseBtn").addEventListener("click",function(){
+  if(phase!=="play") return;
+  if(AC.state==="running"){ AC.suspend(); this.textContent="▶"; }
+  else { AC.resume(); this.textContent="❚❚"; }
+});
+(function(){
+  var minus=document.getElementById("hSyncMinus"), plus=document.getElementById("hSyncPlus");
+  function bind(el,delta){
+    if(!el) return;
+    var stop=function(ev){ ev.stopPropagation(); if(ev.cancelable) ev.preventDefault(); };
+    ["pointerdown","touchstart","mousedown"].forEach(function(t){ el.addEventListener(t,stop,{passive:false}); });
+    el.addEventListener("click",function(ev){
+      ev.stopPropagation(); ev.preventDefault();
+      setSyncOffset(Math.round(syncOffsetSec*1000)+delta);
+    });
+  }
+  bind(minus,-10); bind(plus,+10);
+})();
+
+/* iOS 확대 방지 */
+var lastTouchEnd=0;
+["gesturestart","gesturechange","gestureend"].forEach(function(t){ document.addEventListener(t,function(e){ if(e.cancelable) e.preventDefault(); },{passive:false}); });
+document.addEventListener("touchstart",function(e){ if(e.touches&&e.touches.length>1&&e.cancelable) e.preventDefault(); },{passive:false});
+document.getElementById("stage").addEventListener("touchend",function(e){
+  var now=e.timeStamp||Date.now();
+  if(now-lastTouchEnd<320){ if(e.cancelable) e.preventDefault(); lastTouchEnd=0; }
+  else lastTouchEnd=now;
+},{passive:false});
+document.addEventListener("dblclick",function(e){ if(e.cancelable) e.preventDefault(); },{passive:false});
+document.addEventListener("contextmenu",function(e){ e.preventDefault(); },{passive:false});
+
+/* boot */
+CSS_LAYER_T=detectCssSvgTransform();
+if(CSS_LAYER_T&&layer.style) layer.style.willChange="transform";
+buildScore();
+layout();
+resetStats();
+setSyncOffset(readSyncOffset());
+prefetchMusic().then(function(){ window.__musicReady=true; }).catch(function(){});
+requestAnimationFrame(loop);
+
+window.__game={
+  notes:NOTES, stats:function(){ return stats; }, time:function(){ return songT; },
+  phase:function(){ return phase; }, start:startGame, hit:press,
+  audio:function(){ return AC?{state:AC.state,dur:musicBuf?musicBuf.duration:0}:null; },
+  layoutInfo:function(){ return {mode:LAY.mode, canvas:[stage.style.width,stage.style.height], drums:[drumArea.style.width,drumArea.style.height]}; },
+  latency:function(){ return {base:AC?AC.baseLatency:null,output:AC?(AC.outputLatency||0):null,used:outLat,syncMs:Math.round(syncOffsetSec*1000),sr:AC?AC.sampleRate:null}; },
+  counts:function(){ return {total:NOTES.length, first:NOTES[0].t, last:NOTES[NOTES.length-1].t, end:END}; },
+  preview:function(t){
+    if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} } musicSrc=null;
+    els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t;
+    startAt=(AC?AC.currentTime:0)-outLat-syncOffsetSec-t;
+    if(AC&&AC.suspend){ try{ AC.suspend(); }catch(e){} }
+  },
+  scoreRect:function(){ var r=scoreSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
+  drumRect:function(){ var r=drumArea.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
+  playheadX:function(){ var r=playhead.getBoundingClientRect(); return r.x+r.width/2; },
+  finish:function(){ finishGame(); },
+  hud:function(on){ document.getElementById("hud").style.display=on?"flex":"none"; },
+  drumStats:function(){
+    var out={};
+    ["L","R"].forEach(function(k){
+      var set=drumSets[k]; if(!set||!set.length) return;
+      var b=set[0], d=b.getChannelData(0), sr=b.sampleRate, n=d.length, i, peak=0;
+      for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
+      var env=[];
+      [0,0.002,0.01,0.03,0.1,0.3,0.6,1.2,2.0].forEach(function(t){
+        var i0=Math.min(n-1,Math.floor(t*sr)), i1=Math.min(n,i0+Math.floor(0.01*sr)), s2=0, k;
+        for(k=i0;k<i1;k++) s2+=d[k]*d[k];
+        env.push([t, Math.round(Math.sqrt(s2/Math.max(1,i1-i0))*1000)/1000]);
+      });
+      var N=8192, tot=0, cen=0, lo=0, lopf=0;
+      var re=0, im=0;
+      for(var fi=0; fi<N/2; fi++){
+        var fr2=2*Math.PI*fi/N; re=0; im=0;
+        for(var j=0;j<N;j++){ var w=0.5-0.5*Math.cos(2*Math.PI*j/(N-1)); re+=d[j]*w*Math.cos(fr2*j); im-=d[j]*w*Math.sin(fr2*j); }
+        var p=re*re+im*im, f=fi*sr/N; tot+=p; cen+=p*f;
+        if(f<300&&p>lo){ lo=p; lopf=f; }
+      }
+      out[k]={dur:+b.duration.toFixed(2), peak:+peak.toFixed(3), rms:env,
+              centroidHz:Math.round(cen/Math.max(1e-9,tot)), peakLf:Math.round(lopf)};
+    });
+    return out;
+  },
+  layoutFor:function(w,h){ layout(w,h); stage.style.left="0px"; stage.style.top="0px"; return LAY.mode; },
+  autoplay:function(on){
+    if(window.__auto){ window.__auto.forEach(function(id){ clearTimeout(id); }); window.__auto=null; }
+    if(!on) return 0;
+    window.__auto=[];
+    var now=songT;
+    NOTES.forEach(function(n){
+      var dt=(n.t-now)*1000;
+      if(dt<-300||dt>200000) return;
+      var id=setTimeout(function(){ if(phase==="play") press(n.d); },Math.max(0,dt));
+      window.__auto.push(id);
+    });
+    return window.__auto.length;
+  }
+};
+})();
+</script>
+</body>
+</html>
