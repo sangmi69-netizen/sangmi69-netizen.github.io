@@ -38,9 +38,9 @@
   .ov .sub{font-size:clamp(11.5px,3.1vw,13.5px);color:#6c6c6c;line-height:1.75;margin:0 0 18px}
   .rule{width:36px;height:2px;background:var(--red);border-radius:2px;margin:0 auto 15px}
   .legend{display:flex;gap:20px;margin:0 0 20px;font-size:11px;color:#777;align-items:flex-end}
-  .legend div{display:flex;flex-direction:column;align-items:center;gap:5px;width:86px}
+  .legend div{display:flex;flex-direction:column;align-items:center;gap:5px;width:92px}
   .legend b{font-size:14px;color:#222;font-weight:600}
-  .legend img{height:40px;image-rendering:auto}
+  .legend img{height:44px;width:auto;image-rendering:auto}
   .legend span{line-height:1.4}
   .btn{appearance:none;border:0;cursor:pointer;font-family:var(--ui);font-size:15px;font-weight:600;letter-spacing:.02em;color:#fff;background:#111;padding:13px 32px;border-radius:999px}
   .btn:active{transform:translateY(1px)}
@@ -91,9 +91,9 @@
     <div class="rule"></div>
     <p class="sub">칼 오르프 〈카르미나 부라나〉 — 오 포르투나<br>운명의 여신이 몰아치는 대목, 팀파니 세 대를 정확한 순간에 울려 보세요.</p>
     <div class="legend">
-      <div><img id="lgL" alt="왼쪽 팀파니"><span>왼쪽 화면 · F</span></div>
-      <div><img id="lgM" alt="가운데 팀파니"><span>가운데 화면 · Space</span></div>
-      <div><img id="lgR" alt="오른쪽 팀파니"><span>오른쪽 화면 · J</span></div>
+      <div><img id="lgL" alt="왼쪽 팀파니"><span>왼쪽 · F</span></div>
+      <div><img id="lgM" alt="가운데 팀파니"><span>가운데 · Space</span></div>
+      <div><img id="lgR" alt="오른쪽 팀파니"><span>오른쪽 · J</span></div>
     </div>
     <button class="btn" id="startBtn">연주 시작</button>
     <div class="hint">화면 왼쪽·가운데·오른쪽을 누르면 그 자리의 팀파니가 울립니다<br>연주 중 화면 오른쪽 위 ‘싱크 − 0ms ＋’로 미세 조정</div>
@@ -135,6 +135,7 @@ var DRUMS={
   cr:{bbox:[1025,460,425,380]}
 };
 var SPRITE={dl:"dr_L.png", dm:"dr_CL.png", dr:"dr_R.png", cr:"dr_CR.png"};
+var THUMB={dl:"thumb_L.png", dm:"thumb_M.png", dr:"thumb_R.png"};
 var KEYS=["dl","dm","dr"];
 
 function timeToX(t){
@@ -300,7 +301,7 @@ function buildScore(){
   layer.appendChild(img);
   for(var i=0;i<NOTES.length;i++){
     var n=NOTES[i];
-    var el=mk("ellipse",{cx:n.x.toFixed(1),cy:(SCORE_Y+n.y).toFixed(1),rx:"21",ry:"12",fill:"#d40006",opacity:"0"});
+    var el=mk("ellipse",{cx:n.x.toFixed(1),cy:(SCORE_Y+n.y).toFixed(1),rx:"17",ry:"10.5",fill:"#d40006",opacity:"0"});
     layer.appendChild(el);
     n._el=el;
   }
@@ -308,7 +309,15 @@ function buildScore(){
 var IMG={}, GRP={};
 var bounce={dl:0, dm:0, dr:0};
 function buildDrums(){
+  var base=mk("g",{});
   ["cr","dm","dl","dr"].forEach(function(k){
+    var b=DRUMS[k].bbox;
+    var im=mk("image",{x:b[0],y:b[1],width:b[2],height:b[3],href:SPRITE[k]});
+    im.setAttribute("preserveAspectRatio","none");
+    base.appendChild(im);
+  });
+  instLayer.appendChild(base);
+  ["dm","dl","dr"].forEach(function(k){
     var b=DRUMS[k].bbox;
     var g=mk("g",{});
     var im=mk("image",{x:b[0],y:b[1],width:b[2],height:b[3],href:SPRITE[k]});
@@ -322,7 +331,7 @@ function applyBounce(){
   ["dl","dm","dr"].forEach(function(k){
     var b=bounce[k], bb=DRUMS[k].bbox;
     var cx=bb[0]+bb[2]/2, cy=bb[1]+bb[3]/2;
-    var dy=b*26, sx=1+b*0.012, sy=1-b*0.020;
+    var dy=b*9, sx=1+b*0.004, sy=1-b*0.006;
     GRP[k].setAttribute("transform","translate("+cx.toFixed(1)+","+(cy+dy).toFixed(1)+") scale("+sx.toFixed(4)+","+sy.toFixed(4)+") translate("+(-cx).toFixed(1)+","+(-cy).toFixed(1)+")");
   });
 }
@@ -334,9 +343,9 @@ function updateDrums(t){
   ["dl","dm","dr"].forEach(function(k){
     var dt=t-hitTime[k];
     var v=0;
-    if(dt>=0&&dt<0.26){
-      var u=dt/0.26;
-      v=Math.sin(Math.PI*Math.pow(u,0.62))*0.55+Math.exp(-u*8)*0.45;
+    if(dt>=0&&dt<0.30){
+      var u=dt/0.30;
+      v=Math.sin(Math.PI*Math.pow(u,0.55));
     }
     bounce[k]=v;
   });
@@ -368,7 +377,7 @@ function layoutWith(vw,vh){
     instSvg.setAttribute("viewBox","0 380 1920 700");
     instSvg.style.left="0"; instSvg.style.top=(380/1080*H)+"px";
     instSvg.style.width=W+"px"; instSvg.style.height=(700/1080*H)+"px";
-    elsJudge.style.top="47%";
+    elsJudge.style.top="39%";
     zoneL.style.left="0"; zoneL.style.width=Math.round(W*0.34)+"px"; zoneL.style.top="0"; zoneL.style.height=H+"px";
     zoneM.style.left=Math.round(W*0.34)+"px"; zoneM.style.width=Math.round(W*0.26)+"px"; zoneM.style.top="0"; zoneM.style.height=H+"px";
     zoneR.style.left=Math.round(W*0.60)+"px"; zoneR.style.width=Math.round(W*0.40)+"px"; zoneR.style.top="0"; zoneR.style.height=H+"px";
@@ -386,7 +395,7 @@ function layoutWith(vw,vh){
     instSvg.setAttribute("viewBox","40 390 1840 680");
     instSvg.style.left="0"; instSvg.style.top=instTop+"px";
     instSvg.style.width=vw+"px"; instSvg.style.height=instH+"px";
-    elsJudge.style.top=(topPx+10)+"px";
+    elsJudge.style.top=(topPx+6)+"px";
     zoneL.style.left="0"; zoneL.style.width=Math.round(vw*0.34)+"px"; zoneL.style.top="0"; zoneL.style.height=vh+"px";
     zoneM.style.left=Math.round(vw*0.34)+"px"; zoneM.style.width=Math.round(vw*0.30)+"px"; zoneM.style.top="0"; zoneM.style.height=vh+"px";
     zoneR.style.left=Math.round(vw*0.64)+"px"; zoneR.style.width=Math.round(vw*0.36)+"px"; zoneR.style.top="0"; zoneR.style.height=vh+"px";
@@ -456,7 +465,7 @@ function scanMisses(t){
 }
 function flashNote(n){
   var el=n._el; if(!el) return;
-  el.style.transition="none"; el.style.opacity="0.8";
+  el.style.transition="none"; el.style.opacity="0.62";
   void el.getBoundingClientRect();
   el.style.transition="opacity .5s ease-out"; el.style.opacity="0";
 }
@@ -627,9 +636,9 @@ layout();
 resetStats();
 setSyncOffset(readSyncOffset());
 try{
-  document.getElementById("lgL").src=SPRITE.dl;
-  document.getElementById("lgM").src=SPRITE.dm;
-  document.getElementById("lgR").src=SPRITE.dr;
+  document.getElementById("lgL").src=THUMB.dl;
+  document.getElementById("lgM").src=THUMB.dm;
+  document.getElementById("lgR").src=THUMB.dr;
 }catch(e){}
 prefetchMusic().then(function(){ window.__musicReady=true; }).catch(function(){});
 requestAnimationFrame(loop);
