@@ -389,10 +389,23 @@ function poseAt(kf,dt){
 function updateCymbals(){
   var now=AC?AC.currentTime:performance.now()/1000;
   var dt=now-STRIKE_AT;
+  /* 기다리는 동안의 잔 tremble: 순간이 가까워질수록 조금씩 떨린다 */
+  var trem=0, lift=0;
+  if(phase==="play"){
+    var tn=NOTES[0].t - (AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT);
+    if(!NOTES[0].done && tn>0 && tn<2.2){
+      var amp=(1-tn/2.2);
+      trem=Math.sin(now*38)*0.9*amp;
+      lift=-1.6*amp;
+    }
+  }
   for(var i=0;i<CYM.length;i++){
     var c=CYM[i], p=poseAt(c.kf,dt);
     if(!p){
-      c.el.setAttribute("transform","");
+      if(trem||lift){
+        var sgn=(i===0)?1:-1;
+        c.el.setAttribute("transform","translate(0,"+lift.toFixed(2)+") rotate("+(trem*sgn).toFixed(2)+" "+c.cx+" "+c.cy+")");
+      } else c.el.setAttribute("transform","");
     } else {
       c.el.setAttribute("transform","translate("+p[0].toFixed(2)+","+p[1].toFixed(2)+") rotate("+p[2].toFixed(2)+" "+c.cx+" "+c.cy+")");
     }
