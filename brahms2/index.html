@@ -31,8 +31,8 @@
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   #drumL{left:0;width:51.30%}
   #drumR{left:51.30%;width:48.70%}
-  .glow{position:absolute;border-radius:50%;pointer-events:none;opacity:0;
-    background:radial-gradient(closest-side,rgba(255,250,236,.95),rgba(255,236,196,.55) 52%,rgba(255,226,170,0) 100%)}
+  .glow{position:absolute;border-radius:50%;pointer-events:none;opacity:0;mix-blend-mode:multiply;
+    background:radial-gradient(closest-side,rgba(255,186,104,.92),rgba(255,199,128,.55) 58%,rgba(255,214,160,0) 100%)}
   .drum-dip{animation:dip .17s ease-out}
   @keyframes dip{
     0%{transform:translateY(0) scaleY(1)}
@@ -528,7 +528,7 @@ function updateFX(){
   var now=AC?AC.currentTime:performance.now()/1000;
   [["L",glowL],["R",glowR]].forEach(function(p){
     var dl=glowUntil[p[0]]-now;
-    p[1].style.opacity = dl>0 ? (0.55*Math.min(1,dl/0.20)).toFixed(3) : "0";
+    p[1].style.opacity = dl>0 ? (0.62*Math.min(1,dl/0.20)).toFixed(3) : "0";
   });
 }
 
