@@ -361,18 +361,18 @@ function layoutWith(vw,vh){
   } else {
     stage.style.width=vw+"px"; stage.style.height=vh+"px";
     stage.style.left="0px"; stage.style.top="0px";
-    var vbW=Math.min(820, vw*2.0);
-    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 110 "+vbW.toFixed(1)+" 300");
-    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(14,vh*0.055)+"px";
-    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*300/vbW)+"px";
-    var ch=vw*650/1180;
-    drumSvg.setAttribute("viewBox","370 430 1180 650");
-    drumSvg.style.left="0"; drumSvg.style.bottom="0"; drumSvg.style.top="auto";
+    var vbW=Math.min(880, vw*2.1), vbH=292;
+    var top=Math.max(12,vh*0.05);
+    var scoreH=vw*vbH/vbW;
+    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 137 "+vbW.toFixed(1)+" "+vbH);
+    scoreSvg.style.left="0"; scoreSvg.style.top=top+"px";
+    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=scoreH+"px";
+    var ch=vw*630/1170;
+    drumSvg.setAttribute("viewBox","375 435 1170 630");
+    drumSvg.style.left="0"; drumSvg.style.top=(top+scoreH+2)+"px"; drumSvg.style.bottom="auto";
     drumSvg.style.width=vw+"px"; drumSvg.style.height=ch+"px";
-    zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.top="0";
-    zoneL.style.height=(vh-Math.max(14,vh*0.055)-vw*300/vbW)+"px";
-    zoneR.style.right="0"; zoneR.style.width="50%"; zoneR.style.top="0";
-    zoneR.style.height=(vh-Math.max(14,vh*0.055)-vw*300/vbW)+"px";
+    zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.top="0"; zoneL.style.height=vh+"px";
+    zoneR.style.right="0"; zoneR.style.width="50%"; zoneR.style.top="0"; zoneR.style.height=vh+"px";
   }
 }
 window.addEventListener("resize",layout);
