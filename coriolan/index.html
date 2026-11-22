@@ -659,8 +659,8 @@ layout();
 resetStats();
 setSyncOffset(readSyncOffset());
 try{
-  document.getElementById("lgL").src=FR.L[0].f;
-  document.getElementById("lgR").src=FR.R[0].f;
+  document.getElementById("lgL").src="lg_L.jpg";
+  document.getElementById("lgR").src="lg_R.jpg";
 }catch(e){}
 prefetchMusic().then(function(){ window.__musicReady=true; }).catch(function(){});
 requestAnimationFrame(loop);
