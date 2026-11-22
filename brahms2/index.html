@@ -420,9 +420,9 @@ function layout(fw,fh){
     stage.style.left="0px"; stage.style.top="0px";
     /* 세로 화면 — 악보 띠를 확대해 재생선을 왼쪽 38.7%(영상과 같은 비율)에 둔다 */
     var vbW=Math.min(760, Math.max(500, vw*1.36));
-    var vbH=210, y0=128;
+    var vbH=306, y0=84;   /* 악보 띠 전체(동적 표기·셈여림까지) — 위아래로 잘리지 않게 */
     scoreSvg.setAttribute("viewBox",(PH-vbW*0.387).toFixed(1)+" "+y0+" "+vbW.toFixed(1)+" "+vbH);
-    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(12,vh*0.055)+"px";
+    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(14,vh*0.05)+"px";
     scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*vbH/vbW)+"px";
     var dw=vw, dh=dw*DRUM_H/DRUM_W;
     drumArea.style.left="0px";
