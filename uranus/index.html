@@ -431,6 +431,7 @@ function updateInstrument(kind,t){
 /* ── layout ── */
 var stage=document.getElementById("stage"), zoneBD=document.getElementById("zoneBD"),
     zoneCym=document.getElementById("zoneCym"), playhead=document.getElementById("playhead");
+var elsJudge=document.getElementById("judge");
 var LOCK_W=0, LOCK_H=0, LAY={mode:"land"};
 function layout(){
   var w=window.innerWidth,h=window.innerHeight;
@@ -452,19 +453,24 @@ function layoutWith(vw,vh){
     instSvg.setAttribute("viewBox","0 400 1920 680");
     instSvg.style.left="0"; instSvg.style.top=(400/1080*H)+"px";
     instSvg.style.width=W+"px"; instSvg.style.height=(680/1080*H)+"px";
+    elsJudge.style.top="47%";
     zoneBD.style.left="0"; zoneBD.style.width=Math.round(W*0.5)+"px"; zoneBD.style.top="0"; zoneBD.style.height=H+"px";
     zoneCym.style.left=Math.round(W*0.5)+"px"; zoneCym.style.width=Math.round(W*0.5)+"px"; zoneCym.style.top="0"; zoneCym.style.height=H+"px";
   } else {
     stage.style.width=vw+"px"; stage.style.height=vh+"px";
     stage.style.left="0px"; stage.style.top="0px";
-    var vbW=Math.min(560, vw*1.5);
+    var vbW=Math.min(500, vw*1.4);
+    var sTop=Math.max(12,vh*0.03);
     scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 46 "+vbW.toFixed(1)+" 392");
-    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(14,vh*0.035)+"px";
+    scoreSvg.style.left="0"; scoreSvg.style.top=sTop+"px";
     scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*392/vbW)+"px";
-    var topPx=Math.max(14,vh*0.035)+vw*392/vbW;
+    var topPx=sTop+vw*392/vbW;
+    var instH=vw*630/1370;
+    var instTop=topPx+(vh-topPx-instH)*0.5;
     instSvg.setAttribute("viewBox","380 430 1370 630");
-    instSvg.style.left="0"; instSvg.style.top=Math.max(topPx+6, vh*0.08)+"px";
-    instSvg.style.width=vw+"px"; instSvg.style.height=(vw*630/1370)+"px";
+    instSvg.style.left="0"; instSvg.style.top=instTop+"px";
+    instSvg.style.width=vw+"px"; instSvg.style.height=instH+"px";
+    elsJudge.style.top=(topPx+14)+"px";
     zoneBD.style.left="0"; zoneBD.style.width=Math.round(vw*0.47)+"px"; zoneBD.style.top="0"; zoneBD.style.height=vh+"px";
     zoneCym.style.left=Math.round(vw*0.47)+"px"; zoneCym.style.width=Math.round(vw*0.53)+"px"; zoneCym.style.top="0"; zoneCym.style.height=vh+"px";
   }
