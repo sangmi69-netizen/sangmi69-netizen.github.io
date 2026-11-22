@@ -447,7 +447,7 @@ function layoutWith(vw,vh){
     stage.style.width=W+"px"; stage.style.height=H+"px";
     stage.style.left=ox+"px"; stage.style.top=oy+"px";
     scoreSvg.setAttribute("viewBox","0 40 1920 400");
-    scoreSvg.style.left="0"; scoreSvg.style.top="0";
+    scoreSvg.style.left="0"; scoreSvg.style.top=(40/1080*H)+"px";
     scoreSvg.style.width=W+"px"; scoreSvg.style.height=(400/1080*H)+"px";
     instSvg.setAttribute("viewBox","0 400 1920 680");
     instSvg.style.left="0"; instSvg.style.top=(400/1080*H)+"px";
