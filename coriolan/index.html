@@ -401,14 +401,14 @@ function layoutWith(vw,vh){
   } else {
     stage.style.width=vw+"px"; stage.style.height=vh+"px";
     stage.style.left="0px"; stage.style.top="0px";
-    var vbW=Math.min(520, vw*1.32);
+    var vbW=Math.min(560, vw*1.45);
     var sTop=Math.max(14,vh*0.035);
     scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 52 "+vbW.toFixed(1)+" 322");
     scoreSvg.style.left="0"; scoreSvg.style.top=sTop+"px";
     scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*322/vbW)+"px";
     var topPx=sTop+vw*322/vbW;
     var instH=vw*620/1060;
-    var instTop=topPx+(vh-topPx-instH)*0.55;
+    var instTop=topPx+(vh-topPx-instH)*0.34;
     instSvg.setAttribute("viewBox","430 400 1060 680");
     instSvg.style.left="0"; instSvg.style.top=instTop+"px";
     instSvg.style.width=vw+"px"; instSvg.style.height=instH+"px";
