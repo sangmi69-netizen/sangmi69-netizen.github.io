@@ -361,12 +361,12 @@ function buildScore(){
 /* kf: [dt, dx, dy, rot] relative to the rest pose, dt in seconds after the strike */
 var CYM=[
   { el:document.getElementById("cymImgL"), cx:777.9, cy:761.8, kf:[
-    [0.00,0,0,0],[0.04,55,45,7],[0.07,134,-50,20],[0.27,110,-162,11],[0.47,67,-191,5],
+    [0.00,0,0,0],[0.04,55,45,7],[0.07,134,-50,0],[0.27,110,-162,11],[0.47,67,-191,5],
     [0.67,11,-237,-1],[0.87,-60,-213,-4],[1.07,-144,-186,-4],[1.47,-155,-176,-1],
     [1.87,-115,-151,0],[2.47,-58,-86,0],[3.07,-5,-16,0],[3.49,0,0,0]
   ]},
   { el:document.getElementById("cymImgR"), cx:1068.8, cy:759.8, kf:[
-    [0.00,0,0,0],[0.04,-142,80,-23],[0.07,-124,-94,-20],[0.27,25,-195,-17],[0.47,122,-215,-13],
+    [0.00,0,0,0],[0.04,-142,80,-23],[0.07,-124,-94,-2],[0.27,25,-195,-17],[0.47,122,-215,-13],
     [0.67,190,-219,-4],[0.87,213,-200,-10],[1.07,261,-190,-7],[1.47,330,-166,0],
     [1.87,295,-57,0],[2.47,157,-15,0],[3.07,27,-7,0],[3.49,0,0,0]
   ]}
@@ -719,7 +719,7 @@ window.__game={
     return window.__auto.length;
   },
   hitAt:function(i){ var n=NOTES[i]; if(n){ press(); } },
-  strikeAt:function(t){ if(AC){ STRIKE_AT=AC.currentTime - t; } },
+  strikeAt:function(t){ var now=AC?AC.currentTime:performance.now()/1000; STRIKE_AT=now - t; updateCymbals(); },
   scorePeek:function(t){ return timeToX(t); }
 };
 })();
