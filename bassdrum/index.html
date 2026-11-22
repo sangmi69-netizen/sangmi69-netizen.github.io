@@ -520,8 +520,21 @@ function updateStrike(){
   arrowsEl.setAttribute("opacity",ar?"1":"0");
 }
 
+function fadeMusicOut(){
+  if(!AC||!musicSrc) return;
+  try{
+    var t0=AC.currentTime;
+    musicGain.gain.cancelScheduledValues(t0);
+    musicGain.gain.setValueAtTime(musicGain.gain.value,t0);
+    musicGain.gain.linearRampToValueAtTime(0,t0+2.2);
+    var src=musicSrc;
+    setTimeout(function(){ try{ src.stop(0); }catch(e){} },2400);
+    musicSrc=null;
+  }catch(e){}
+}
 function finishGame(){
   phase="done";
+  fadeMusicOut();
   var acc=accuracy();
   var rank = acc>=0.95?"S":acc>=0.86?"A":acc>=0.72?"B":acc>=0.55?"C":"D";
   document.getElementById("rRank").textContent=rank;
@@ -535,6 +548,7 @@ function finishGame(){
 }
 function stopAll(){
   if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; }
+  if(AC&&musicGain){ try{ musicGain.gain.cancelScheduledValues(AC.currentTime); musicGain.gain.setValueAtTime(MUSIC_GAIN,AC.currentTime); }catch(e){} }
   phase="title";
   restText.setAttribute("opacity","0");
 }
@@ -550,6 +564,8 @@ function startGame(){
     els.result.classList.add("hide");
     var lead=1.2;
     if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} }
+    musicGain.gain.cancelScheduledValues(AC.currentTime);
+    musicGain.gain.setValueAtTime(MUSIC_GAIN,AC.currentTime);
     musicSrc=AC.createBufferSource();
     musicSrc.buffer=musicBuf;
     musicSrc.connect(musicGain);
