@@ -16,7 +16,7 @@
   body{font-family:var(--ui);color:var(--ink);overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
   #app{position:fixed;inset:0;background:#fff;touch-action:none}
   #stage{position:absolute;inset:0;background:#fff;touch-action:none;overflow:hidden}
-  #flash{position:absolute;inset:0;background:var(--pink);opacity:0;z-index:0;pointer-events:none}
+  #flash{position:fixed;inset:0;background:var(--pink);opacity:0;z-index:0;pointer-events:none}
   svg{display:block;position:absolute;touch-action:none;overflow:hidden}
   #scoreSvg{z-index:1;left:0;top:0;width:100%}
   #instSvg{z-index:2;left:0;top:0;width:100%}
@@ -370,17 +370,17 @@ function layoutWith(vw,vh){
   } else {
     stage.style.width=vw+"px"; stage.style.height=vh+"px";
     stage.style.left="0px"; stage.style.top="0px";
-    var vbW=Math.min(760, vw*1.85);
-    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 108 "+vbW.toFixed(1)+" 308");
-    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(16,vh*0.045)+"px";
-    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*308/vbW)+"px";
-    var iw=Math.min(660, vw*1.72), ih=iw*660/640;
+    var vbW=Math.min(700, vw*1.8);
+    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 118 "+vbW.toFixed(1)+" 302");
+    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(14,vh*0.04)+"px";
+    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*302/vbW)+"px";
+    var iw=vw, ih=iw*660/640;
     instSvg.setAttribute("viewBox","575 400 640 660");
-    instSvg.style.left=((vw-iw)/2)+"px"; instSvg.style.bottom=Math.max(6,vh*0.02)+"px"; instSvg.style.top="auto";
+    instSvg.style.left="0"; instSvg.style.bottom=Math.max(4,vh*0.015)+"px"; instSvg.style.top="auto";
     instSvg.style.width=iw+"px"; instSvg.style.height=ih+"px";
     restText.setAttribute("x",String(PH));
-    restText.setAttribute("y","170");
-    restText.setAttribute("font-size","40");
+    restText.setAttribute("y","168");
+    restText.setAttribute("font-size","44");
     zone.style.left="0"; zone.style.width="100%"; zone.style.top="0"; zone.style.height=vh+"px";
   }
 }
