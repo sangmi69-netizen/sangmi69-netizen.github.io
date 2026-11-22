@@ -366,7 +366,7 @@ var CYM=[
     [1.87,-115,-151,0],[2.47,-58,-86,0],[3.07,-5,-16,0],[3.49,0,0,0]
   ]},
   { el:document.getElementById("cymImgR"), cx:1068.8, cy:759.8, kf:[
-    [0.00,0,0,0],[0.04,-150,80,-18],[0.07,-144,-94,-2],[0.11,-143,-96,-2],[0.31,25,-195,-17],[0.47,122,-215,-13],
+    [0.00,0,0,0],[0.04,-150,80,-18],[0.07,-149,-94,-2],[0.11,-148,-96,-2],[0.31,25,-195,-17],[0.47,122,-215,-13],
     [0.67,190,-219,-4],[0.87,213,-200,-10],[1.07,261,-190,-7],[1.47,330,-166,0],
     [1.87,295,-57,0],[2.47,157,-15,0],[3.07,27,-7,0],[3.49,0,0,0]
   ]}
@@ -441,12 +441,12 @@ function layoutWith(vw,vh){
   } else {
     stage.style.width=vw+"px"; stage.style.height=vh+"px";
     stage.style.left="0px"; stage.style.top="0px";
-    var vbW=Math.min(760, vw*2.0);
-    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 80 "+vbW.toFixed(1)+" 250");
-    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(10,vh*0.045)+"px";
-    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*250/vbW)+"px";
-    var ch=vw*630/600;
-    cymSvg.setAttribute("viewBox","612 455 600 630");
+    var vbW=Math.min(720, vw*1.9);
+    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 34 "+vbW.toFixed(1)+" 316");
+    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(26,vh*0.05)+"px";
+    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*316/vbW)+"px";
+    var ch=vw*600/660;
+    cymSvg.setAttribute("viewBox","580 462 660 600");
     cymSvg.style.left="0"; cymSvg.style.bottom="0"; cymSvg.style.top="auto";
     cymSvg.style.width=vw+"px"; cymSvg.style.height=ch+"px";
     playhead.setAttribute("y1","118"); playhead.setAttribute("y2","331");
