@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ffffff'/%3E%3Cellipse cx='16' cy='13' rx='9.5' ry='3.4' fill='%23f2e6d3' stroke='%23241a12' stroke-width='2'/%3E%3Cpath d='M7 13v6.5c0 2 4 3.6 9 3.6s9-1.6 9-3.6V13' fill='%23c8792f' stroke='%23241a12' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>팀파니 모먼트 — 브람스 교향곡 2번</title>
+<style>
+  :root{
+    --ink:#141414;
+    --red:#e0392c;
+    --pink:#e26d7d;
+    --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0;background:#fff;overflow:hidden}
+  html{touch-action:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{font-family:var(--ui);color:var(--ink);overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+  #app{position:fixed;inset:0;background:#fff;touch-action:none}
+  #stage{position:absolute;background:#fff;touch-action:none;overflow:hidden}
+  svg{display:block;position:absolute;touch-action:none;overflow:hidden}
+  #scoreSvg{z-index:1;left:0;top:0}
+  #layer{backface-visibility:hidden}
+
+  /* 팀파니 그림 — 영상 프레임에서 그대로 오려낸 두 대 */
+  #drumArea{position:absolute;z-index:2;pointer-events:none;touch-action:none}
+  #drumArea img{position:absolute;top:0;display:block;transform-origin:50% 92%;will-change:transform;pointer-events:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  #drumL{left:0;width:51.30%}
+  #drumR{left:51.30%;width:48.70%}
+  .glow{position:absolute;border-radius:50%;pointer-events:none;opacity:0;
+    background:radial-gradient(closest-side,rgba(255,250,236,.95),rgba(255,236,196,.55) 52%,rgba(255,226,170,0) 100%)}
+  .drum-dip{animation:dip .17s ease-out}
+  @keyframes dip{
+    0%{transform:translateY(0) scaleY(1)}
+    32%{transform:translateY(1.0%) scaleY(.986)}
+    100%{transform:translateY(0) scaleY(1)}
+  }
+
+  .zone{position:absolute;z-index:4;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+  .zone.on{background:rgba(224,57,44,.035)}
+
+  #judge{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);font-size:clamp(14px,3.4vw,20px);
+    letter-spacing:.18em;color:var(--red);opacity:0;pointer-events:none;z-index:7;font-weight:600}
+  #judge.show{animation:jp .5s ease forwards}
+  @keyframes jp{0%{opacity:0;transform:translate(-50%,-40%)}30%{opacity:.95}100%{opacity:0;transform:translate(-50%,-60%)}}
+
+  #hud{position:absolute;top:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding:7px 11px;pointer-events:none}
+  #hudScore{font-size:11px;letter-spacing:.08em;color:#b9b9b9;font-variant-numeric:tabular-nums}
+  #pauseBtn{pointer-events:auto;appearance:none;background:none;border:0;padding:5px 3px;font-size:11px;letter-spacing:.12em;color:#c4c4c4}
+  /* 싱크 보정 — 아주 작고 연하게, 터치 영역은 넉넉히 두되 발동은 click에서만 */
+  #hudSync{display:flex;align-items:center;pointer-events:auto;white-space:nowrap;margin-right:-5px}
+  #hudSync .slabel{font-size:10px;letter-spacing:.04em;color:#cfcfcf;padding-left:2px}
+  #hudSync .hsbtn{appearance:none;border:0;background:none;color:#c2c2c2;font-size:12px;line-height:1;
+    padding:11px 12px;margin:-7px -3px;font-family:var(--ui);pointer-events:auto;touch-action:none;cursor:pointer;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  #hudSync .hsbtn:active{color:#7d7d7d}
+  #hudSync b{width:40px;text-align:center;font-size:11px;font-weight:500;color:#b2b2b2;font-variant-numeric:tabular-nums}
+
+  .ov{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:26px 22px;background:#fff;transition:opacity .3s ease,visibility .3s}
+  .ov.hide{opacity:0;visibility:hidden;pointer-events:none}
+  .ov h1{font-size:clamp(20px,5.4vw,30px);font-weight:600;letter-spacing:.01em;margin:0 0 8px}
+  .ov h1 em{font-style:normal;color:var(--red)}
+  .ov .sub{font-size:clamp(11.5px,3.1vw,13.5px);color:#6c6c6c;line-height:1.7;margin:0 0 18px}
+  .rule{width:36px;height:2px;background:var(--red);border-radius:2px;margin:0 auto 15px}
+  .legend{display:flex;gap:28px;margin:0 0 20px;font-size:11.5px;color:#777}
+  .legend div{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .legend b{font-size:15px;color:#222;font-weight:600}
+  .legend b.red{color:var(--red)}
+  .btn{appearance:none;border:0;cursor:pointer;font-family:var(--ui);font-size:15px;font-weight:600;letter-spacing:.02em;
+    color:#fff;background:#111;padding:13px 32px;border-radius:999px}
+  .btn:active{transform:translateY(1px)}
+  .btn[disabled]{opacity:.4}
+  .btn.ghost{background:#fff;color:#222;box-shadow:inset 0 0 0 1.4px rgba(0,0,0,.16)}
+  .hint{margin-top:13px;font-size:11px;color:#9a9a9a;line-height:1.7}
+  .credit{position:absolute;left:0;right:0;bottom:10px;font-size:9.5px;color:#a9a9a9;text-align:center;line-height:1.6;padding:0 16px}
+  .credit a{color:#8d8d8d}
+  #result .rank{font-size:clamp(44px,13vw,70px);line-height:.95;color:var(--red);margin:0 0 4px}
+  #result .big{font-size:clamp(21px,5.8vw,29px);font-variant-numeric:tabular-nums;margin:2px 0}
+  #result .acc{font-size:12px;color:#7a7a7a;margin-bottom:16px}
+  .stats{display:flex;gap:18px;margin-bottom:20px}
+  .stats div{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .stats b{font-size:16px;font-variant-numeric:tabular-nums}
+  .stats span{font-size:9px;letter-spacing:.1em;color:#9a9a9a;text-transform:uppercase}
+  .row{display:flex;gap:10px}
+  #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#2b1b1b;color:#ffd9d3;font-size:11px;
+    padding:8px 10px;border-radius:8px;display:none;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <svg id="scoreSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+      <g id="layer"></g>
+      <line id="playhead" x1="743.5" y1="56" x2="743.5" y2="408" stroke="#e26d7d" stroke-width="4.5" stroke-linecap="butt"></line>
+    </svg>
+    <div id="drumArea">
+      <img id="drumL" src="assets/drum_left.png" alt="" draggable="false">
+      <img id="drumR" src="assets/drum_right.png" alt="" draggable="false">
+      <div class="glow" id="glowL"></div>
+      <div class="glow" id="glowR"></div>
+    </div>
+    <div class="zone" id="zoneL"></div>
+    <div class="zone" id="zoneR"></div>
+    <div id="judge"></div>
+    <div id="hud">
+      <div id="hudSync" role="group" aria-label="싱크 보정">
+        <span class="slabel">싱크</span>
+        <button class="hsbtn" id="hSyncMinus" aria-label="싱크 보정 줄이기">−</button>
+        <b id="hSyncVal">0ms</b>
+        <button class="hsbtn" id="hSyncPlus" aria-label="싱크 보정 늘리기">＋</button>
+      </div>
+      <div id="hudScore">0</div>
+      <button id="pauseBtn" aria-label="일시정지">❚❚</button>
+    </div>
+  </div>
+
+  <div class="ov" id="startScreen">
+    <h1>팀파니 <em>모먼트</em></h1>
+    <div class="rule"></div>
+    <p class="sub">브람스 교향곡 2번 1악장 · Allegro non troppo<br>오케스트라가 연주하는 동안 악보가 가리키는 팀파니를 두드려 보세요.</p>
+    <div class="legend">
+      <div><b>도</b><span>왼쪽 팀파니 · D</span></div>
+      <div><b class="red">라</b><span>오른쪽 팀파니 · A</span></div>
+    </div>
+    <button class="btn" id="startBtn">연주 시작</button>
+    <div class="hint">왼쪽·오른쪽 팀파니를 직접 터치하거나<br>← → / A L 키로 연주할 수 있어요</div>
+    <div class="credit">연주: London Philharmonic Orchestra “Timpani Moments – Brahms: Symphony 2, I. Allegro Non Troppo” · 작곡 J. Brahms<br>
+      <a href="https://youtu.be/fusrj870Fy8" target="_blank" rel="noopener">youtu.be/fusrj870Fy8</a></div>
+  </div>
+
+  <div class="ov hide" id="result">
+    <div class="rank" id="rRank">A</div>
+    <div class="big" id="rScore">0</div>
+    <div class="acc" id="rAcc">정확도 100%</div>
+    <div class="stats">
+      <div><b id="rPerfect">0</b><span>Perfect</span></div>
+      <div><b id="rGood">0</b><span>Good</span></div>
+      <div><b id="rMiss">0</b><span>Miss</span></div>
+      <div><b id="rCombo">0</b><span>Max Combo</span></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="againBtn">다시 연주</button>
+      <button class="btn ghost" id="homeBtn">처음으로</button>
+    </div>
+  </div>
+</div>
+<div id="err"></div>
+
+<script>
+var D = {"tab":[[0.0,743.0],[0.05,743.0],[0.1,743.0],[0.15,743.0],[0.2,743.0],[0.25,743.0],[0.3,743.0],[0.35,743.0],[0.4,743.0],[0.45,743.0],[0.5,743.0],[0.55,743.0],[0.6,743.0],[0.65,743.0],[0.7,743.0],[0.75,743.0],[0.8,743.0],[0.85,743.0],[0.9,743.0],[0.95,743.0],[1.0,743.0],[1.05,743.0],[1.1,743.0],[1.15,743.0],[1.2,743.0],[1.25,743.0],[1.3,743.0],[1.35,743.0],[1.4,743.0],[1.45,743.0],[1.5,743.0],[1.55,743.0],[1.6,743.0],[1.65,743.0],[1.7,742.99],[1.75,743.0],[1.8,743.01],[1.85,743.01],[1.9,742.98],[1.95,742.99],[2.0,742.99],[2.05,742.99],[2.1,742.99],[2.15,742.99],[2.2,742.97],[2.25,742.97],[2.3,742.96],[2.35,742.96],[2.4,742.95],[2.45,742.95],[2.5,742.97],[2.55,742.96],[2.6,187.63],[2.65,703.04],[2.7,713.23],[2.75,720.31],[2.8,731.13],[2.85,738.16],[2.9,748.93],[2.95,756.01],[3.0,766.55],[3.05,773.72],[3.1,784.27],[3.15,791.31],[3.2,802.05],[3.25,809.08],[3.3,820.04],[3.35,827.22],[3.4,838.27],[3.45,845.76],[3.5,856.8],[3.55,864.01],[3.6,875.06],[3.65,882.54],[3.7,893.61],[3.75,900.78],[3.8,911.82],[3.85,919.29],[3.9,930.34],[3.95,937.55],[4.0,948.58],[4.05,956.03],[4.1,967.08],[4.15,974.29],[4.2,985.3],[4.25,992.73],[4.3,1003.8],[4.35,1011.03],[4.4,1022.05],[4.45,1029.29],[4.5,1040.44],[4.55,1047.72],[4.6,1058.74],[4.65,1065.96],[4.7,1077.09],[4.75,1085.54],[4.8,1098.37],[4.85,1106.69],[4.9,1119.48],[4.95,1128.11],[5.0,1140.78],[5.05,1149.37],[5.1,1162.15],[5.15,1170.53],[5.2,1183.28],[5.25,1191.67],[5.3,1204.44],[5.35,1213.09],[5.4,1225.78],[5.45,1234.39],[5.5,1247.21],[5.55,1255.54],[5.6,1268.38],[5.65,1276.99],[5.7,1289.62],[5.75,1298.25],[5.8,1311.1],[5.85,1319.46],[5.9,1332.25],[5.95,1340.63],[6.0,1353.44],[6.05,1362.11],[6.1,1374.76],[6.15,1383.34],[6.2,1396.22],[6.25,1404.81],[6.3,1417.76],[6.35,1426.48],[6.4,1439.44],[6.45,1448.22],[6.5,1461.19],[6.55,1469.74],[6.6,1482.69],[6.65,1491.42],[6.7,1504.34],[6.75,1513.1],[6.8,1526.09],[6.85,1534.63],[6.9,1547.61],[6.95,1556.39],[7.0,1569.35],[7.05,1578.11],[7.1,1591.06],[7.15,1599.62],[7.2,1612.59],[7.25,1621.37],[7.3,1634.35],[7.35,1643.05],[7.4,1656.02],[7.45,1664.63],[7.5,1677.59],[7.55,1686.37],[7.6,1699.32],[7.65,1707.95],[7.7,1718.91],[7.75,1725.91],[7.8,1736.33],[7.85,1743.22],[7.9,1753.45],[7.95,1760.41],[8.0,1770.79],[8.05,1777.93],[8.1,1788.63],[8.15,1796.06],[8.2,1807.15],[8.25,1814.68],[8.3,1826.48],[8.35,1834.47],[8.4,1846.96],[8.45,1855.46],[8.5,1868.73],[8.55,1878.1],[8.6,1892.68],[8.65,1903.1],[8.7,1919.22],[8.75,1930.23],[8.8,1947.26],[8.85,1958.81],[8.9,1976.21],[8.95,1987.91],[9.0,2005.43],[9.05,2017.18],[9.1,2029.48],[9.15,2036.33],[9.2,2046.37],[9.25,2053.2],[9.3,2063.28],[9.35,2070.07],[9.4,2080.12],[9.45,2086.76],[9.5,2096.92],[9.55,2103.58],[9.6,2113.65],[9.65,2120.29],[9.7,2129.71],[9.75,2136.16],[9.8,2145.53],[9.85,2151.94],[9.9,2161.33],[9.95,2167.62],[10.0,2177.2],[10.05,2183.45],[10.1,2193.08],[10.15,2199.32],[10.2,2209.25],[10.25,2216.38],[10.3,2227.26],[10.35,2234.42],[10.4,2245.26],[10.45,2252.45],[10.5,2263.33],[10.55,2270.56],[10.6,2281.36],[10.65,2288.66],[10.7,2299.4],[10.75,2306.7],[10.8,2317.43],[10.85,2324.74],[10.9,2335.48],[10.95,2346.28],[11.0,2362.68],[11.05,2373.55],[11.1,2389.82],[11.15,2400.7],[11.2,2416.94],[11.25,2427.83],[11.3,2444.03],[11.35,2454.9],[11.4,2471.13],[11.45,2482.01],[11.5,2498.32],[11.55,2505.7],[11.6,2516.78],[11.65,2524.08],[11.7,2535.29],[11.75,2542.59],[11.8,2553.66],[11.85,2561.01],[11.9,2572.17],[11.95,2579.45],[12.0,2590.5],[12.05,2597.94],[12.1,2609.05],[12.15,2616.33],[12.2,2627.4],[12.25,2634.93],[12.3,2646.03],[12.35,2653.29],[12.4,2664.34],[12.45,2671.89],[12.5,2682.99],[12.55,2690.26],[12.6,2701.3],[12.65,2708.78],[12.7,2719.86],[12.75,2727.12],[12.8,2738.19],[12.85,2745.74],[12.9,2756.8],[12.95,2764.07],[13.0,2775.18],[13.05,2782.66],[13.1,2793.72],[13.15,2801.0],[13.2,2812.09],[13.25,2819.53],[13.3,2830.58],[13.35,2837.87],[13.4,2849.06],[13.45,2856.44],[13.5,2867.5],[13.55,2874.8],[13.6,2885.99],[13.65,2893.31],[13.7,2904.39],[13.75,2911.79],[13.8,2932.17],[13.85,2945.71],[13.9,2966.15],[13.95,2979.67],[14.0,3000.11],[14.05,3013.61],[14.1,3034.09],[14.15,3047.54],[14.2,3068.0],[14.25,3081.49],[14.3,3101.98],[14.35,3112.41],[14.4,3123.62],[14.45,3131.15],[14.5,3142.3],[14.55,3149.86],[14.6,3160.99],[14.65,3168.34],[14.7,3179.61],[14.75,3187.05],[14.8,3198.16],[14.85,3205.7],[14.9,3216.88],[14.95,3224.17],[15.0,3235.46],[15.05,3242.8],[15.1,3253.97],[15.15,3261.58],[15.2,3272.69],[15.25,3280.05],[15.3,3291.34],[15.35,3298.68],[15.4,3309.8],[15.45,3317.43],[15.5,3328.58],[15.55,3335.92],[15.6,3347.19],[15.65,3354.51],[15.7,3365.62],[15.75,3373.28],[15.8,3384.34],[15.85,3391.94],[15.9,3403.12],[15.95,3410.18],[16.0,3420.3],[16.05,3427.2],[16.1,3437.3],[16.15,3444.21],[16.2,3454.28],[16.25,3461.18],[16.3,3471.29],[16.35,3478.19],[16.4,3488.29],[16.45,3495.2],[16.5,3505.33],[16.55,3512.21],[16.6,3522.33],[16.65,3529.21],[16.7,3539.34],[16.75,3546.2],[16.8,3556.32],[16.85,3563.19],[16.9,3573.35],[16.95,3580.22],[17.0,3590.37],[17.05,3597.22],[17.1,3607.4],[17.15,3614.25],[17.2,3624.45],[17.25,3631.27],[17.3,3641.48],[17.35,3648.27],[17.4,3658.49],[17.45,3665.25],[17.5,3675.54],[17.55,3686.69],[17.6,3703.24],[17.65,3714.32],[17.7,3731.08],[17.75,3742.1],[17.8,3758.94],[17.85,3769.99],[17.9,3786.75],[17.95,3797.76],[18.0,3814.33],[18.05,3825.41],[18.1,3840.39],[18.15,3848.31],[18.2,3860.15],[18.25,3868.04],[18.3,3879.89],[18.35,3887.64],[18.4,3899.43],[18.45,3907.35],[18.5,3919.23],[18.55,3927.1],[18.6,3938.81],[18.65,3946.62],[18.7,3958.5],[18.75,3966.43],[18.8,3978.29],[18.85,3986.18],[18.9,3997.79],[18.95,4005.68],[19.0,4017.57],[19.05,4025.49],[19.1,4037.29],[19.15,4045.02],[19.2,4056.85],[19.25,4064.74],[19.3,4076.61],[19.35,4084.5],[19.4,4096.16],[19.45,4104.03],[19.5,4115.92],[19.55,4123.86],[19.6,4135.7],[19.65,4143.45],[19.7,4155.26],[19.75,4163.16],[19.8,4175.03],[19.85,4182.93],[19.9,4194.66],[19.95,4202.51],[20.0,4214.39],[20.05,4222.3],[20.1,4234.15],[20.15,4241.96],[20.2,4260.58],[20.25,4275.45],[20.3,4297.63],[20.35,4312.44],[20.4,4334.67],[20.45,4349.48],[20.5,4371.71],[20.55,4386.47],[20.6,4408.72],[20.65,4423.51],[20.7,4445.81],[20.75,4457.83],[20.8,4475.83],[20.85,4487.82],[20.9,4505.79],[20.95,4517.82],[21.0,4535.76],[21.05,4547.78],[21.1,4565.78],[21.15,4577.79],[21.2,4595.79],[21.25,4607.81],[21.3,4621.08],[21.35,4629.52],[21.4,4642.32],[21.45,4651.04],[21.5,4663.93],[21.55,4672.26],[21.6,4685.14],[21.65,4693.86],[21.7,4706.53],[21.75,4715.18],[21.8,4728.06],[21.85,4736.44],[21.9,4749.27],[21.95,4757.98],[22.0,4770.81],[22.05,4779.17],[22.1,4792.06],[22.15,4800.73],[22.2,4813.46],[22.25,4822.16],[22.3,4835.01],[22.35,4843.35],[22.4,4856.24],[22.45,4864.99],[22.5,4877.68],[22.55,4886.32],[22.6,4899.2],[22.65,4907.56],[22.7,4920.38],[22.75,4928.86],[22.8,4941.01],[22.85,4949.1],[22.9,4961.19],[22.95,4969.28],[23.0,4981.62],[23.05,4989.75],[23.1,5001.86],[23.15,5009.93],[23.2,5022.09],[23.25,5030.21],[23.3,5042.53],[23.35,5050.67],[23.4,5062.76],[23.45,5070.84],[23.5,5082.99],[23.55,5091.15],[23.6,5103.47],[23.65,5111.56],[23.7,5123.65],[23.75,5131.74],[23.8,5143.94],[23.85,5151.95],[23.9,5163.84],[23.95,5171.77],[24.0,5183.65],[24.05,5191.57],[24.1,5203.44],[24.15,5211.18],[24.2,5223.03],[24.25,5230.94],[24.3,5242.81],[24.35,5250.7],[24.4,5262.58],[24.45,5270.45],[24.5,5282.18],[24.55,5290.09],[24.6,5301.96],[24.65,5309.87],[24.7,5321.8],[24.75,5329.67],[24.8,5342.33],[24.85,5351.28],[24.9,5364.87],[24.95,5373.88],[25.0,5387.08],[25.05,5396.03],[25.1,5409.72],[25.15,5418.7],[25.2,5431.88],[25.25,5440.86],[25.3,5454.47],[25.35,5463.33],[25.4,5475.85],[25.45,5484.51],[25.5,5497.02],[25.55,5505.65],[25.6,5518.18],[25.65,5526.8],[25.7,5539.52],[25.75,5547.75],[25.8,5560.46],[25.85,5568.72],[25.9,5581.46],[25.95,5589.72],[26.0,5602.51],[26.05,5610.81],[26.1,5623.55],[26.15,5632.15],[26.2,5644.68],[26.25,5653.35],[26.3,5665.83],[26.35,5674.42],[26.4,5686.96],[26.45,5695.57],[26.5,5708.33],[26.55,5716.6],[26.6,5729.36],[26.65,5737.62],[26.7,5750.38],[26.75,5758.68],[26.8,5769.3],[26.85,5769.19],[26.9,5769.17],[26.95,5769.16],[27.0,5769.17],[27.05,5779.77],[27.1,5790.37],[27.15,5800.97],[27.2,5811.57],[27.25,5822.17],[27.3,5832.77],[27.35,5843.37],[27.4,5853.97],[27.45,5864.57],[27.5,5875.17],[27.55,5885.77],[27.6,5896.37],[27.65,5906.97],[27.7,5917.57],[27.75,5928.17],[27.8,5938.77],[27.85,5949.37],[27.9,5959.97],[27.95,5970.57],[28.0,5981.17],[28.05,5991.77],[28.1,6002.37],[28.15,6012.97],[28.2,6023.57],[28.25,6034.17],[28.3,6044.77],[28.35,6055.37],[28.4,6065.97],[28.45,6076.57],[28.5,6087.17],[28.55,6097.77],[28.6,6108.37],[28.65,6118.97],[28.7,6129.57],[28.75,6140.17],[28.8,6150.77],[28.85,6161.37],[28.9,6171.97],[28.95,6182.57],[29.0,6193.17],[29.05,6203.77],[29.1,6214.37],[29.15,6224.97],[29.2,6235.57],[29.25,6246.17],[29.3,6256.77],[29.35,6267.37],[29.4,6277.97],[29.45,6288.57],[29.5,6299.17],[29.55,6309.77],[29.6,6320.37],[29.65,6330.97],[29.7,6341.57],[29.75,6352.17],[29.8,6362.77],[29.85,6373.37],[29.9,6383.97],[29.95,6394.57],[30.0,6405.17],[30.05,6415.77],[30.1,6426.37],[30.15,6436.97],[30.2,6447.57],[30.25,6458.17],[30.3,6468.77],[30.35,6479.37],[30.4,6489.97],[30.45,6500.57],[30.5,6511.17],[30.55,6521.77],[30.6,6532.37],[30.65,6542.97],[30.7,6553.57],[30.75,6564.17],[30.8,6574.77],[30.85,6585.37],[30.9,6595.97],[30.95,6606.57],[31.0,6617.17],[31.05,6627.77],[31.1,6638.37],[31.15,6648.97],[31.2,6659.57],[31.25,6670.17],[31.3,6680.77],[31.35,6691.37],[31.4,6701.97],[31.45,6712.57],[31.5,6723.17],[31.55,6733.77],[31.6,6744.37],[31.65,6754.97],[31.7,6765.57],[31.75,6776.17],[31.8,6786.77],[31.85,6797.37],[31.9,6807.97],[31.95,6818.57],[32.0,6829.17],[32.05,6839.77],[32.1,6850.37],[32.15,6860.97],[32.2,6871.57],[32.25,6882.0],[32.3,6882.0],[32.35,6882.0],[32.4,6882.0]],"notes":[{"x":1078,"t":4.705,"d":"L","y":144},{"x":1171,"t":5.152,"d":"L","y":144},{"x":1393,"t":6.188,"d":"L","y":144},{"x":1486,"t":6.619,"d":"L","y":144},{"x":1709,"t":7.655,"d":"L","y":144},{"x":1801,"t":8.172,"d":"L","y":144},{"x":1894,"t":8.606,"d":"L","y":144},{"x":2022,"t":9.07,"d":"L","y":144},{"x":2114,"t":9.603,"d":"L","y":144},{"x":2207,"t":10.189,"d":"L","y":144},{"x":2335,"t":10.898,"d":"R","y":179},{"x":2449,"t":11.323,"d":"R","y":179},{"x":2497,"t":11.496,"d":"R","y":179},{"x":2910,"t":13.738,"d":"R","y":179},{"x":3024,"t":14.075,"d":"R","y":179},{"x":3107,"t":14.324,"d":"R","y":179},{"x":3673,"t":17.488,"d":"L","y":144},{"x":3788,"t":17.906,"d":"L","y":144},{"x":3836,"t":18.085,"d":"L","y":144},{"x":4249,"t":20.169,"d":"L","y":144},{"x":4363,"t":20.48,"d":"L","y":144},{"x":4447,"t":20.705,"d":"L","y":144},{"x":4560,"t":21.084,"d":"L","y":144},{"x":4609,"t":21.254,"d":"L","y":144},{"x":4926,"t":22.733,"d":"L","y":144},{"x":5019,"t":23.187,"d":"L","y":144},{"x":5147,"t":23.819,"d":"R","y":179},{"x":5336,"t":24.775,"d":"R","y":179},{"x":5462,"t":25.342,"d":"L","y":144}],"end":33.6};
+(function(){
+"use strict";
+
+/* ══════════════════════════════════════════════════════════════
+   영상(youtu.be/fusrj870Fy8)에서 픽셀 단위로 복원한 악보.
+   · 위상상관으로 프레임을 정렬해 이어 붙인 악보 띠 = score.png
+   · 좌표계는 영상의 1920×1080 픽셀 좌표 (score.png 는 y 85~385)
+   · tab: [시간(초), 재생선 위치의 악보 x]
+   ══════════════════════════════════════════════════════════════ */
+var TAB=D.tab, NOTES=D.notes, END=D.end;
+var PH=743.5;                       /* 재생선 x (영상과 같은 위치) */
+var SCORE_W=6882, SCORE_Y=85, SCORE_H=300;
+
+function timeToX(t){
+  var n=TAB.length;
+  if(t<=TAB[0][0]) return TAB[0][1];
+  if(t>=TAB[n-1][0]) return TAB[n-1][1];
+  var lo=0,hi=n-1;
+  while(hi-lo>1){ var m=(lo+hi)>>1; if(TAB[m][0]<=t) lo=m; else hi=m; }
+  var a=TAB[lo], b=TAB[hi];
+  if(b[0]===a[0]) return b[1];
+  return a[1]+(t-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+}
+
+/* ── audio ── */
+var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null, softLim=null;
+var MASTER_GAIN=1.0, MUSIC_GAIN=0.66, DRUM_DRY=0.30, DRUM_WET=0.115, DRUM_HIT_GAIN=1.0;
+var drumSets={L:[],R:[]}, musicBuf=null, musicFetch=null, musicSrc=null, musicAb=null;
+var startAt=0, songT=0, phase="title", starting=false;
+var outLat=0, syncOffsetSec=0, SYNC_KEY="brahms2.syncMs.v1";
+
+function fail(m){ var e=document.getElementById("err"); e.style.display="block"; e.textContent=String(m); }
+function measuredOutLat(){
+  if(!AC) return 0;
+  var v=AC.outputLatency;
+  return (typeof v==="number"&&v>0&&v<0.6)?v:0;
+}
+function readSyncOffset(){
+  var ms=0; try{ ms=parseFloat(localStorage.getItem(SYNC_KEY)); }catch(e){ ms=0; }
+  if(!isFinite(ms)) ms=0;
+  return setSyncOffset(ms);
+}
+function setSyncOffset(ms){
+  ms=Math.max(-200,Math.min(200,Math.round(ms/10)*10));
+  syncOffsetSec=ms/1000;
+  try{ localStorage.setItem(SYNC_KEY,String(ms)); }catch(e){}
+  var v=document.getElementById("hSyncVal");
+  if(v) v.textContent=(ms>0?"+":"")+ms+"ms";
+  return ms;
+}
+function softClipCurve(){
+  var n=4096,c=new Float32Array(n),a=0.85,i;
+  for(i=0;i<n;i++){ var x=i/(n-1)*2-1,ax=Math.abs(x),y;
+    if(ax<=a) y=ax; else y=a+(1-a)*Math.tanh((ax-a)/(1-a));
+    c[i]=x<0?-y:y; }
+  return c;
+}
+function makeIR(dur){
+  /* 오케스트라 홀 — 팀파니 여운이 홀에 퍼지는 느낌 */
+  var sr=AC.sampleRate,n=Math.floor(dur*sr),buf=AC.createBuffer(2,n,sr);
+  for(var ch=0;ch<2;ch++){
+    var d=buf.getChannelData(ch);
+    for(var i=0;i<n;i++){ var tt=i/n; d[i]=(Math.random()*2-1)*Math.pow(1-tt,2.4)*0.9; }
+    var taps=ch?[0.013,0.029,0.048]:[0.016,0.033,0.055];
+    for(var k=0;k<taps.length;k++){ var idx=Math.floor(taps[k]*sr); if(idx<n) d[idx]+=(k%2?-0.42:0.52); }
+    var prev=0;
+    for(var j=0;j<n;j++){ prev=prev*0.62+d[j]*0.38; d[j]=prev; }
+    var fade=Math.floor(0.002*sr);
+    for(var f=0;f<fade;f++) d[f]*=f/fade;
+  }
+  return buf;
+}
+
+/* ── 팀파니 한 대: 0 ms 어택, 가죽 머리 모드 + 케틀 공명 + 펠트 말렛 ──
+   f0 은 영상 음원의 조율에 맞춘다(왼쪽 도 ≈146.8Hz, 오른쪽 라 ≈110Hz). */
+function makeTimpani(f0, size){
+  var sr=AC.sampleRate, dur=2.6, n=Math.floor(dur*sr);
+  var buf=AC.createBuffer(2,n,sr);
+  for(var ch=0;ch<2;ch++){
+    var d=buf.getChannelData(ch), i, t;
+    var nz=new Float32Array(n);
+    for(i=0;i<n;i++) nz[i]=Math.random()*2-1;
+    /* 1) 기본음 — 타격 직후 살짝 높았다가 내려앉는 아주 짧은 피치 글라이드 */
+    var ph=0;
+    for(i=0;i<n;i++){
+      t=i/sr;
+      var fr=f0*(1+0.012*Math.exp(-t/0.02));
+      ph+=2*Math.PI*fr/sr;
+      d[i]=Math.sin(ph)*Math.exp(-t/(0.95*size))*(1-Math.exp(-t/0.0011))*0.92;
+    }
+    /* 2) 가죽 모드 (1.50, 1.98, 2.44, 2.94 배) — 팀파니 특유의 둥근 배음 */
+    var modes=[[1.50,0.34,0.55],[1.98,0.26,0.42],[2.44,0.15,0.30],[2.94,0.09,0.22]];
+    for(var m=0;m<modes.length;m++){
+      var mul=modes[m][0], amp=modes[m][1], dec=modes[m][2]*size;
+      for(i=0;i<n;i++){
+        t=i/sr;
+        d[i]+=Math.sin(2*Math.PI*f0*mul*t+0.8*m)*Math.exp(-t/dec)*amp*(1-Math.exp(-t/0.0015));
+      }
+    }
+    /* 3) 케틀(구리 통) 공명 — 기본음보다 조금 높은 얇은 울림 */
+    for(i=0;i<n;i++){
+      t=i/sr;
+      d[i]+=Math.sin(2*Math.PI*f0*1.18*t+1.7)*Math.exp(-t/(0.30*size))*0.10;
+    }
+    /* 4) 펠트 말렛의 둔탁한 타격 — 320 Hz 대역 여음 */
+    var fbp=2*Math.sin(Math.PI*320/sr), q=0.62, l1=0, a2=0;
+    for(i=0;i<n;i++){
+      t=i/sr;
+      l1+=fbp*a2;
+      var hp=nz[i]-l1-q*a2;
+      a2+=fbp*hp;
+      d[i]+=a2*Math.exp(-t/0.028)*0.55;
+    }
+    /* 5) 아주 짧은 어택 클릭 (0 ms 시작을 살린다) */
+    var o=0, prev=0, aH=0.87, nc=Math.floor(0.014*sr);
+    for(i=0;i<nc;i++){
+      o=aH*(o+nz[i]-prev); prev=nz[i];
+      d[i]+=o*Math.exp(-i/(0.0026*sr))*0.42;
+    }
+    /* 6) 말렛 아래 낮은 '텅' — 55~90 Hz 대역 */
+    var lp=0;
+    for(i=0;i<n;i++){
+      t=i/sr;
+      lp=0.0045*nz[i]+0.9955*lp;
+      d[i]+=lp*Math.exp(-t/(0.20*size))*0.30;
+    }
+    /* normalize + soft clip */
+    var peak=0;
+    for(i=0;i<n;i++){ var av=Math.abs(d[i]); if(av>peak) peak=av; }
+    var g=0.95/(peak||1);
+    for(i=0;i<n;i++){ var v=d[i]*g; d[i]=Math.tanh(v*1.15)/Math.tanh(1.15)*0.96; }
+    var fade=Math.floor(0.45*sr);
+    for(i=0;i<fade;i++){ d[n-1-i]*=(i/fade); }
+  }
+  return buf;
+}
+function ensureAudio(){
+  if(AC) return AC;
+  var Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx){ fail("이 브라우저에서는 소리를 재생할 수 없습니다."); return null; }
+  AC=new Ctx({latencyHint:"interactive"});
+  master=AC.createGain(); master.gain.value=MASTER_GAIN;
+  softLim=AC.createWaveShaper(); softLim.curve=softClipCurve(); softLim.oversample="none";
+  master.connect(softLim); softLim.connect(AC.destination);
+  musicGain=AC.createGain(); musicGain.gain.value=MUSIC_GAIN; musicGain.connect(master);
+  drumDry=AC.createGain(); drumDry.gain.value=DRUM_DRY; drumDry.connect(master);
+  conv=AC.createConvolver(); conv.buffer=makeIR(1.5);
+  drumWet=AC.createGain(); drumWet.gain.value=DRUM_WET; drumWet.connect(conv); conv.connect(master);
+  drumSets.L=[makeTimpani(146.83,1.0)];   /* 왼쪽 · 도(D) */
+  drumSets.R=[makeTimpani(110.00,1.12)];  /* 오른쪽 · 라(A) — 큰 북이라 조금 길게 */
+  return AC;
+}
+function fillDrumVariants(){
+  if(!AC) return;
+  try{
+    while(drumSets.L.length<3) drumSets.L.push(makeTimpani(146.83,1.0));
+    while(drumSets.R.length<3) drumSets.R.push(makeTimpani(110.00,1.12));
+  }catch(e){}
+}
+function playDrum(side,scale){
+  if(!AC) return;
+  var set=drumSets[side]||drumSets.L;
+  if(!set.length) set=drumSets.L;
+  var src=AC.createBufferSource();
+  src.buffer=set[(Math.random()*set.length)|0];
+  src.playbackRate.value=0.995+Math.random()*0.01;
+  var g=AC.createGain(); g.gain.value=DRUM_HIT_GAIN*(scale||1);
+  var panv = side==="L" ? -0.16 : 0.16;
+  if(AC.createStereoPanner){
+    var pan=AC.createStereoPanner(); pan.pan.value=panv+(Math.random()*2-1)*0.04;
+    src.connect(g); g.connect(pan); pan.connect(drumDry); pan.connect(drumWet);
+  } else { src.connect(g); g.connect(drumDry); g.connect(drumWet); }
+  src.start(0);
+}
+function dataToBuffer(uri){
+  return new Promise(function(res,rej){
+    try{
+      var i=uri.indexOf(","),head=uri.slice(5,i),body=uri.slice(i+1);
+      if(head.indexOf("base64")<0) throw new Error("not base64");
+      var bin=atob(body),n=bin.length,u8=new Uint8Array(n);
+      for(var k=0;k<n;k++) u8[k]=bin.charCodeAt(k);
+      res(u8.buffer);
+    }catch(e){ rej(e); }
+  });
+}
+var MUSIC_NAMES=["orchestra.mp3?v=1"];
+function prefetchMusic(){
+  if(musicAb) return Promise.resolve(musicAb);
+  if(musicFetch) return musicFetch;
+  var i=0;
+  function attempt(){
+    var name=MUSIC_NAMES[i],got;
+    if(name.indexOf("data:")===0){ got=dataToBuffer(name); }
+    else if(window.fetch){ got=fetch(name).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.arrayBuffer(); }); }
+    else { got=Promise.reject(new Error("no fetch")); }
+    return got.catch(function(e){ i++; if(i<MUSIC_NAMES.length) return attempt(); throw e; });
+  }
+  musicFetch=attempt().then(function(ab){ musicAb=ab; musicFetch=null; return ab; },
+                            function(e){ musicFetch=null; throw e; });
+  return musicFetch;
+}
+function decodeMusic(ab){
+  return new Promise(function(res,rej){
+    var p=AC.decodeAudioData(ab.slice?ab.slice(0):ab,res,rej);
+    if(p&&p.then) p.then(res,rej);
+  }).then(function(b){ musicBuf=b; return b; });
+}
+function ensureMusic(){ if(musicBuf) return Promise.resolve(musicBuf); return prefetchMusic().then(decodeMusic); }
+function startAudio(){
+  if(!ensureAudio()) return Promise.reject(new Error("no audio"));
+  var resumed=(AC.resume?AC.resume():Promise.resolve())||Promise.resolve();
+  return resumed.then(function(){
+    if(AC.state==="running") return null;
+    return AC.resume().then(function(){ if(AC.state!=="running") throw new Error("audio suspended"); });
+  }).then(ensureMusic).then(function(){ outLat=measuredOutLat(); return AC; });
+}
+
+/* ── score ── */
+var layer=document.getElementById("layer"), scoreSvg=document.getElementById("scoreSvg");
+var playhead=document.getElementById("playhead");
+function mk(tag,a){ var e=document.createElementNS("http://www.w3.org/2000/svg",tag); for(var k in a) e.setAttribute(k,a[k]); return e; }
+var flashEls=[];
+function buildScore(){
+  var img=mk("image",{x:0,y:SCORE_Y,width:SCORE_W,height:SCORE_H,href:"score.png"});
+  img.setAttribute("preserveAspectRatio","none");
+  img.setAttribute("image-rendering","auto");
+  layer.appendChild(img);
+  for(var i=0;i<NOTES.length;i++){
+    var n=NOTES[i];
+    /* 판정 피드백 — 음표 머리 위에 잠깐 번지는 표시 */
+    var el=mk("ellipse",{cx:n.x.toFixed(1),cy:(SCORE_Y+n.y).toFixed(1),rx:"26",ry:"18",fill:"none",
+      stroke:"#e0392c","stroke-width":"3",opacity:"0"});
+    layer.appendChild(el);
+    flashEls.push(el); n._el=el;
+  }
+}
+
+/* ── layout ── */
+var stage=document.getElementById("stage"), drumArea=document.getElementById("drumArea"),
+    zoneL=document.getElementById("zoneL"), zoneR=document.getElementById("zoneR"),
+    drumL=document.getElementById("drumL"), drumR=document.getElementById("drumR"),
+    glowL=document.getElementById("glowL"), glowR=document.getElementById("glowR");
+var LAY={mode:"land"};
+var DRUM_X0=368, DRUM_X1=1520, DRUM_Y0=488, DRUM_H=574, DRUM_W=1152;
+
+function layout(){
+  var vw=window.innerWidth, vh=window.innerHeight;
+  var land=(vw/vh)>=1.0;
+  LAY.mode=land?"land":"port";
+  if(land){
+    var s=Math.min(vw/1920,vh/1080);
+    var W=1920*s,H=1080*s;
+    stage.style.width=W+"px"; stage.style.height=H+"px";
+    stage.style.left=Math.max(0,(vw-W)/2)+"px"; stage.style.top=Math.max(0,(vh-H)/2)+"px";
+    scoreSvg.setAttribute("viewBox","0 40 1920 380");
+    scoreSvg.style.left="0"; scoreSvg.style.top="0";
+    scoreSvg.style.width=W+"px"; scoreSvg.style.height=(380/1080*H)+"px";
+    drumArea.style.left=(DRUM_X0/1920*W)+"px";
+    drumArea.style.top=(DRUM_Y0/1080*H)+"px";
+    drumArea.style.width=(DRUM_W/1920*W)+"px";
+    drumArea.style.height=(DRUM_H/1080*H)+"px";
+  } else {
+    stage.style.width=vw+"px"; stage.style.height=vh+"px";
+    stage.style.left="0px"; stage.style.top="0px";
+    /* 세로 화면 — 재생선을 화면 가운데 두고 악보를 확대 */
+    var vbW=Math.min(1120, vw*1.62);
+    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 40 "+vbW.toFixed(1)+" 380");
+    scoreSvg.style.left="0"; scoreSvg.style.top=Math.max(14,vh*0.045)+"px";
+    scoreSvg.style.width=vw+"px"; scoreSvg.style.height=(vw*380/vbW)+"px";
+    var dw=vw*0.985, dh=dw*DRUM_H/DRUM_W;
+    drumArea.style.left=((vw-dw)/2)+"px";
+    drumArea.style.top="auto";
+    drumArea.style.bottom=Math.max(6,vh*0.022)+"px";
+    drumArea.style.width=dw+"px";
+    drumArea.style.height=dh+"px";
+  }
+  placeGlows();
+  placeZones();
+}
+function placeGlows(){
+  var w=drumArea.clientWidth, h=drumArea.clientHeight;
+  if(!w) return;
+  var sc=w/DRUM_W;                        /* 클 수록 확대 */
+  /* 왼쪽 북 머리: 오려낸 그림 좌표 (284,120) 반지름 (250,86) */
+  var Lx=284*sc, Ly=120*sc, Lrx=196*sc, Lry=76*sc;
+  glowL.style.left=(Lx-Lrx)+"px"; glowL.style.top=(Ly-Lry)+"px";
+  glowL.style.width=(Lrx*2)+"px"; glowL.style.height=(Lry*2)+"px";
+  /* 오른쪽 북 머리: 그림 좌표 (301,122) + 오른쪽 그림이 시작하는 591 */
+  var Rx=(591+301)*sc, Ry=122*sc, Rrx=182*sc, Rry=70*sc;
+  glowR.style.left=(Rx-Rrx)+"px"; glowR.style.top=(Ry-Rry)+"px";
+  glowR.style.width=(Rrx*2)+"px"; glowR.style.height=(Rry*2)+"px";
+}
+function placeZones(){
+  var vw=window.innerWidth, vh=window.innerHeight;
+  zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.top="0"; zoneL.style.height=vh+"px";
+  zoneR.style.left="50%"; zoneR.style.width="50%"; zoneR.style.top="0"; zoneR.style.height=vh+"px";
+}
+window.addEventListener("resize",layout);
+window.addEventListener("orientationchange",function(){ setTimeout(layout,240); });
+
+/* ── scroll ── */
+var CSS_LAYER_T=null;
+function detectCssSvgTransform(){
+  try{
+    var s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("width","120"); s.setAttribute("height","40");
+    s.style.position="absolute"; s.style.left="-2000px"; s.style.top="0";
+    var g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    var r=document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute("x","0"); r.setAttribute("y","0"); r.setAttribute("width","10"); r.setAttribute("height","10");
+    g.appendChild(r); s.appendChild(g); document.body.appendChild(s);
+    var base=r.getBoundingClientRect().left;
+    g.style.transform="translateX(50px)";
+    var moved=r.getBoundingClientRect().left;
+    document.body.removeChild(s);
+    return (moved-base)>30;
+  }catch(e){ return false; }
+}
+function renderScore(t){
+  var x=timeToX(Math.max(0,t));
+  var dx=x-PH;
+  if(CSS_LAYER_T) layer.style.transform="translateX("+(-dx).toFixed(2)+"px)";
+  else layer.setAttribute("transform","translate("+(-dx).toFixed(1)+",0)");
+}
+
+/* ── game ── */
+var missPtr=0, stats=null, judgeAnim=null;
+var W_PERFECT=0.075, W_GOOD=0.135, W_HIT=0.20;
+var els={score:document.getElementById("hudScore"),judge:document.getElementById("judge"),
+  start:document.getElementById("startScreen"),result:document.getElementById("result"),
+  startBtn:document.getElementById("startBtn")};
+
+function resetStats(){
+  stats={score:0,combo:0,maxCombo:0,perfect:0,good:0,miss:0,hits:0};
+  NOTES.forEach(function(n){ n.done=false; n.res=null; });
+  missPtr=0; els.score.textContent="0";
+}
+function accuracy(){
+  var total=stats.perfect+stats.good+stats.miss;
+  if(!total) return 1;
+  return (stats.perfect+stats.good*0.55)/total;
+}
+function judgeText(t){
+  var j=els.judge; j.textContent=t;
+  j.classList.remove("show"); void j.offsetWidth; j.classList.add("show");
+}
+function scanMisses(t){
+  while(missPtr<NOTES.length){
+    var n=NOTES[missPtr];
+    if(!n.done && t-n.t>W_HIT){ n.done=true; n.res="miss"; stats.miss++; stats.combo=0;
+      els.score.textContent=stats.score.toLocaleString("en-US"); }
+    if(n.done) missPtr++; else break;
+  }
+}
+function flashNote(n){
+  var el=n._el; if(!el) return;
+  el.style.transition="none"; el.style.opacity="0.85";
+  void el.getBoundingClientRect();
+  el.style.transition="opacity .45s ease-out"; el.style.opacity="0";
+}
+
+/* ── 타격 그림 — 영상의 두 북을 그대로 쓰고, 맞을 때 살짝 눌리는 움직임만 더한다 ── */
+var glowUntil={L:0,R:0}, dipUntil={L:0,R:0};
+function strikeFX(side){
+  var now=AC?AC.currentTime:performance.now()/1000;
+  glowUntil[side]=now+0.20;
+  dipUntil[side]=now+0.17;
+  var img=side==="L"?drumL:drumR;
+  img.classList.remove("drum-dip"); void img.offsetWidth; img.classList.add("drum-dip");
+}
+function updateFX(){
+  var now=AC?AC.currentTime:performance.now()/1000;
+  [["L",glowL],["R",glowR]].forEach(function(p){
+    var dl=glowUntil[p[0]]-now;
+    p[1].style.opacity = dl>0 ? (0.55*Math.min(1,dl/0.20)).toFixed(3) : "0";
+  });
+}
+
+function hit(side){
+  playDrum(side,1);
+  strikeFX(side);
+  if(phase!=="play") return;
+  var t=AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT;
+  var best=null,bestErr=1e9,i,n;
+  for(i=0;i<NOTES.length;i++){
+    n=NOTES[i];
+    if(n.done||n.d!==side) continue;
+    var e=Math.abs(t-n.t);
+    if(e<=W_HIT&&e<bestErr){ best=n; bestErr=e; }
+  }
+  if(best){
+    var res = bestErr<=W_PERFECT?"perfect":(bestErr<=W_GOOD?"good":"miss");
+    best.done=true; best.res=res; flashNote(best);
+    if(res==="perfect"){ stats.perfect++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(1000*(1+Math.min(stats.combo,50)*0.02)); judgeText("PERFECT"); }
+    else if(res==="good"){ stats.good++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(420*(1+Math.min(stats.combo,50)*0.02)); judgeText("GOOD"); }
+    else { stats.miss++; stats.combo=0; judgeText("MISS"); }
+    stats.maxCombo=Math.max(stats.maxCombo,stats.combo);
+    els.score.textContent=stats.score.toLocaleString("en-US");
+    return;
+  }
+}
+
+function fadeMusicOut(){
+  if(!AC||!musicSrc) return;
+  try{
+    var t0=AC.currentTime;
+    musicGain.gain.cancelScheduledValues(t0);
+    musicGain.gain.setValueAtTime(musicGain.gain.value,t0);
+    musicGain.gain.linearRampToValueAtTime(0,t0+2.2);
+    var src=musicSrc;
+    setTimeout(function(){ try{ src.stop(0); }catch(e){} },2400);
+    musicSrc=null;
+  }catch(e){}
+}
+function finishGame(){
+  if(phase!=="play") return;
+  phase="done";
+  fadeMusicOut();
+  var acc=accuracy();
+  var rank = acc>=0.95?"S":acc>=0.86?"A":acc>=0.72?"B":acc>=0.55?"C":"D";
+  document.getElementById("rRank").textContent=rank;
+  document.getElementById("rScore").textContent=stats.score.toLocaleString("en-US");
+  document.getElementById("rAcc").textContent="정확도 "+Math.round(acc*100)+"%";
+  document.getElementById("rPerfect").textContent=stats.perfect;
+  document.getElementById("rGood").textContent=stats.good;
+  document.getElementById("rMiss").textContent=stats.miss;
+  document.getElementById("rCombo").textContent=stats.maxCombo;
+  els.result.classList.remove("hide");
+}
+function stopAll(){
+  if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; }
+  if(AC&&musicGain){ try{ musicGain.gain.cancelScheduledValues(AC.currentTime); musicGain.gain.setValueAtTime(MUSIC_GAIN,AC.currentTime); }catch(e){} }
+  phase="title";
+}
+function startGame(){
+  if(phase==="play"||starting) return;
+  starting=true;
+  els.startBtn.disabled=true; els.startBtn.textContent="음악 준비 중…";
+  var unlock=function(){ starting=false; els.startBtn.disabled=false; els.startBtn.textContent="연주 시작"; };
+  startAudio().then(function(){
+    outLat=measuredOutLat();
+    resetStats();
+    els.start.classList.add("hide");
+    els.result.classList.add("hide");
+    var lead=1.4;
+    if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} }
+    musicGain.gain.cancelScheduledValues(AC.currentTime);
+    musicGain.gain.setValueAtTime(MUSIC_GAIN,AC.currentTime);
+    musicSrc=AC.createBufferSource();
+    musicSrc.buffer=musicBuf;
+    musicSrc.connect(musicGain);
+    startAt=AC.currentTime+lead;
+    musicSrc.start(startAt);
+    phase="play"; songT=-lead;
+    unlock();
+    if(window.requestIdleCallback) requestIdleCallback(fillDrumVariants,{timeout:1200});
+    else setTimeout(fillDrumVariants,200);
+  }).catch(function(e){
+    unlock();
+    fail("음악을 불러오지 못했습니다: "+e.message);
+  });
+}
+
+/* ── loop ── */
+var lastFrame=0;
+function loop(now){
+  var dt=Math.min(0.05,(now-lastFrame)/1000||0); lastFrame=now;
+  if(phase==="play"){
+    songT=AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT+dt;
+    if(songT>0) scanMisses(songT);
+    if(songT>END) finishGame();
+  } else if(phase==="done"){
+    if(AC) songT=Math.min(END+1,AC.currentTime-startAt-outLat-syncOffsetSec);
+  }
+  updateFX();
+  renderScore(phase==="play"||phase==="done" ? Math.max(songT,0) : 0);
+  requestAnimationFrame(loop);
+}
+
+/* ── input ── */
+function press(side){
+  hit(side);
+  var z=side==="L"?zoneL:zoneR;
+  z.classList.add("on");
+  setTimeout(function(){ z.classList.remove("on"); },110);
+}
+[["zoneL","L"],["zoneR","R"]].forEach(function(p){
+  var el=document.getElementById(p[0]), side=p[1];
+  el.addEventListener("pointerdown",function(ev){
+    if(ev.cancelable) ev.preventDefault();
+    if(phase==="title"||phase==="done") return;
+    press(side);
+  },{passive:false});
+});
+document.addEventListener("keydown",function(e){
+  var k=e.key;
+  if(e.repeat) return;
+  if(k===" "||k==="Enter"){
+    e.preventDefault();
+    if(phase==="play") press("L"); else if(phase!=="done") startGame();
+    return;
+  }
+  if(k==="ArrowLeft"||k==="a"||k==="A"||k==="f"||k==="F"){ if(phase==="play"){ e.preventDefault(); press("L"); } return; }
+  if(k==="ArrowRight"||k==="l"||k==="L"||k==="j"||k==="J"||k==="ArrowUp"||k==="ArrowDown"){ if(phase==="play"){ e.preventDefault(); press("R"); } }
+});
+els.startBtn.addEventListener("click",startGame);
+document.getElementById("againBtn").addEventListener("click",function(){ els.result.classList.add("hide"); startGame(); });
+document.getElementById("homeBtn").addEventListener("click",function(){
+  stopAll(); els.result.classList.add("hide"); els.start.classList.remove("hide"); els.score.textContent="0";
+});
+document.getElementById("pauseBtn").addEventListener("click",function(){
+  if(phase!=="play") return;
+  if(AC.state==="running"){ AC.suspend(); this.textContent="▶"; }
+  else { AC.resume(); this.textContent="❚❚"; }
+});
+(function(){
+  var minus=document.getElementById("hSyncMinus"), plus=document.getElementById("hSyncPlus");
+  function bind(el,delta){
+    if(!el) return;
+    var stop=function(ev){ ev.stopPropagation(); if(ev.cancelable) ev.preventDefault(); };
+    ["pointerdown","touchstart","mousedown"].forEach(function(t){ el.addEventListener(t,stop,{passive:false}); });
+    el.addEventListener("click",function(ev){
+      ev.stopPropagation(); ev.preventDefault();
+      setSyncOffset(Math.round(syncOffsetSec*1000)+delta);
+    });
+  }
+  bind(minus,-10); bind(plus,+10);
+})();
+
+/* iOS 확대 방지 */
+var lastTouchEnd=0;
+["gesturestart","gesturechange","gestureend"].forEach(function(t){ document.addEventListener(t,function(e){ if(e.cancelable) e.preventDefault(); },{passive:false}); });
+document.addEventListener("touchstart",function(e){ if(e.touches&&e.touches.length>1&&e.cancelable) e.preventDefault(); },{passive:false});
+document.getElementById("stage").addEventListener("touchend",function(e){
+  var now=e.timeStamp||Date.now();
+  if(now-lastTouchEnd<320){ if(e.cancelable) e.preventDefault(); lastTouchEnd=0; }
+  else lastTouchEnd=now;
+},{passive:false});
+document.addEventListener("dblclick",function(e){ if(e.cancelable) e.preventDefault(); },{passive:false});
+document.addEventListener("contextmenu",function(e){ e.preventDefault(); },{passive:false});
+
+/* boot */
+CSS_LAYER_T=detectCssSvgTransform();
+if(CSS_LAYER_T&&layer.style) layer.style.willChange="transform";
+buildScore();
+layout();
+resetStats();
+setSyncOffset(readSyncOffset());
+prefetchMusic().then(function(){ window.__musicReady=true; }).catch(function(){});
+requestAnimationFrame(loop);
+
+window.__game={
+  notes:NOTES, stats:function(){ return stats; }, time:function(){ return songT; },
+  phase:function(){ return phase; }, start:startGame, hit:press,
+  audio:function(){ return AC?{state:AC.state,dur:musicBuf?musicBuf.duration:0}:null; },
+  layoutInfo:function(){ return {mode:LAY.mode, canvas:[stage.style.width,stage.style.height], drums:[drumArea.style.width,drumArea.style.height]}; },
+  latency:function(){ return {base:AC?AC.baseLatency:null,output:AC?(AC.outputLatency||0):null,used:outLat,syncMs:Math.round(syncOffsetSec*1000),sr:AC?AC.sampleRate:null}; },
+  counts:function(){ return {total:NOTES.length, first:NOTES[0].t, last:NOTES[NOTES.length-1].t, end:END}; },
+  preview:function(t){
+    if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} } musicSrc=null;
+    els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t;
+    startAt=(AC?AC.currentTime:0)-outLat-syncOffsetSec-t;
+    if(AC&&AC.suspend){ try{ AC.suspend(); }catch(e){} }
+  },
+  scoreRect:function(){ var r=scoreSvg.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
+  drumRect:function(){ var r=drumArea.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; },
+  playheadX:function(){ var r=playhead.getBoundingClientRect(); return r.x+r.width/2; },
+  finish:function(){ finishGame(); },
+  hud:function(on){ document.getElementById("hud").style.display=on?"flex":"none"; },
+  drumStats:function(){
+    var out={};
+    ["L","R"].forEach(function(k){
+      var set=drumSets[k]; if(!set||!set.length) return;
+      var b=set[0], d=b.getChannelData(0), sr=b.sampleRate, n=d.length, i, peak=0;
+      for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
+      var env=[];
+      [0,0.002,0.01,0.03,0.1,0.3,0.6,1.2,2.0].forEach(function(t){
+        var i0=Math.min(n-1,Math.floor(t*sr)), i1=Math.min(n,i0+Math.floor(0.01*sr)), s2=0, k;
+        for(k=i0;k<i1;k++) s2+=d[k]*d[k];
+        env.push([t, Math.round(Math.sqrt(s2/Math.max(1,i1-i0))*1000)/1000]);
+      });
+      var N=8192, tot=0, cen=0, lo=0, lopf=0;
+      var re=0, im=0;
+      for(var fi=0; fi<N/2; fi++){
+        var fr2=2*Math.PI*fi/N; re=0; im=0;
+        for(var j=0;j<N;j++){ var w=0.5-0.5*Math.cos(2*Math.PI*j/(N-1)); re+=d[j]*w*Math.cos(fr2*j); im-=d[j]*w*Math.sin(fr2*j); }
+        var p=re*re+im*im, f=fi*sr/N; tot+=p; cen+=p*f;
+        if(f<300&&p>lo){ lo=p; lopf=f; }
+      }
+      out[k]={dur:+b.duration.toFixed(2), peak:+peak.toFixed(3), rms:env,
+              centroidHz:Math.round(cen/Math.max(1e-9,tot)), peakLf:Math.round(lopf)};
+    });
+    return out;
+  },
+  layoutFor:function(w,h){ window.__forceW=w; window.__forceH=h; },
+  autoplay:function(on){
+    if(window.__auto){ window.__auto.forEach(function(id){ clearTimeout(id); }); window.__auto=null; }
+    if(!on) return 0;
+    window.__auto=[];
+    var now=songT;
+    NOTES.forEach(function(n){
+      var dt=(n.t-now)*1000;
+      if(dt<-300||dt>200000) return;
+      var id=setTimeout(function(){ if(phase==="play") press(n.d); },Math.max(0,dt));
+      window.__auto.push(id);
+    });
+    return window.__auto.length;
+  }
+};
+})();
+</script>
+</body>
+</html>
