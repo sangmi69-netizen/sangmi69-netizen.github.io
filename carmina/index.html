@@ -562,6 +562,11 @@ function loop(now){
   if(phase==="play"){
     songT=AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT+dt;
     if(songT>0) scanMisses(songT);
+    if(window.__robot && songT>0){
+      for(var ri=0;ri<NOTES.length;ri++){ var rn=NOTES[ri];
+        if(!rn.done && Math.abs(songT-rn.t)<=0.02) press(rn.k, rn.k==="dl"?zoneL:(rn.k==="dr"?zoneR:zoneM));
+      }
+    }
     if(songT>END) finishGame();
   } else if(phase==="done"){
     if(AC) songT=Math.min(END+2,AC.currentTime-startAt-outLat-syncOffsetSec);
@@ -629,7 +634,10 @@ document.addEventListener("dblclick",function(e){ if(e.cancelable) e.preventDefa
 document.addEventListener("contextmenu",function(e){ e.preventDefault(); },{passive:false});
 
 /* boot */
-try{ if(/[?&]auto=1/.test(location.search)) window.__autoStart=true; }catch(e){}
+try{
+  if(/[?&]auto=1/.test(location.search)) window.__autoStart=true;
+  if(/[?&]robot=1/.test(location.search)) window.__robot=true;
+}catch(e){}
 CSS_LAYER_T=detectCssSvgTransform();
 if(CSS_LAYER_T && layer.style) layer.style.willChange="transform";
 buildScore();
