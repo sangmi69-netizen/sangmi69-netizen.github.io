@@ -328,7 +328,8 @@ function layoutWith(vw,vh){
     drumSvg.setAttribute("viewBox","440 490 1040 510");
     drumSvg.style.left="0"; drumSvg.style.top=(490/1080*H)+"px";
     drumSvg.style.height=(510/1080*H)+"px"; drumSvg.style.width=W+"px";
-    overlay.style.top=(60/1080*H)+"px";
+    overlay.style.top=(82/1080*H)+"px";
+    var _ovt=document.getElementById("ovtext"); if(_ovt) _ovt.style.fontSize=(61*H/1080).toFixed(1)+"px";
     zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.top="44%"; zoneL.style.height="56%";
     zoneR.style.left="50%"; zoneR.style.width="50%"; zoneR.style.top="44%"; zoneR.style.height="56%";
     LAY.drumTop=490/1080;
@@ -344,6 +345,7 @@ function layoutWith(vw,vh){
     drumSvg.style.left="0"; drumSvg.style.bottom="0"; drumSvg.style.top="auto";
     drumSvg.style.width=vw+"px"; drumSvg.style.height=dh+"px";
     overlay.style.top=(vh*0.05)+"px";
+    var _ovt2=document.getElementById("ovtext"); if(_ovt2) _ovt2.style.fontSize=Math.min(vw*0.075,34).toFixed(1)+"px";
     zoneL.style.left="0"; zoneL.style.width="50%"; zoneL.style.bottom="0"; zoneL.style.height=dh+"px"; zoneL.style.top="auto";
     zoneR.style.left="50%"; zoneR.style.width="50%"; zoneR.style.bottom="0"; zoneR.style.height=dh+"px"; zoneR.style.top="auto";
     LAY.drumTop=vh-dh;
