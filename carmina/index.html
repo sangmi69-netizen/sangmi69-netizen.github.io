@@ -546,6 +546,7 @@ function startGame(){
     musicSrc.start(startAt);
     phase="play"; songT=-lead;
     unlock();
+    if(window.__autoStart){ try{ window.__autoStart=false; window.__game.autoplay(true); }catch(e){} }
     if(window.requestIdleCallback) requestIdleCallback(fillVariants,{timeout:1200});
     else setTimeout(fillVariants,200);
   }).catch(function(e){
@@ -628,6 +629,7 @@ document.addEventListener("dblclick",function(e){ if(e.cancelable) e.preventDefa
 document.addEventListener("contextmenu",function(e){ e.preventDefault(); },{passive:false});
 
 /* boot */
+try{ if(/[?&]auto=1/.test(location.search)) window.__autoStart=true; }catch(e){}
 CSS_LAYER_T=detectCssSvgTransform();
 if(CSS_LAYER_T && layer.style) layer.style.willChange="transform";
 buildScore();
