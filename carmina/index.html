@@ -564,7 +564,7 @@ function loop(now){
     if(songT>0) scanMisses(songT);
     if(window.__robot && songT>0){
       for(var ri=0;ri<NOTES.length;ri++){ var rn=NOTES[ri];
-        if(!rn.done && Math.abs(songT-rn.t)<=0.02) press(rn.k, rn.k==="dl"?zoneL:(rn.k==="dr"?zoneR:zoneM));
+        if(!rn.done && Math.abs(songT-rn.t)<=0.045) press(rn.k, rn.k==="dl"?zoneL:(rn.k==="dr"?zoneR:zoneM));
       }
     }
     if(songT>END) finishGame();
