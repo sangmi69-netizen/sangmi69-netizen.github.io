@@ -345,7 +345,7 @@ function mk(tag,a){ var e=document.createElementNS(SVGNS,tag); for(var k in a) e
 var flashEls=[];
 
 function buildScore(){
-  var img=mk("image",{x:0,y:SCORE_Y,width:SCORE_W,height:SCORE_H,href:"assets/score.png"});
+  var img=mk("image",{x:0,y:SCORE_Y,width:SCORE_W,height:SCORE_H,href:"assets/score.png?v=3"});
   img.setAttribute("preserveAspectRatio","none");
   layer.appendChild(img);
   for(var i=0;i<NOTES.length;i++){
