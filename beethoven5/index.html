@@ -377,7 +377,7 @@ var playhead=document.getElementById("playhead");
 function mk(tag,a){ var e=document.createElementNS("http://www.w3.org/2000/svg",tag); for(var k in a) e.setAttribute(k,a[k]); return e; }
 var flashEls=[];
 function buildScore(){
-  var img=mk("image",{x:0,y:SCORE_Y,width:SCORE_W,height:SCORE_H,href:"score.png"});
+  var img=mk("image",{x:0,y:SCORE_Y,width:SCORE_W,height:SCORE_H,href:"score.png?v=2"});
   img.setAttribute("preserveAspectRatio","none");
   img.setAttribute("image-rendering","auto");
   layer.appendChild(img);
