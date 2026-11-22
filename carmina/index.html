@@ -134,8 +134,8 @@ var DRUMS={
   dr:{bbox:[1282,538,490,380], note:{y:128}},
   cr:{bbox:[1018,452,440,396]}
 };
-var SPRITE={dl:"dr_L.png", dm:"dr_CL.png", dr:"dr_R.png", cr:"dr_CR.png"};
-var THUMB={dl:"thumb_L.png", dm:"thumb_M.png", dr:"thumb_R.png"};
+var SPRITE={dl:"dr_L.png?v=3", dm:"dr_CL.png?v=3", dr:"dr_R.png?v=3", cr:"dr_CR.png?v=3"};
+var THUMB={dl:"thumb_L.png?v=3", dm:"thumb_M.png?v=3", dr:"thumb_R.png?v=3"};
 var KEYS=["dl","dm","dr"];
 
 function timeToX(t){
@@ -296,7 +296,7 @@ var instLayer=document.getElementById("instLayer"), instSvg=document.getElementB
 function mk(tag,a){ var e=document.createElementNS(SVGNS,tag); for(var k in a) e.setAttribute(k,a[k]); return e; }
 var flashEls=[];
 function buildScore(){
-  var img=mk("image",{x:0,y:SCORE_Y,width:SCORE_W,height:SCORE_H,href:"score.png"});
+  var img=mk("image",{x:0,y:SCORE_Y,width:SCORE_W,height:SCORE_H,href:"score.png?v=3"});
   img.setAttribute("preserveAspectRatio","none");
   layer.appendChild(img);
   for(var i=0;i<NOTES.length;i++){
