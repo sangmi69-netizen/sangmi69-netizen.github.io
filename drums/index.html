@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>버추얼 드럼 · Virtual Drums</title>
+<title>이상미의 온라인 드럼</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -49,9 +49,9 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 /* ---------- 심벌 (위에서 내려다본 원형) ---------- */
 .pad{position:absolute;touch-action:none}
 .pad.drum{z-index:2}
-.pad.cym{z-index:3}
+.pad.cym{z-index:var(--z,3)}
 .pad.cym{
-  left:var(--x);top:var(--y);width:var(--w);aspect-ratio:1/1;
+  left:var(--x);top:var(--y);width:calc(var(--w) * var(--s,1));aspect-ratio:1/1;
   transform:translate(-50%,-50%) rotate(var(--rot,0deg));
   border-radius:50%;
 }
@@ -76,7 +76,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 
 /* ---------- 드럼 (위에서 내려다본 드러머 시점 · 가죽이 위로) ---------- */
 .pad.drum{
-  left:var(--x);top:var(--y);width:var(--w);
+  left:var(--x);top:var(--y);width:calc(var(--w) * var(--s,1));
   transform:translate(-50%,-50%) rotate(var(--drot,0deg));
   border-radius:50%;
 }
@@ -87,7 +87,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
   filter:drop-shadow(0 18px 24px rgba(0,0,0,.78));
 }
 /* 베이스 드럼: 위아래가 둥근 원호인 셸 + 둥근 우드 후프 */
-.pad.kickpad{width:var(--w);z-index:1;border-radius:40px}
+.pad.kickpad{width:calc(var(--w) * var(--s,1));z-index:1;border-radius:40px}
 .pad.kickpad .skin{position:static;display:block;width:100%;height:auto;object-fit:fill}
 .pad.drum .flash{
   position:absolute;inset:-4%;border-radius:50%;pointer-events:none;opacity:0;
@@ -119,13 +119,14 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .mark.sq{border-radius:10px}
 body.zones .mark{display:block}
 #pedal{
-  position:absolute;left:var(--x,11%);top:var(--y,74%);width:12.5%;height:6.6%;transform:translate(-50%,-50%);
+  position:absolute;left:var(--x,11%);top:var(--y,74%);
+  width:calc(12.5% * var(--s,1));height:calc(6.6% * var(--s,1));transform:translate(-50%,-50%);
   border:1px dashed rgba(255,255,255,.30);border-radius:12px;z-index:4;
   display:flex;align-items:center;justify-content:center;
   background:rgba(255,255,255,.028);touch-action:none;
 }
 #kickPedal{position:absolute;z-index:4;touch-action:none;transform:translate(-50%,-50%);
-  left:var(--x,52.5%);top:var(--y,86.5%);width:var(--w,10%);
+  left:var(--x,52.5%);top:var(--y,86.5%);width:calc(var(--w,10%) * var(--s,1));
   filter:drop-shadow(0 10px 14px rgba(0,0,0,.8))}
 #kickPedal img{width:100%;height:auto;display:block;pointer-events:none}
 #kickPedal.hit{filter:brightness(1.35) drop-shadow(0 10px 14px rgba(0,0,0,.8))}
@@ -184,6 +185,92 @@ body.editing #keybar{opacity:.35}
 }
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ---------- 편집 바 · 선택 강조 ---------- */
+body.editing .pad.sel::after{
+  border:2px solid rgba(217,164,65,.95);
+  box-shadow:0 0 0 2px rgba(217,164,65,.22),0 0 22px rgba(217,164,65,.35);
+}
+#editBar{
+  position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:41;
+  display:flex;align-items:center;gap:8px;height:42px;padding:0 10px 0 14px;border-radius:12px;
+  background:rgba(26,22,16,.88);border:1px solid rgba(217,164,65,.55);color:#f4e7cd;
+  font-size:13.5px;white-space:nowrap;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+#editBar[hidden]{display:none}
+#editBar .nm{font-weight:700;max-width:22vw;overflow:hidden;text-overflow:ellipsis}
+#editBar button.sz{
+  width:30px;height:30px;padding:0;border-radius:8px;
+  border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#f8ecd6;
+  font-size:18px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;
+}
+#editBar button.sz:hover{background:rgba(217,164,65,.26)}
+#editBar button.sz:active{background:rgba(217,164,65,.42)}
+#editBar button.sz:disabled{opacity:.32}
+#editBar .pct{min-width:48px;text-align:center;color:#f6d489;font-weight:700;font-variant-numeric:tabular-nums}
+#editBar input[type=range]{width:112px;accent-color:#c99b52;touch-action:pan-x}
+@media (max-width:760px){
+  #editBar{top:60px;gap:6px;padding:0 8px;font-size:12.5px;height:38px}
+  #editBar input[type=range]{display:none}
+  #editBar .nm{max-width:32vw}
+}
+
+/* ---------- 학교·이름 표시 ---------- */
+#brand{
+  position:absolute;left:64px;top:12px;z-index:39;height:42px;
+  display:flex;align-items:center;padding:0 13px;border-radius:10px;
+  background:rgba(12,10,8,.5);border:1px solid rgba(255,255,255,.10);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  color:#f3e7d1;font-size:clamp(11.5px,1.25vw,15px);font-weight:600;letter-spacing:.06em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 240px);
+  pointer-events:none;
+}
+#brand b{color:var(--gold);font-weight:700}
+#topBtns button.q{font-size:18px;font-weight:700;padding:0;min-width:42px;letter-spacing:0}
+@media (max-width:760px){
+  #brand{left:60px;font-size:11.5px;padding:0 9px;max-width:calc(100vw - 234px)}
+}
+
+/* ---------- 사용설명서 ---------- */
+#help{
+  position:absolute;inset:0;z-index:65;display:none;overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  background:rgba(4,3,2,.9);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  padding:min(5vh,42px) 16px 30px;touch-action:pan-y;
+}
+#help.on{display:block}
+#help .card{
+  position:relative;width:min(780px,100%);margin:0 auto;background:#141210;
+  border:1px solid rgba(217,164,65,.34);border-radius:16px;padding:22px 24px 24px;
+  color:#e3dacd;font-size:14.5px;line-height:1.8;box-shadow:0 24px 60px rgba(0,0,0,.6);
+}
+#help h2{margin:0 26px 4px 0;font-size:clamp(18px,2.2vw,23px);color:#f8f1e4;letter-spacing:.01em}
+#help h2 span{color:var(--gold);font-size:.72em;font-weight:600;margin-left:8px}
+#help h3{margin:22px 0 8px;font-size:clamp(14px,1.6vw,16.5px);color:#f6d489;letter-spacing:.02em}
+#help p{margin:0 0 8px;color:#c9c0b3}
+#help ul,#help ol{margin:0;padding-left:20px;color:#ddd4c7}
+#help li{margin:3px 0}
+#help b{color:#fbf3e6;font-weight:600}
+#help kbd{
+  display:inline-block;min-width:22px;padding:1px 7px;border:1px solid #4a443b;border-bottom-width:2px;
+  border-radius:5px;background:#201e1a;color:#f0e7d9;font:inherit;font-size:.9em;text-align:center;
+}
+#help .keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:5px 18px;margin:2px 0 0}
+#help .keys div{display:flex;align-items:center;gap:9px;color:#ddd4c7}
+#help .keys .k{flex:0 0 auto;min-width:76px}
+#helpClose{
+  position:absolute;right:12px;top:10px;width:34px;height:34px;padding:0;border-radius:9px;
+  border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e8ddcc;font-size:15px;
+}
+#helpClose:hover{background:rgba(255,255,255,.14)}
+#helpDone{
+  display:block;width:100%;margin-top:22px;padding:12px;border-radius:10px;
+  border:1px solid rgba(217,164,65,.55);background:rgba(217,164,65,.16);color:#f6d489;
+  font-size:15px;font-weight:700;letter-spacing:.04em;
+}
+#helpDone:hover{background:rgba(217,164,65,.26)}
+
 /* ---------- 하단 키 안내 ---------- */
 #keybar{
   position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:30;
@@ -241,8 +328,14 @@ body.editing #keybar{opacity:.35}
   display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s;
 }
 #menuGrid button.on{background:#3a3733;color:#fdf7ec;border-color:#57524a}
+#menuHelp{
+  margin-top:auto;padding:10px 30px;border-radius:9px;
+  background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.5);color:#f6d489;
+  font-size:clamp(13px,1.5vw,17px);font-weight:600;letter-spacing:.04em;
+}
+#menuHelp:hover{background:rgba(217,164,65,.22)}
 #menuClose{
-  margin-top:auto;padding:10px 46px;border-radius:9px;background:transparent;border:2px solid #a8761f;
+  margin-top:10px;padding:10px 46px;border-radius:9px;background:transparent;border:2px solid #a8761f;
   color:#ff6a3d;font-size:clamp(14px,1.7vw,20px);font-weight:700;letter-spacing:.1em;
   text-shadow:0 0 12px rgba(255,60,20,.5);
 }
@@ -260,16 +353,25 @@ body.editing #keybar{opacity:.35}
 <div id="stage"><div id="scene"></div></div>
 
 <div id="menuBtn" title="설정" aria-label="설정"><i></i><i></i><i></i></div>
+<div id="brand">창일중학교 <b>이상미</b></div>
 <div id="topBtns">
-  <button id="resetBtn" class="txt" title="위치 기본값으로" aria-label="위치 기본값으로" hidden>기본값</button>
-  <button id="editBtn" title="위치 조정" aria-label="위치 조정">
+  <button id="resetBtn" class="txt" title="위치·크기 기본값으로" aria-label="위치·크기 기본값으로" hidden>기본값</button>
+  <button id="editBtn" title="위치·크기 조정" aria-label="위치·크기 조정">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>
   </button>
+  <button id="helpBtn" class="q" title="사용설명서" aria-label="사용설명서">?</button>
   <button id="fsBtn" title="전체화면" aria-label="전체화면">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
   </button>
 </div>
-<div id="editHint" hidden>드래그해서 위치를 옮기세요 · 오른쪽 위 <b>완료</b>를 누르면 바로 연주할 수 있어요</div>
+<div id="editHint" hidden>악기를 눌러 선택하세요 · 끌어서 옮기고 − / + 로 크기를 바꿔요</div>
+<div id="editBar" hidden>
+  <span class="nm" id="ebName">악기</span>
+  <button class="sz" id="ebMinus" title="작게" aria-label="작게">−</button>
+  <span class="pct" id="ebPct">100%</span>
+  <button class="sz" id="ebPlus" title="크게" aria-label="크게">+</button>
+  <input type="range" id="ebRange" min="60" max="160" step="5" value="100" aria-label="크기">
+</div>
 <div id="toast"></div>
 <div id="keybar">
   <div class="row">
@@ -284,10 +386,10 @@ body.editing #keybar{opacity:.35}
 
 
 <div id="intro">
-  <h1>버추얼 <span>드럼</span></h1>
+  <h1>이상미의 <span>온라인 드럼</span></h1>
   <p>드러머 자리에서 내려다본 5기통 드럼입니다. 가죽이 위로 보이는 드럼과 심벌을 손가락으로 눌러 연주하세요.<br>
      두 개 이상을 동시에 눌러도 그대로 함께 울립니다.<br>
-     오른쪽 위 버튼으로 전체화면 · 위치 조정(드래그해서 내 배치로 저장)<br>
+     오른쪽 위 ✥ 로 위치·크기 조정(내 배치로 저장) · ? 로 사용설명서 · ⛶ 로 전체화면<br>
      키보드 — <kbd>Space</kbd> 킥 · <kbd>F</kbd> 스네어 · <kbd>G</kbd> 크로스스틱 · <kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd> 탐 · <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 하이햇 · <kbd>Q</kbd><kbd>W</kbd> 크래시 · <kbd>E</kbd> 라이드 · <kbd>R</kbd> 라이드벨</p>
   <button id="startBtn">시 작</button>
   <div id="introNote">이어폰이나 스피커로 들으면 더 좋습니다</div>
@@ -297,7 +399,61 @@ body.editing #keybar{opacity:.35}
   <div id="menuTabs"></div>
   <div id="menuGrid"></div>
   <div id="menuVol" hidden></div>
+  <button id="menuHelp">사용설명서</button>
   <button id="menuClose">닫 기</button>
+</div>
+
+<div id="help" role="dialog" aria-modal="true" aria-label="사용설명서">
+  <div class="card">
+    <h2>이상미의 온라인 드럼 <span>사용설명서</span></h2>
+    <button id="helpClose" aria-label="닫기">✕</button>
+    <p>화면의 드럼과 심벌을 손가락으로 눌러 연주합니다. 두 개 이상을 동시에 눌러도 함께 울립니다.</p>
+
+    <h3>① 5기통 드럼과 특수 주법</h3>
+    <ul>
+      <li><b>5기통</b> — 베이스 드럼(킥) · 스네어 · 하이 탐 · 미들 탐 · 플로어 탐. 여기에 하이햇 · 크래시 1·2 · 라이드 심벌이 있습니다.</li>
+      <li><b>하이햇 위쪽 테두리</b> — 열린 소리(오픈)</li>
+      <li><b>하이햇 가운데·아래쪽</b> — 닫힌 소리(클로즈)</li>
+      <li><b>하이햇 페달</b>(왼쪽 아래 <b>페달 D</b>) — 울리던 열린 하이햇을 바로 멈춥니다(초킹)</li>
+      <li><b>라이드 가운데</b> — 벨 소리</li>
+      <li><b>스네어 테두리</b> — 크로스 스틱</li>
+    </ul>
+
+    <h3>② 키보드 단축키</h3>
+    <div class="keys">
+      <div><span class="k"><kbd>Space</kbd></span> 베이스 드럼(킥)</div>
+      <div><span class="k"><kbd>F</kbd></span> 스네어</div>
+      <div><span class="k"><kbd>G</kbd></span> 스네어 크로스 스틱</div>
+      <div><span class="k"><kbd>Z</kbd></span> 하이 탐</div>
+      <div><span class="k"><kbd>X</kbd></span> 미들 탐</div>
+      <div><span class="k"><kbd>C</kbd></span> 플로어 탐</div>
+      <div><span class="k"><kbd>A</kbd></span> 하이햇 닫힘</div>
+      <div><span class="k"><kbd>S</kbd></span> 하이햇 열림</div>
+      <div><span class="k"><kbd>D</kbd></span> 하이햇 페달(초킹)</div>
+      <div><span class="k"><kbd>Q</kbd></span> 크래시 1</div>
+      <div><span class="k"><kbd>W</kbd></span> 크래시 2</div>
+      <div><span class="k"><kbd>E</kbd></span> 라이드</div>
+      <div><span class="k"><kbd>R</kbd></span> 라이드 벨</div>
+    </div>
+
+    <h3>③ 위치·크기 조절과 저장 (✥)</h3>
+    <ol>
+      <li>오른쪽 위 <b>✥</b> 버튼을 누르면 편집 모드가 됩니다.</li>
+      <li>옮기거나 크기를 바꿀 악기를 <b>한 번 눌러 선택</b>하면 금색 테두리로 표시됩니다.</li>
+      <li>선택한 악기를 <b>끌어서 위치</b>를 옮깁니다.</li>
+      <li>위쪽 편집 바의 <b>−</b> / <b>+</b> 버튼이나 <b>크기 막대</b>로 크기를 바꿉니다(60%~160%). 컴퓨터에서는 악기 위에서 <b>마우스 휠</b>을 굴려도 됩니다.</li>
+      <li>오른쪽 위 <b>✓</b>를 누르면 연주로 돌아가고, 위치와 크기가 이 브라우저에 자동으로 저장됩니다.</li>
+      <li><b>기본값</b> 버튼을 누르면 위치와 크기가 모두 처음 상태로 돌아갑니다.</li>
+    </ol>
+
+    <h3>④ 소리 선택과 전체화면</h3>
+    <ul>
+      <li>왼쪽 위 <b>☰</b> 메뉴에서 킥 · 스네어 · 탐 · 심벌 소리 종류를 고릅니다. 설정에서 전체 음량, 하단 키 안내, 연주 구역 표시를 바꿀 수 있습니다.</li>
+      <li>오른쪽 위 <b>⛶</b> 버튼으로 전체화면 연주를 합니다. 아이폰은 세로로 들면 화면이 가로로 돌아가 연주됩니다.</li>
+    </ul>
+
+    <button id="helpDone">닫고 연주하기</button>
+  </div>
 </div>
 
 <script>
@@ -332,10 +488,11 @@ var IMG = {snare:"data:image/webp;base64,UklGRnT2AABXRUJQVlA4WAoAAAAQAAAA5QQA5QQ
 /* 무대(16:9) 기준 % 좌표 — 드러머 자리에서 위에서 내려다본 배치 */
 /* 하이햇(+페달) = 왼쪽, 라이드 = 오른쪽 */
 var CYMS = [
-  {id:"crash1", img:"crash", x:19, y:15, w:28, rot:-5, b:.95, hue:-5, sat:1.02, label:"크래시 1", key:"Q", zone:"crash", tune:1.00, pan:-0.45},
+  /* z — 크래시 1은 하이햇보다 위 레이어(실제 드럼처럼 크래시가 하이햇 위쪽을 덮음) */
+  {id:"crash1", img:"crash", x:19, y:15, w:28, rot:-5, b:.95, hue:-5, sat:1.02, z:6, label:"크래시 1", key:"Q", zone:"crash", tune:1.00, pan:-0.45},
   {id:"ride",   img:"ride",  x:83.5, y:36, w:28, rot:3, b:1.00, hue:0, sat:1.00, label:"라이드", key:"E", zone:"ride", tune:1.00, bell:true, pan:0.38},
   {id:"crash2", img:"crash", x:56, y:11, w:26, rot:7,  b:1.00, hue:3,  sat:1.00, label:"크래시 2", key:"W", zone:"crash", tune:1.01, pan:0.5},
-  {id:"hihat",  img:"hihat", x:13, y:44, w:24, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
+  {id:"hihat",  img:"hihat", x:13, y:44, w:24, rot:0,  b:.95, hue:-3, sat:1.00, z:3, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
 ];
 var DRUMS = [
   {id:"kick",   img:"kick",  x:52.5, y:74, w:56, cls:"kickpad", label:"베이스 드럼", key:"Space", zone:"kick",  tune:1.00, pan:0},
@@ -782,6 +939,7 @@ CYMS.forEach(function(c){
   el.style.setProperty("--x", c.x + "%");
   el.style.setProperty("--y", c.y + "%");
   el.style.setProperty("--w", c.w + "%");
+  if(c.z) el.style.setProperty("--z", String(c.z));
   el.__def = {x:c.x, y:c.y};
   el.style.setProperty("--rot", (c.rot||0) + "deg");
   el.style.setProperty("--b", c.b||1);
@@ -871,19 +1029,24 @@ kickPedalEl.setAttribute("aria-label", "킥 페달");
 scene.appendChild(kickPedalEl);
 pads.kickPedal = kickPedalEl;
 
-/* ================= 위치 저장 · 위치 조정 모드 ================= */
-var POS = Object.create(null);
+/* ================= 위치·크기 저장 · 편집 모드 ================= */
+var POS = Object.create(null);   /* id -> {x,y} 무대(16:9) 기준 % 좌표 */
+var SIZ = Object.create(null);   /* id -> 크기 배율 (0.6 ~ 1.6) */
 var LAYOUT_KEY = "vd_layout2";   /* 배치(하이햇↔라이드 스왑)가 바뀌어 저장 키를 올림 */
+var SCALE_MIN = 0.6, SCALE_MAX = 1.6;
 function clampPct(v){ return Math.max(-4, Math.min(104, v)); }
-function applyPos(el){
-  var p = POS[el.dataset.id]; if(!p) return;
+function clampScale(v){ return Math.max(SCALE_MIN, Math.min(SCALE_MAX, v)); }
+function applyPad(el){
+  var id = el.dataset.id, p = POS[id]; if(!p) return;
   el.style.setProperty("--x", p.x + "%");
   el.style.setProperty("--y", p.y + "%");
+  el.style.setProperty("--s", (SIZ[id] || 1).toFixed(3));
 }
 function resetPositions(){
   Object.keys(pads).forEach(function(id){
     var d = pads[id].__def; if(!d) return;
-    POS[id] = {x:d.x, y:d.y}; applyPos(pads[id]);
+    POS[id] = {x:d.x, y:d.y}; SIZ[id] = 1;
+    applyPad(pads[id]);
   });
 }
 function loadLayout(){
@@ -894,20 +1057,21 @@ function loadLayout(){
       var saved = JSON.parse(raw);
       Object.keys(saved).forEach(function(id){
         var s = saved[id];
-        if(POS[id] && s && isFinite(s.x) && isFinite(s.y)){
-          POS[id] = {x:clampPct(+s.x), y:clampPct(+s.y)};
-        }
+        if(!POS[id] || !s) return;
+        if(isFinite(s.x) && isFinite(s.y)){ POS[id] = {x:clampPct(+s.x), y:clampPct(+s.y)}; }
+        if(isFinite(s.s)){ SIZ[id] = clampScale(+s.s); }
       });
     }
   }catch(e){ window.__vd.layoutError = String(e && e.message ? e.message : e); }
-  Object.keys(pads).forEach(function(id){ applyPos(pads[id]); });
+  Object.keys(pads).forEach(function(id){ applyPad(pads[id]); });
   window.__vd.layoutLoaded = Object.keys(POS).length;
 }
 function saveLayout(){
   try{
     var out = {};
     Object.keys(POS).forEach(function(id){
-      out[id] = {x:Math.round(POS[id].x*10)/10, y:Math.round(POS[id].y*10)/10};
+      out[id] = {x:Math.round(POS[id].x*10)/10, y:Math.round(POS[id].y*10)/10,
+                 s:Math.round((SIZ[id] || 1)*100)/100};
     });
     localStorage.setItem(LAYOUT_KEY, JSON.stringify(out));
     window.__vd.layoutSaved = Object.keys(out).length;
@@ -915,7 +1079,97 @@ function saveLayout(){
 }
 loadLayout();
 
-/* --- 드래그로 위치 옮기기 --- */
+/* ---------- 상단 버튼 · 편집 바 · 안내 ---------- */
+var editBtn = document.getElementById("editBtn");
+var fsBtn   = document.getElementById("fsBtn");
+var resetBtn = document.getElementById("resetBtn");
+var editHint = document.getElementById("editHint");
+var toastEl  = document.getElementById("toast");
+var editBar  = document.getElementById("editBar");
+var ebName   = document.getElementById("ebName");
+var ebPct    = document.getElementById("ebPct");
+var ebMinus  = document.getElementById("ebMinus");
+var ebPlus   = document.getElementById("ebPlus");
+var ebRange  = document.getElementById("ebRange");
+var helpEl   = document.getElementById("help");
+var toastTimer = 0;
+var selectedId = null;
+var SVG_MOVE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>';
+var SVG_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6l5.2 5.2L20 6.6"/></svg>';
+var SVG_FS_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+var SVG_FS_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+
+function toast(msg, ms){
+  toastEl.textContent = msg;
+  toastEl.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove("on"); }, ms || 2400);
+}
+function isEditing(){ return document.body.classList.contains("editing"); }
+function helpOpen(){ return !!(helpEl && helpEl.classList.contains("on")); }
+
+/* ---------- 악기 선택 · 크기 ---------- */
+function syncScaleUI(){
+  if(!selectedId) return;
+  var s = SIZ[selectedId] || 1;
+  ebPct.textContent = Math.round(s*100) + "%";
+  ebRange.value = String(Math.round(s*100));
+  ebMinus.disabled = s <= SCALE_MIN + 0.001;
+  ebPlus.disabled  = s >= SCALE_MAX - 0.001;
+}
+function selectPad(id){
+  selectedId = id || null;
+  Object.keys(pads).forEach(function(k){ pads[k].classList.toggle("sel", k === selectedId); });
+  window.__vd.selected = selectedId;
+  if(!isEditing()){ editBar.hidden = true; return; }
+  if(!selectedId){ editBar.hidden = true; editHint.hidden = false; return; }
+  editBar.hidden = false; editHint.hidden = true;
+  ebName.textContent = pads[selectedId].getAttribute("aria-label") || selectedId;
+  syncScaleUI();
+}
+function setScale(id, v){
+  if(!id || !POS[id]) return;
+  SIZ[id] = Math.round(clampScale(v) * 100) / 100;
+  applyPad(pads[id]);
+  syncScaleUI();
+  saveLayout();
+  window.__vd.lastScale = {id:id, s:SIZ[id]};
+}
+function nudgeScale(d){ if(selectedId) setScale(selectedId, (SIZ[selectedId] || 1) + d); }
+ebMinus.addEventListener("click", function(e){ e.preventDefault(); e.stopPropagation(); nudgeScale(-0.1); });
+ebPlus.addEventListener("click",  function(e){ e.preventDefault(); e.stopPropagation(); nudgeScale(0.1); });
+ebRange.addEventListener("input", function(e){ if(selectedId) setScale(selectedId, (+ebRange.value) / 100); });
+
+function setEditing(on){
+  document.body.classList.toggle("editing", on);
+  editBtn.classList.toggle("on", on);
+  editBtn.innerHTML = on ? SVG_CHECK : SVG_MOVE;
+  editBtn.title = on ? "편집 완료" : "위치·크기 조정";
+  editBtn.setAttribute("aria-label", editBtn.title);
+  editHint.innerHTML = "악기를 눌러 선택하세요 · 끌어서 옮기고 <b>−</b> / <b>+</b> 로 크기를 바꿔요";
+  editHint.hidden = !on;
+  editBar.hidden = true;
+  resetBtn.hidden = !on;
+  window.__vd.editing = on;
+  selectedId = null;
+  Object.keys(pads).forEach(function(k){ pads[k].classList.remove("sel"); });
+  window.__vd.selected = null;
+  if(!on){ saveLayout(); toast("내 배치와 크기로 저장했어요"); }
+  else { editHint.hidden = false; }
+}
+editBtn.addEventListener("click", function(e){
+  e.preventDefault(); e.stopPropagation();
+  setEditing(!isEditing());
+});
+resetBtn.addEventListener("click", function(e){
+  e.preventDefault(); e.stopPropagation();
+  resetPositions();
+  try{ localStorage.removeItem(LAYOUT_KEY); }catch(err){}
+  if(selectedId) syncScaleUI();
+  toast("처음 위치와 크기로 되돌렸어요");
+});
+
+/* --- 끌어서 위치 옮기기 (편집 모드) --- */
 var dragging = null;
 function sceneAngle(){
   var t = getComputedStyle(scene).transform;
@@ -926,12 +1180,13 @@ function sceneAngle(){
   return Math.atan2(p[1], p[0]);
 }
 scene.addEventListener("pointerdown", function(e){
-  if(!document.body.classList.contains("editing")) return;
+  if(!isEditing() || helpOpen()) return;
   var el = padFromNode(e.target, scene);
-  if(!el || !POS[el.dataset.id]) return;
+  if(!el || !POS[el.dataset.id]){ selectPad(null); return; }
   if(e.cancelable) e.preventDefault();
   e.stopPropagation();
   var id = el.dataset.id;
+  selectPad(id);
   dragging = {el:el, id:id, pid:e.pointerId, sx:e.clientX, sy:e.clientY,
               ox:POS[id].x, oy:POS[id].y, moved:false};
   el.classList.add("dragging");
@@ -948,7 +1203,7 @@ window.addEventListener("pointermove", function(e){
   var w = scene.offsetWidth || 1, h = scene.offsetHeight || 1;
   POS[dragging.id] = {x:clampPct(dragging.ox + lx / w * 100),
                       y:clampPct(dragging.oy + ly / h * 100)};
-  applyPos(dragging.el);
+  applyPad(dragging.el);
   dragging.moved = true;
 }, {passive:true});
 
@@ -967,46 +1222,45 @@ window.addEventListener("pointerup", endDrag);
 window.addEventListener("pointercancel", endDrag);
 window.addEventListener("blur", function(){ if(dragging){ dragging.el.classList.remove("dragging"); dragging = null; } });
 
-/* ================= 상단 버튼(위치 조정 · 전체화면) ================= */
-var editBtn = document.getElementById("editBtn");
-var fsBtn   = document.getElementById("fsBtn");
-var resetBtn = document.getElementById("resetBtn");
-var editHint = document.getElementById("editHint");
-var toastEl  = document.getElementById("toast");
-var toastTimer = 0;
-var SVG_MOVE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>';
-var SVG_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6l5.2 5.2L20 6.6"/></svg>';
-var SVG_FS_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
-var SVG_FS_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+/* --- 선택한 악기 위에서 마우스 휠로 크기 조절(컴퓨터) --- */
+scene.addEventListener("wheel", function(e){
+  if(!isEditing() || !selectedId) return;
+  var el = padFromNode(e.target, scene);
+  if(!el || el.dataset.id !== selectedId) return;
+  if(e.cancelable) e.preventDefault();
+  setScale(selectedId, (SIZ[selectedId] || 1) + (e.deltaY > 0 ? -0.04 : 0.04));
+}, {passive:false});
 
-function toast(msg, ms){
-  toastEl.textContent = msg;
-  toastEl.classList.add("on");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){ toastEl.classList.remove("on"); }, ms || 2400);
+/* ---------- 사용설명서 ---------- */
+function openHelp(){
+  helpEl.classList.add("on");
+  helpEl.scrollTop = 0;
+  window.__vd.helpOpen = true;
 }
-function isEditing(){ return document.body.classList.contains("editing"); }
-function setEditing(on){
-  document.body.classList.toggle("editing", on);
-  editBtn.classList.toggle("on", on);
-  editBtn.innerHTML = on ? SVG_CHECK : SVG_MOVE;
-  editBtn.title = on ? "위치 조정 완료" : "위치 조정";
-  editBtn.setAttribute("aria-label", editBtn.title);
-  resetBtn.hidden = !on;
-  editHint.hidden = !on;
-  window.__vd.editing = on;
-  if(!on){ saveLayout(); toast("내 배치로 저장했어요"); }
+function closeHelp(){
+  if(!helpEl.classList.contains("on")) return;
+  helpEl.classList.remove("on");
+  window.__vd.helpOpen = false;
+  window.__vd.helpClosed = (window.__vd.helpClosed || 0) + 1;
 }
-editBtn.addEventListener("click", function(e){
-  e.preventDefault(); e.stopPropagation();
-  setEditing(!isEditing());
+document.getElementById("helpBtn").addEventListener("click", function(e){
+  e.preventDefault(); e.stopPropagation(); openHelp();
 });
-resetBtn.addEventListener("click", function(e){
+document.getElementById("menuHelp").addEventListener("click", function(e){
   e.preventDefault(); e.stopPropagation();
-  resetPositions();
-  try{ localStorage.removeItem(LAYOUT_KEY); }catch(err){}
-  toast("처음 위치로 되돌렸어요");
+  document.getElementById("menu").classList.remove("on");
+  openHelp();
 });
+document.getElementById("helpClose").addEventListener("click", function(e){
+  e.preventDefault(); e.stopPropagation(); closeHelp();
+});
+document.getElementById("helpDone").addEventListener("click", function(e){
+  e.preventDefault(); e.stopPropagation(); closeHelp();
+});
+helpEl.addEventListener("click", function(e){ if(e.target === helpEl) closeHelp(); });
+window.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && helpEl.classList.contains("on")){ e.preventDefault(); closeHelp(); }
+}, {capture:true});
 
 function fsElement(){
   return document.fullscreenElement || document.webkitFullscreenElement ||
@@ -1053,7 +1307,8 @@ var lastHit = Object.create(null);
 
 function hitPad(el, zoneOverride){
   if(!el) return;
-  if(document.body.classList.contains("editing")) return;   /* 위치 조정 중에는 소리 없음 */
+  if(helpOpen()) return;                                    /* 사용설명서를 보는 중에는 소리 없음 */
+  if(document.body.classList.contains("editing")) return;   /* 위치·크기 조정 중에는 소리 없음 */
   var id = el.dataset.id;
   var zone = zoneOverride || el.dataset.zone;
   var tune = parseFloat(el.dataset.tune || "1");
@@ -1147,7 +1402,8 @@ window.addEventListener("keydown", function(e){
   if(!k) return;
   e.preventDefault();
   if(held[e.code]) return;
-  if(document.body.classList.contains("editing")) return;   /* 위치 조정 중에는 소리 없음 */
+  if(helpOpen()) return;                                    /* 사용설명서를 보는 중에는 소리 없음 */
+  if(document.body.classList.contains("editing")) return;   /* 위치·크기 조정 중에는 소리 없음 */
   held[e.code] = 1;
   resumeAudio();
   hitPad(pads[k.pad], k.zone);
