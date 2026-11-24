@@ -263,13 +263,13 @@ var IMG = {kit:"data:image/webp;base64,UklGRgzfAABXRUJQVlA4IADfAAAQCgSdASoABgAEP
 
 /* ---------- 악기 배치(원본과 같은 구성) ---------- */
 var CYMS = [
-  {id:"crash1", img:"crash", x:24, y:19,   w:22, rot:-6, b:.95, hue:-5, sat:1.02, label:"크래시 1", key:"Q", zone:"crash", tune:1.00, pan:-0.45},
-  {id:"ride",   img:"ride",  x:67, y:16,   w:24, rot:4,  b:1.00, hue:0,  sat:1.00, label:"라이드",  key:"E", zone:"ride",  tune:1.00, bell:true, pan:0.28},
-  {id:"crash2", img:"crash", x:88, y:40,   w:18, rot:8,  b:1.00, hue:3,  sat:1.00, label:"크래시 2", key:"W", zone:"crash", tune:1.01, pan:0.5},
-  {id:"hihat",  img:"hihat", x:12, y:54,   w:19, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
+  {id:"crash1", img:"crash", x:24, y:18,   w:22, rot:-6, b:.95, hue:-5, sat:1.02, label:"크래시 1", key:"Q", zone:"crash", tune:1.00, pan:-0.45},
+  {id:"ride",   img:"ride",  x:68, y:16,   w:23, rot:4,  b:1.00, hue:0,  sat:1.00, label:"라이드",  key:"E", zone:"ride",  tune:1.00, bell:true, pan:0.28},
+  {id:"crash2", img:"crash", x:88, y:34,   w:18, rot:8,  b:1.00, hue:3,  sat:1.00, label:"크래시 2", key:"W", zone:"crash", tune:1.01, pan:0.5},
+  {id:"hihat",  img:"hihat", x:12, y:55,   w:19, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
 ];
 /* 드럼 — 사진(1536x1024) 안의 좌표(중심 x, 중심 y, 반폭, 반높이) — 5기통 */
-var KIT = {scale:1.15, bottom:-0.02};
+var KIT = {scale:1.18, bottom:-0.10};
 var DRUMS_PX = [
   {id:"kick",   cx:715,  cy:780, hw:245, hh:200, label:"베이스 드럼", key:"Space", zone:"kick",  tune:1.00, wide:true, pan:0},
   {id:"hiTom",  cx:575,  cy:455, hw:130, hh:95,  label:"하이 탐",     key:"Z",     zone:"tom",   tune:1.31, pan:-0.2},
@@ -282,7 +282,7 @@ function pxToScene(px, py){
   var W = 1536, H = 864;
   var dw = W * KIT.scale, dh = dw * (1024/1536);
   var left = (W - dw) / 2;
-  var top = H * (1 + KIT.bottom) - dh;
+  var top = H * (1 - KIT.bottom) - dh;
   return {x: (left + px*KIT.scale)/W*100, y: (top + py*KIT.scale)/H*100};
 }
 var DRUMS = DRUMS_PX.map(function(d){
