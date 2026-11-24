@@ -93,6 +93,10 @@ button{font-family:inherit;color:inherit;cursor:pointer}
   100%{transform:scale(1) translateY(0);filter:brightness(1)}
 }
 @keyframes drumFlash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+/* 검증용: ?slow 로 타격 애니메이션을 느리게 볼 수 있습니다 */
+.slow .pad.drum.hit .layer{animation-duration:2.4s !important}
+.slow .pad.drum.hit .flash{animation-duration:2.4s !important}
+.slow .pad.cym.hit .disc{animation-duration:3.2s !important}
 
 /* ---------- 메뉴 버튼 ---------- */
 #menuBtn{
@@ -728,6 +732,7 @@ try{
   if(sk != null){ state.keybar = sk === "1"; document.getElementById("keybar").classList.toggle("off", !state.keybar); }
 }catch(e){}
 
+if(location.search.indexOf("slow") >= 0) document.documentElement.classList.add("slow");
 buildSounds().catch(function(err){ window.__vd.errors.push("sound: " + (err && err.message ? err.message : err)); });
 renderMenu();
 window.addEventListener("load", function(){ setTimeout(alignLayers, 120); });
