@@ -288,7 +288,7 @@ function pxToScene(px, py){
 var DRUMS = DRUMS_PX.map(function(d){
   var c = pxToScene(d.cx, d.cy);
   var p1 = pxToScene(d.cx - d.hw, d.cy - d.hh), p2 = pxToScene(d.cx + d.hw, d.cy + d.hh);
-  return {id:d.id, x:c.x, y:c.y, w:(p2.x - p1.x), h:(p2.y - p1.y), label:d.label, key:d.key, zone:d.zone, tune:d.tune, wide:d.wide, pan:d.pan};
+  return {id:d.id, x:c.x, y:c.y, w:(p2.x - p1.x), h:(p2.y - p1.y), label:d.label, key:d.key, zone:d.zone, tune:d.tune, wide:d.wide, pan:d.pan, head:d.head};
 });
 
 /* ---------- 소리 만들기 (스튜디오 드럼 모델) ---------- */
@@ -306,9 +306,13 @@ function noiseBuf(oc, dur){
   return b;
 }
 function offline(dur, fn){
-  var oc = new OfflineAudioContext(1, Math.ceil(SR*dur), SR);
-  fn(oc);
-  return oc.startRendering();
+  try{
+    var oc = new OfflineAudioContext(1, Math.ceil(SR*dur), SR);
+    fn(oc);
+    return oc.startRendering();
+  }catch(e){
+    return Promise.reject(e);
+  }
 }
 function env(g, t0, peak, attack, decay){
   g.gain.setValueAtTime(0.0001, t0);
@@ -519,9 +523,9 @@ var SNARES = [
   {decay:.17, amp:.90, f1:208, f2:368, wire:1.10}    /* 4 크리스프 */
 ];
 var TOMS = [
-  {decay:.46, amp:.95},   /* 1 클리어 */
-  {decay:.62, amp:1.00},  /* 2 팻 */
-  {decay:.32, amp:.82}    /* 3 재즈 */
+  {f:150, decay:.46, amp:.95},   /* 1 클리어 */
+  {f:150, decay:.62, amp:1.00},  /* 2 팻 */
+  {f:150, decay:.32, amp:.82}    /* 3 재즈 */
 ];
 var CYMV = [
   {hp:3600, bp:6100, q:.7, metalAmp:.055, tune:1.00},   /* 1 브라이트 */
@@ -553,7 +557,10 @@ function buildSounds(){
   jobs.push(mkCrossStick({amp:.92, bp:3200, tune:1.05}).then(function(b){ out.crossStick.push(norm(b,.88)); }));
   jobs.push(mkPedal({amp:.85}).then(function(b){ out.pedal.push(norm(b,.74)); }));
   jobs.push(mkPedal({amp:.80}).then(function(b){ out.pedal.push(norm(b,.72)); }));
-  return Promise.all(jobs).then(function(){
+  var safe = jobs.map(function(p){
+    return p.catch(function(e){ window.__vd.errors.push("sound: " + (e && e.message ? e.message : e)); return null; });
+  });
+  return Promise.all(safe).then(function(){
     SOUND = out;
     window.__vd.buffers = Object.keys(out).reduce(function(a,k){ a[k] = out[k].length; return a; }, {});
     window.__vd.S = out;
