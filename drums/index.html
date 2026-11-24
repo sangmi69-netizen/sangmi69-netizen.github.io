@@ -281,10 +281,10 @@ var CYMS = [
   {id:"crash1", img:"crash", x:19, y:15, w:28, rot:-5, b:.95, hue:-5, sat:1.02, label:"크래시 1", key:"Q", zone:"crash", tune:1.00, pan:-0.45},
   {id:"ride",   img:"ride",  x:84, y:36, w:31, rot:3,  b:1.00, hue:0,  sat:1.00, label:"라이드",  key:"E", zone:"ride",  tune:1.00, bell:true, pan:0.28},
   {id:"crash2", img:"crash", x:56, y:11, w:26, rot:7,  b:1.00, hue:3,  sat:1.00, label:"크래시 2", key:"W", zone:"crash", tune:1.01, pan:0.5},
-  {id:"hihat",  img:"hihat", x:10, y:44, w:24, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
+  {id:"hihat",  img:"hihat", x:13, y:44, w:23, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
 ];
 var DRUMS = [
-  {id:"kick",   img:"kick",  x:52.5, y:81.3, w:38.8, cls:"kickpad", label:"베이스 드럼", key:"Space", zone:"kick",  tune:1.00, pan:0},
+  {id:"kick",   img:"kick",  x:52.5, y:81.3, w:46, cls:"kickpad", label:"베이스 드럼", key:"Space", zone:"kick",  tune:1.00, pan:0},
   {id:"hiTom",  img:"tom",   x:36.9, y:36.7, w:22.9, rot:9,   label:"하이 탐",   key:"Z", zone:"tom", tune:1.31, pan:-0.2},
   {id:"midTom", img:"tom",   x:59.4, y:35.3, w:22.3, rot:-14, label:"미들 탐",   key:"X", zone:"tom", tune:1.03, pan:0.16},
   {id:"snare",  img:"snare", x:30.0, y:77.8, w:26.3, rot:-3,  label:"스네어",    key:"F", zone:"crossStick", tune:1.00, head:true, pan:0},
@@ -1025,7 +1025,7 @@ try{
 }catch(e){}
 
 if(location.search.indexOf("slow") >= 0) document.documentElement.classList.add("slow");
-try{ if(localStorage.getItem("vd_zones") !== "0") document.body.classList.add("zones"); }catch(e){ document.body.classList.add("zones"); }
+try{ if(localStorage.getItem("vd_zones") === "1") document.body.classList.add("zones"); }catch(e){}
 buildSounds().catch(function(err){ window.__vd.errors.push("sound: " + (err && err.message ? err.message : err)); });
 renderMenu();
 window.addEventListener("load", function(){ renderMenu(); });
