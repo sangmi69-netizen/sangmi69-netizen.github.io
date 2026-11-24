@@ -284,7 +284,7 @@ var CYMS = [
   {id:"hihat",  img:"hihat", x:13, y:44, w:23, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
 ];
 var DRUMS = [
-  {id:"kick",   img:"kick",  x:52.5, y:81.3, w:46, cls:"kickpad", label:"베이스 드럼", key:"Space", zone:"kick",  tune:1.00, pan:0},
+  {id:"kick",   img:"kick",  x:52.5, y:92.6, w:56, cls:"kickpad", label:"베이스 드럼", key:"Space", zone:"kick",  tune:1.00, pan:0},
   {id:"hiTom",  img:"tom",   x:36.9, y:36.7, w:22.9, rot:9,   label:"하이 탐",   key:"Z", zone:"tom", tune:1.31, pan:-0.2},
   {id:"midTom", img:"tom",   x:59.4, y:35.3, w:22.3, rot:-14, label:"미들 탐",   key:"X", zone:"tom", tune:1.03, pan:0.16},
   {id:"snare",  img:"snare", x:30.0, y:77.8, w:26.3, rot:-3,  label:"스네어",    key:"F", zone:"crossStick", tune:1.00, head:true, pan:0},
@@ -802,7 +802,7 @@ var kickPedalEl = document.createElement("div");
 kickPedalEl.id = "kickPedal";
 kickPedalEl.className = "pad";
 kickPedalEl.dataset.id = "kickPedal"; kickPedalEl.dataset.zone = "kick"; kickPedalEl.dataset.tune = "1"; kickPedalEl.dataset.pan = "0";
-kickPedalEl.style.left = "52.5%"; kickPedalEl.style.top = "89.2%"; kickPedalEl.style.width = "9%";
+kickPedalEl.style.left = "52.5%"; kickPedalEl.style.top = "86.5%"; kickPedalEl.style.width = "10%";
 var kpImg = document.createElement("img");
 kpImg.src = IMG.pedal; kpImg.alt = "";
 kickPedalEl.appendChild(kpImg);
