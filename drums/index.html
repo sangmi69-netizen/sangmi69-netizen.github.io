@@ -152,6 +152,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 }
 #menuTabs button.on{background:#242321;color:#f7f1e6}
 #menuGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:min(1.4vh,12px);width:min(1080px,94%)}
+#menuGrid[hidden],#menuVol[hidden]{display:none}
 @media (max-width:760px){#menuGrid{grid-template-columns:repeat(4,1fr)}}
 #menuGrid button{
   aspect-ratio:1.55/1;border-radius:9px;background:#232221;border:1px solid #2f2d2a;
@@ -387,6 +388,7 @@ function buildSounds(){
   return Promise.all(jobs).then(function(){
     SOUND = out;
     window.__vd.buffers = Object.keys(out).reduce(function(a,k){ a[k] = out[k].length; return a; }, {});
+    window.__vd.S = out;           /* 검증용 참조 */
     window.__vd.soundsReady = true;
   });
 }
