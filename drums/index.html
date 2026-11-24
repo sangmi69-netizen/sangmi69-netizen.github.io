@@ -119,7 +119,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .mark.sq{border-radius:10px}
 body.zones .mark{display:block}
 #pedal{
-  position:absolute;left:var(--x,91%);top:var(--y,52.5%);width:14%;height:7%;transform:translate(-50%,-50%);
+  position:absolute;left:var(--x,89%);top:var(--y,57%);width:11%;height:5.5%;transform:translate(-50%,-50%);
   border:1px dashed rgba(255,255,255,.30);border-radius:12px;z-index:4;
   display:flex;align-items:center;justify-content:center;
   background:rgba(255,255,255,.028);touch-action:none;
@@ -129,7 +129,7 @@ body.zones .mark{display:block}
   filter:drop-shadow(0 10px 14px rgba(0,0,0,.8))}
 #kickPedal img{width:100%;height:auto;display:block;pointer-events:none}
 #kickPedal.hit{filter:brightness(1.35) drop-shadow(0 10px 14px rgba(0,0,0,.8))}
-#pedal i{font-style:normal;font-size:clamp(9px,0.8vw,13px);letter-spacing:.06em;color:rgba(255,255,255,.7)}
+#pedal i{font-style:normal;font-size:clamp(8px,0.72vw,12px);letter-spacing:.05em;color:rgba(255,255,255,.7)}
 #pedal.hit{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.6)}
 
 /* ---------- 메뉴 버튼 ---------- */
@@ -847,7 +847,7 @@ pedalEl.dataset.id = "pedal";
 pedalEl.dataset.zone = "pedal";
 pedalEl.setAttribute("role", "button");
 pedalEl.setAttribute("aria-label", "하이햇 페달");
-pedalEl.__def = {x:91, y:52.5};
+pedalEl.__def = {x:89, y:57};
 var pedalLabel = document.createElement("i");
 pedalLabel.textContent = "페달 D";
 pedalEl.appendChild(pedalLabel);
