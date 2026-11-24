@@ -99,6 +99,25 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .slow .pad.drum.hit .flash{animation-duration:9s !important}
 .slow .pad.cym.hit .disc{animation-duration:11s !important}
 
+/* ---------- 특수 구역(라이드 벨 · 스네어 림 · 하이햇 페달) ---------- */
+.zone{position:absolute;pointer-events:auto;z-index:2}
+.pad.cym .zone-bell{left:50%;top:50%;width:30%;height:30%;transform:translate(-50%,-50%);border-radius:50%}
+.pad.drum .zone-head{left:1%;top:1%;width:98%;height:57%;border-radius:50%}
+.mark{position:absolute;pointer-events:none;border:1px dashed rgba(255,255,255,.30);border-radius:50%;z-index:3;display:none}
+.mark i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-style:normal;
+  font-size:clamp(9px,0.78vw,13px);letter-spacing:.04em;color:rgba(255,255,255,.75);
+  background:rgba(0,0,0,.45);padding:1px 7px;border-radius:999px;white-space:nowrap}
+.mark.sq{border-radius:10px}
+body.zones .mark{display:block}
+#pedal{
+  position:absolute;left:13%;top:70.5%;width:13%;height:6.6%;transform:translate(-50%,-50%);
+  border:1px dashed rgba(255,255,255,.32);border-radius:10px;z-index:4;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.03);touch-action:none;
+}
+#pedal i{font-style:normal;font-size:clamp(9px,0.8vw,13px);letter-spacing:.06em;color:rgba(255,255,255,.7)}
+#pedal.hit{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.6)}
+
 /* ---------- 메뉴 버튼 ---------- */
 #menuBtn{
   position:absolute;left:14px;top:12px;z-index:40;
@@ -113,11 +132,13 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 /* ---------- 하단 키 안내 ---------- */
 #keybar{
   position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:30;
-  display:flex;gap:14px;align-items:center;padding:6px 14px;border-radius:999px;
+  display:flex;flex-direction:column;gap:3px;align-items:center;padding:6px 16px;border-radius:14px;
   background:rgba(10,10,10,.42);border:1px solid rgba(255,255,255,.08);
   font-size:12px;color:#b9b0a4;letter-spacing:.02em;white-space:nowrap;
   backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
 }
+#keybar .row{display:flex;gap:14px;align-items:center}
+#keybar .sub{font-size:11px;color:#8f877b;letter-spacing:.01em}
 #keybar b{color:#efe7d8;font-weight:600}
 #keybar.off{display:none}
 @media (max-width:900px){#keybar{display:none}}
@@ -185,11 +206,14 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 
 <div id="menuBtn" title="설정" aria-label="설정"><i></i><i></i><i></i></div>
 <div id="keybar">
-  <span><b>Space</b> 킥</span>
-  <span><b>F</b> 스네어</span>
-  <span><b>Z</b>/<b>X</b>/<b>C</b> 하이·미들·플로어</span>
-  <span><b>A</b>/<b>S</b> 하이햇 닫힘·열림</span>
-  <span><b>Q</b>/<b>W</b> 크래시 · <b>E</b> 라이드</span>
+  <div class="row">
+    <span><b>Space</b> 킥</span>
+    <span><b>F</b> 스네어 · <b>G</b> 크로스스틱</span>
+    <span><b>Z</b>/<b>X</b>/<b>C</b> 하이·미들·플로어</span>
+    <span><b>A</b> 닫힘 · <b>S</b> 열림 · <b>D</b> 페달</span>
+    <span><b>Q</b>/<b>W</b> 크래시 · <b>E</b> 라이드 · <b>R</b> 벨</span>
+  </div>
+  <div class="row sub">라이드 가운데 = 벨 · 스네어 테두리 = 크로스스틱 · 하이햇 아래 테두리 = 열림</div>
 </div>
 
 
@@ -239,19 +263,19 @@ var IMG = {kit:"data:image/webp;base64,UklGRgzfAABXRUJQVlA4IADfAAAQCgSdASoABgAEP
 
 /* ---------- 악기 배치(원본과 같은 구성) ---------- */
 var CYMS = [
-  {id:"crash1", img:"crash", x:26, y:17,   w:27, rot:-6, b:.95, hue:-5, sat:1.02, label:"크래시 1", key:"Q", zone:"crash", tune:1.00},
-  {id:"ride",   img:"ride",  x:69, y:14,   w:30, rot:4,  b:1.00, hue:0,  sat:1.00, label:"라이드",  key:"E", zone:"ride",  tune:1.00},
-  {id:"crash2", img:"crash", x:88, y:36,   w:24, rot:8,  b:1.00, hue:3,  sat:1.00, label:"크래시 2", key:"W", zone:"crash", tune:1.01},
-  {id:"hihat",  img:"hihat", x:13, y:55,   w:23, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true}
+  {id:"crash1", img:"crash", x:26, y:17,   w:27, rot:-6, b:.95, hue:-5, sat:1.02, label:"크래시 1", key:"Q", zone:"crash", tune:1.00, pan:-0.45},
+  {id:"ride",   img:"ride",  x:69, y:14,   w:30, rot:4,  b:1.00, hue:0,  sat:1.00, label:"라이드",  key:"E", zone:"ride",  tune:1.00, bell:true, pan:0.28},
+  {id:"crash2", img:"crash", x:88, y:36,   w:24, rot:8,  b:1.00, hue:3,  sat:1.00, label:"크래시 2", key:"W", zone:"crash", tune:1.01, pan:0.5},
+  {id:"hihat",  img:"hihat", x:13, y:55,   w:23, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
 ];
 /* 드럼 — 사진(1536x1024) 안의 좌표(중심 x, 중심 y, 반폭, 반높이) — 5기통 */
 var KIT = {scale:1.15, bottom:-0.02};
 var DRUMS_PX = [
-  {id:"kick",   cx:715,  cy:780, hw:245, hh:200, label:"베이스 드럼", key:"Space", zone:"kick",  tune:1.00, wide:true},
-  {id:"hiTom",  cx:575,  cy:455, hw:130, hh:95,  label:"하이 탐",     key:"Z",     zone:"tom",   tune:1.31},
-  {id:"midTom", cx:845,  cy:450, hw:125, hh:95,  label:"미들 탐",     key:"X",     zone:"tom",   tune:1.03},
-  {id:"snare",  cx:715,  cy:790, hw:175, hh:88,  label:"스네어",      key:"F",     zone:"snare", tune:1.00},
-  {id:"floor",  cx:1225, cy:690, hw:180, hh:155, label:"플로어 탐",   key:"C",     zone:"tom",   tune:0.70}
+  {id:"kick",   cx:715,  cy:780, hw:245, hh:200, label:"베이스 드럼", key:"Space", zone:"kick",  tune:1.00, wide:true, pan:0},
+  {id:"hiTom",  cx:575,  cy:455, hw:130, hh:95,  label:"하이 탐",     key:"Z",     zone:"tom",   tune:1.31, pan:-0.2},
+  {id:"midTom", cx:845,  cy:450, hw:125, hh:95,  label:"미들 탐",     key:"X",     zone:"tom",   tune:1.03, pan:0.16},
+  {id:"snare",  cx:715,  cy:790, hw:175, hh:88,  label:"스네어",      key:"F",     zone:"crossStick", tune:1.00, head:true, pan:0},
+  {id:"floor",  cx:1225, cy:690, hw:180, hh:155, label:"플로어 탐",   key:"C",     zone:"tom",   tune:0.70, pan:0.36}
 ];
 /* 사진 좌표 -> 무대 % (무대는 16:9, 사진은 1536x1024) */
 function pxToScene(px, py){
@@ -264,14 +288,15 @@ function pxToScene(px, py){
 var DRUMS = DRUMS_PX.map(function(d){
   var c = pxToScene(d.cx, d.cy);
   var p1 = pxToScene(d.cx - d.hw, d.cy - d.hh), p2 = pxToScene(d.cx + d.hw, d.cy + d.hh);
-  return {id:d.id, x:c.x, y:c.y, w:(p2.x - p1.x), h:(p2.y - p1.y), label:d.label, key:d.key, zone:d.zone, tune:d.tune, wide:d.wide};
+  return {id:d.id, x:c.x, y:c.y, w:(p2.x - p1.x), h:(p2.y - p1.y), label:d.label, key:d.key, zone:d.zone, tune:d.tune, wide:d.wide, pan:d.pan};
 });
 
-/* ---------- 소리 만들기 ---------- */
+/* ---------- 소리 만들기 (스튜디오 드럼 모델) ---------- */
 var SR = 44100, SOUND = null, AC = null, master = null, analyser = null, anaData = null;
+var drumBus = null, comp = null, reverb = null, wetBus = null;
 
-function softClip(){
-  var n = 2048, c = new Float32Array(n), k = 1.6, t = Math.tanh(k);
+function softClip(k){
+  var n = 2048, c = new Float32Array(n), t = Math.tanh(k);
   for(var i=0;i<n;i++){ var x = i*2/n-1; c[i] = Math.tanh(x*k)/t; }
   return c;
 }
@@ -287,140 +312,294 @@ function offline(dur, fn){
 }
 function env(g, t0, peak, attack, decay){
   g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(Math.max(peak,0.0002), t0+attack);
+  g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t0+attack);
   g.gain.exponentialRampToValueAtTime(0.0001, t0+attack+decay);
 }
+function filt(oc, type, freq, q){
+  var f = oc.createBiquadFilter();
+  f.type = type; f.frequency.value = freq;
+  if(q != null) f.Q.value = q;
+  return f;
+}
+
+/* ===== 킥: 비터 클릭 + 단단한 펀치 + 깊은 서브 ===== */
 function mkKick(p){
-  var dur = p.decay + .12;
+  var dur = p.decay + .16;
   return offline(dur, function(oc){
-    var o = oc.createOscillator(); o.type = "sine";
-    o.frequency.setValueAtTime(p.f0, 0);
-    o.frequency.exponentialRampToValueAtTime(p.f1, p.sweep||.06);
-    var g = oc.createGain(); env(g, 0, p.amp, .004, p.decay);
-    var ws = oc.createWaveShaper(); ws.curve = softClip(); ws.oversample = "2x";
-    var lp = oc.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = p.lp||3800;
-    o.connect(g); g.connect(ws); ws.connect(lp); lp.connect(oc.destination);
-    o.start(0); o.stop(dur);
-    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.05);
-    var hp = oc.createBiquadFilter(); hp.type = "bandpass"; hp.frequency.value = p.clickF||1800; hp.Q.value = .8;
-    var g2 = oc.createGain(); env(g2, 0, p.click, .001, .028);
-    n.connect(hp); hp.connect(g2); g2.connect(oc.destination); n.start(0);
+    var t = 0;
+    /* 서브 바디 */
+    var sub = oc.createOscillator(); sub.type = "sine";
+    sub.frequency.setValueAtTime(p.f0, t);
+    sub.frequency.exponentialRampToValueAtTime(p.f1, t + p.sweep);
+    sub.frequency.exponentialRampToValueAtTime(p.f1*0.96, t + dur);
+    var gs = oc.createGain(); env(gs, t, 1, .005, p.decay);
+    var ws = oc.createWaveShaper(); ws.curve = softClip(1.5); ws.oversample = "2x";
+    var hp = filt(oc, "highpass", 28);
+    sub.connect(gs); gs.connect(ws); ws.connect(hp); hp.connect(oc.destination);
+    sub.start(t); sub.stop(dur);
+    /* 중저음 펀치 */
+    var body = oc.createOscillator(); body.type = "triangle";
+    body.frequency.setValueAtTime(p.f0*2.3, t);
+    body.frequency.exponentialRampToValueAtTime(p.f1*1.7, t + .05);
+    var gb = oc.createGain(); env(gb, t, p.punch, .002, .10);
+    var lp = filt(oc, "lowpass", 1000, .7);
+    body.connect(gb); gb.connect(lp); lp.connect(oc.destination);
+    body.start(t); body.stop(.32);
+    /* 비터 클릭 2~4kHz */
+    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.04);
+    var bp = filt(oc, "bandpass", p.clickF, 1.0);
+    var gc = oc.createGain(); env(gc, t, p.click, .0008, .013);
+    n.connect(bp); bp.connect(gc); gc.connect(oc.destination); n.start(t);
+    /* 나무 비터의 짧은 '톡' */
+    var tk = oc.createOscillator(); tk.type = "sine";
+    tk.frequency.setValueAtTime(1600, t);
+    tk.frequency.exponentialRampToValueAtTime(520, t + .022);
+    var gt = oc.createGain(); env(gt, t, p.click*0.35, .0008, .018);
+    tk.connect(gt); gt.connect(oc.destination); tk.start(t); tk.stop(.08);
   });
 }
+
+/* ===== 스네어: 헤드 펀치 + 와이어 잔향 ===== */
 function mkSnare(p){
-  return offline(p.decay + .12, function(oc){
-    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc, p.decay+.1);
-    var hp = oc.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = p.hp;
-    var bp = oc.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = p.bp; bp.Q.value = .7;
-    var g = oc.createGain(); env(g, 0, p.amp, .002, p.decay);
-    n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(oc.destination); n.start(0);
-    [[p.f1,1],[p.f2,.55]].forEach(function(v){
-      var o = oc.createOscillator(); o.type = "triangle";
-      o.frequency.setValueAtTime(v[0], 0);
-      o.frequency.exponentialRampToValueAtTime(v[0]*.78, p.decay*.7);
-      var g2 = oc.createGain(); env(g2, 0, p.amp*v[1], .002, p.decay*.55);
-      o.connect(g2); g2.connect(oc.destination); o.start(0); o.stop(p.decay+.1);
+  var dur = p.decay + .18;
+  return offline(dur, function(oc){
+    var t = 0;
+    [[p.f1, 1, .62], [p.f2, .5, .42]].forEach(function(v, i){
+      var o = oc.createOscillator(); o.type = i ? "triangle" : "sine";
+      o.frequency.setValueAtTime(v[0], t);
+      o.frequency.exponentialRampToValueAtTime(v[0]*0.74, t + p.decay*.5);
+      var g = oc.createGain(); env(g, t, p.amp*v[1], .002, p.decay*v[2]);
+      o.connect(g); g.connect(oc.destination); o.start(t); o.stop(dur);
+    });
+    /* 헤드 어택 */
+    var n0 = oc.createBufferSource(); n0.buffer = noiseBuf(oc,.07);
+    var bp0 = filt(oc, "bandpass", 1750, .9);
+    var g0 = oc.createGain(); env(g0, t, p.amp*.55, .001, .03);
+    n0.connect(bp0); bp0.connect(g0); g0.connect(oc.destination); n0.start(t);
+    /* 스네어 와이어: 두 대역 + 살짝 떨림 */
+    [[5200, .30, 1.0], [7600, .20, .8], [3400, .12, 1.15]].forEach(function(w, i){
+      var n = oc.createBufferSource(); n.buffer = noiseBuf(oc, dur);
+      var hp = filt(oc, "highpass", w[0]*0.5);
+      var bp = filt(oc, "bandpass", w[0], 0.85);
+      var g = oc.createGain(); env(g, t, p.amp*w[1], .002, p.decay*w[2]);
+      n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(oc.destination);
+      n.start(t);
+      if(i === 0){
+        var lfo = oc.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 43;
+        var lg = oc.createGain(); lg.gain.value = p.amp*w[1]*0.35;
+        lfo.connect(lg); lg.connect(g.gain); lfo.start(t); lfo.stop(dur);
+      }
     });
   });
 }
+
+/* ===== 탐: 껍질 공명 + 피치 드롭 ===== */
 function mkTom(p){
-  var dur = p.decay + .1;
+  var dur = p.decay + .12;
   return offline(dur, function(oc){
-    var o = oc.createOscillator(); o.type = "sine";
-    o.frequency.setValueAtTime(p.f*1.45, 0);
-    o.frequency.exponentialRampToValueAtTime(p.f, .06);
-    o.frequency.exponentialRampToValueAtTime(p.f*.985, dur);
-    var g = oc.createGain(); env(g, 0, p.amp, .003, p.decay);
-    o.connect(g); g.connect(oc.destination); o.start(0); o.stop(dur);
-    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.04);
-    var bp = oc.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = p.f*3.2; bp.Q.value = 1.1;
-    var g2 = oc.createGain(); env(g2, 0, p.amp*.22, .001, .035);
-    n.connect(bp); bp.connect(g2); g2.connect(oc.destination); n.start(0);
+    var t = 0;
+    [[1, 1, 1], [1.58, .30, .55], [2.38, .12, .35], [3.1, .05, .22]].forEach(function(h, i){
+      var o = oc.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(p.f*h[0]*1.34, t);
+      o.frequency.exponentialRampToValueAtTime(p.f*h[0], t + .07);
+      o.frequency.exponentialRampToValueAtTime(p.f*h[0]*0.984, t + dur);
+      var g = oc.createGain(); env(g, t, p.amp*h[1], .003, p.decay*h[2]);
+      o.connect(g); g.connect(oc.destination); o.start(t); o.stop(dur);
+    });
+    /* 헤드 어택 */
+    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.05);
+    var lp = filt(oc, "lowpass", 2200, .8);
+    var g2 = oc.createGain(); env(g2, t, p.amp*.22, .001, .028);
+    n.connect(lp); lp.connect(g2); g2.connect(oc.destination); n.start(t);
   });
 }
+
+/* ===== 크로스 스틱: 나무 림 '톡' ===== */
+function mkCrossStick(p){
+  return offline(.3, function(oc){
+    var t = 0;
+    [[p.f1||780, .85, .045], [(p.f1||780)*2.02, .30, .03]].forEach(function(v, i){
+      var o = oc.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(v[0]*(p.tune||1), t);
+      o.frequency.exponentialRampToValueAtTime(v[0]*(p.tune||1)*0.9, t + .04);
+      var g = oc.createGain(); env(g, t, p.amp*v[1], .0008, v[2]);
+      o.connect(g); g.connect(oc.destination); o.start(t); o.stop(.3);
+    });
+    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.1);
+    var bp = filt(oc, "bandpass", p.bp||2500, 3.2);
+    var g2 = oc.createGain(); env(g2, t, p.amp*.75, .0006, .022);
+    n.connect(bp); bp.connect(g2); g2.connect(oc.destination); n.start(t);
+    var n2 = oc.createBufferSource(); n2.buffer = noiseBuf(oc,.22);
+    var hp = filt(oc, "highpass", 4200);
+    var g3 = oc.createGain(); env(g3, t, p.amp*.13, .003, .085);
+    n2.connect(hp); hp.connect(g3); g3.connect(oc.destination); n2.start(t);
+  });
+}
+
+/* ===== 심벌(크래시·라이드·차이나·하이햇) ===== */
 function mkCym(p){
   var dur = p.decay + .1;
   return offline(dur, function(oc){
+    var t = 0;
     var n = oc.createBufferSource(); n.buffer = noiseBuf(oc, dur);
-    var hp = oc.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = p.hp;
-    var bp = oc.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = p.bp; bp.Q.value = p.q||.8;
-    var g = oc.createGain(); env(g, 0, p.amp, .004, p.decay);
-    n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(oc.destination); n.start(0);
-    (p.metal||[317,451,563,712,893]).forEach(function(f,i){
-      var o = oc.createOscillator(); o.type = "square"; o.frequency.value = f*p.tune;
-      var bp2 = oc.createBiquadFilter(); bp2.type = "bandpass"; bp2.frequency.value = f*p.tune*3.1; bp2.Q.value = 7;
-      var g2 = oc.createGain(); env(g2, 0, (p.metalAmp||.05)/(1+i*.4), .004, p.decay*(.92-i*.07));
-      o.connect(bp2); bp2.connect(g2); g2.connect(oc.destination); o.start(0); o.stop(dur);
+    var hp = filt(oc, "highpass", p.hp);
+    var bp = filt(oc, "bandpass", p.bp, p.q || .8);
+    var g = oc.createGain(); env(g, t, p.amp, .003, p.decay);
+    n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(oc.destination); n.start(t);
+    /* 비화성 금속 배음 */
+    [317, 451, 563, 712, 893, 1042, 1271].forEach(function(f, i){
+      var o = oc.createOscillator(); o.type = "square";
+      o.frequency.value = f*p.tune*(1 + i*0.004);
+      var bp2 = filt(oc, "bandpass", f*p.tune*3.2, 6 + i);
+      var g2 = oc.createGain();
+      env(g2, t, (p.metalAmp||.05)/(1 + i*.5), .004, p.decay*(.95 - i*.055));
+      o.connect(bp2); bp2.connect(g2); g2.connect(oc.destination); o.start(t); o.stop(dur);
     });
     if(p.bell){
-      [1,1.51,2.32].forEach(function(m,i){
-        var o = oc.createOscillator(); o.type = "sine"; o.frequency.value = 980*m;
-        var g2 = oc.createGain(); env(g2, 0, p.bell/(1+i*.7), .002, p.bellDecay||.35);
-        o.connect(g2); g2.connect(oc.destination); o.start(0); o.stop(dur);
+      [1, 1.51, 2.32, 3.12].forEach(function(m, i){
+        var o = oc.createOscillator(); o.type = "sine"; o.frequency.value = 1010*m*p.tune;
+        var g2 = oc.createGain(); env(g2, t, p.bell/(1 + i*.8), .0015, (p.bellDecay||.4)*(1 - i*.12));
+        o.connect(g2); g2.connect(oc.destination); o.start(t); o.stop(dur);
       });
     }
   });
 }
+
+/* ===== 라이드 벨 ===== */
+function mkBell(p){
+  return offline(1.35, function(oc){
+    var t = 0;
+    [[1, 1, 1], [1.52, .55, .75], [2.34, .38, .55], [3.14, .22, .4], [4.1, .12, .28]].forEach(function(v, i){
+      var o = oc.createOscillator(); o.type = "sine";
+      o.frequency.value = 1030*v[0]*(p.tune||1);
+      var g = oc.createGain(); env(g, t, p.amp*v[1], .0012, p.decay*v[2]);
+      o.connect(g); g.connect(oc.destination); o.start(t); o.stop(1.35);
+    });
+    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.09);
+    var bp = filt(oc, "bandpass", 4800, 2.4);
+    var g2 = oc.createGain(); env(g2, t, p.amp*.35, .001, .055);
+    n.connect(bp); bp.connect(g2); g2.connect(oc.destination); n.start(t);
+  });
+}
+
+/* ===== 하이햇 풋 페달 '칙' ===== */
+function mkPedal(p){
+  return offline(.34, function(oc){
+    var t = 0;
+    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.2);
+    var hp = filt(oc, "highpass", 4600);
+    var bp = filt(oc, "bandpass", 8200, .9);
+    var g = oc.createGain(); env(g, t, p.amp*.55, .0015, .05);
+    n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(oc.destination); n.start(t);
+    var o = oc.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(165, t);
+    o.frequency.exponentialRampToValueAtTime(92, .09);
+    var g2 = oc.createGain(); env(g2, t, p.amp*.34, .002, .09);
+    o.connect(g2); g2.connect(oc.destination); o.start(t); o.stop(.34);
+  });
+}
+
 function norm(buf, target){
   var d = buf.getChannelData(0), peak = 0, i, a;
-  for(i=0;i<d.length;i++){ a = Math.abs(d[i]); if(a>peak) peak = a; }
+  for(i=0;i<d.length;i++){ a = Math.abs(d[i]); if(a > peak) peak = a; }
   if(peak > 0.0001){ var k = target/peak; for(i=0;i<d.length;i++) d[i] *= k; }
   return buf;
 }
+
+/* ---- 소리 종류(메뉴) ---- */
 var KICKS = [
-  {f0:140,f1:46,decay:.46,amp:1,click:.30,clickF:2100,lp:3600,sweep:.055},
-  {f0:120,f1:52,decay:.34,amp:1,click:.42,clickF:2600,lp:4200,sweep:.045},
-  {f0:170,f1:58,decay:.24,amp:1,click:.55,clickF:3100,lp:5200,sweep:.035},
-  {f0:105,f1:44,decay:.55,amp:.92,click:.16,clickF:1500,lp:2600,sweep:.07}
+  {f0:145, f1:45,  decay:.50, sweep:.055, punch:.55, click:.34, clickF:2900, lp:3600},  /* 1 딥 */
+  {f0:126, f1:53,  decay:.36, sweep:.045, punch:.62, click:.48, clickF:3300, lp:4200},  /* 2 록 */
+  {f0:176, f1:60,  decay:.26, sweep:.032, punch:.70, click:.62, clickF:3900, lp:5200},  /* 3 펀치 */
+  {f0:110, f1:43,  decay:.58, sweep:.070, punch:.45, click:.22, clickF:2400, lp:2800}   /* 4 재즈 */
 ];
 var SNARES = [
-  {hp:1400,bp:3300,decay:.20,amp:.85,f1:190,f2:330},
-  {hp:900, bp:2400,decay:.30,amp:.95,f1:168,f2:290},
-  {hp:1700,bp:4200,decay:.26,amp:.72,f1:196,f2:350},
-  {hp:1200,bp:3000,decay:.16,amp:.90,f1:205,f2:365}
+  {decay:.22, amp:.85, f1:196, f2:336, wire:1.00},   /* 1 타이트 */
+  {decay:.32, amp:.95, f1:172, f2:296, wire:1.25},   /* 2 팻 */
+  {decay:.27, amp:.72, f1:200, f2:352, wire:1.45},   /* 3 재즈 */
+  {decay:.17, amp:.90, f1:208, f2:368, wire:1.10}    /* 4 크리스프 */
 ];
 var TOMS = [
-  {f:150,decay:.42,amp:.95},
-  {f:150,decay:.60,amp:1.0},
-  {f:150,decay:.28,amp:.8}
+  {decay:.46, amp:.95},   /* 1 클리어 */
+  {decay:.62, amp:1.00},  /* 2 팻 */
+  {decay:.32, amp:.82}    /* 3 재즈 */
 ];
 var CYMV = [
-  {hp:3800,bp:6200,q:.7,metalAmp:.055,tune:1.0},
-  {hp:2600,bp:4300,q:.9,metalAmp:.070,tune:.86}
+  {hp:3600, bp:6100, q:.7, metalAmp:.055, tune:1.00},   /* 1 브라이트 */
+  {hp:2500, bp:4200, q:.9, metalAmp:.072, tune:.86}     /* 2 다크 */
 ];
+
 function buildSounds(){
-  var out = {kick:[],snare:[],tom:[],crash:[],ride:[],china:[],hihat:[],hihatOpen:[]};
+  var out = {kick:[], snare:[], tom:[], crash:[], ride:[], china:[], hihat:[], hihatOpen:[],
+             rideBell:[], crossStick:[], pedal:[]};
   var jobs = [];
   KICKS.forEach(function(p){ jobs.push(mkKick(p).then(function(b){ out.kick.push(norm(b,.95)); })); });
-  SNARES.forEach(function(p){ jobs.push(mkSnare(p).then(function(b){ out.snare.push(norm(b,.85)); })); });
-  TOMS.forEach(function(p){ jobs.push(mkTom(p).then(function(b){ out.tom.push(norm(b,.88)); })); });
+  SNARES.forEach(function(p){ jobs.push(mkSnare(p).then(function(b){ out.snare.push(norm(b,.88)); })); });
+  TOMS.forEach(function(p){ jobs.push(mkTom(p).then(function(b){ out.tom.push(norm(b,.90)); })); });
   CYMV.forEach(function(p){
-    jobs.push(mkCym(Object.assign({},p,{decay:1.9,amp:.55})).then(function(b){ out.crash.push(norm(b,.80)); }));
-    jobs.push(mkCym(Object.assign({},p,{decay:1.15,amp:.50,bell:.10,bellDecay:.5,hp:5200,bp:7600})).then(function(b){ out.ride.push(norm(b,.72)); }));
-    jobs.push(mkCym(Object.assign({},p,{decay:.95,amp:.60,hp:2200,bp:3400,q:1.4,metalAmp:.09,tune:.8})).then(function(b){ out.china.push(norm(b,.75)); }));
-    jobs.push(mkCym(Object.assign({},p,{decay:.055,amp:.45,hp:7000,bp:9500,metalAmp:.03})).then(function(b){ out.hihat.push(norm(b,.55)); }));
-    jobs.push(mkCym(Object.assign({},p,{decay:.38,amp:.50,hp:6000,bp:8800,metalAmp:.04})).then(function(b){ out.hihatOpen.push(norm(b,.55)); }));
+    jobs.push(mkCym(Object.assign({}, p, {decay:1.9, amp:.50, bell:.05, bellDecay:.5}))
+      .then(function(b){ out.crash.push(norm(b,.80)); }));
+    jobs.push(mkCym(Object.assign({}, p, {decay:1.25, amp:.44, bell:.09, bellDecay:.45, hp:5000, bp:7400}))
+      .then(function(b){ out.ride.push(norm(b,.74)); }));
+    jobs.push(mkCym(Object.assign({}, p, {decay:1.0, amp:.52, hp:2000, bp:3200, q:1.5, metalAmp:.085, tune:.8}))
+      .then(function(b){ out.china.push(norm(b,.76)); }));
+    jobs.push(mkCym(Object.assign({}, p, {decay:.055, amp:.40, hp:6800, bp:9400, metalAmp:.028}))
+      .then(function(b){ out.hihat.push(norm(b,.56)); }));
+    jobs.push(mkCym(Object.assign({}, p, {decay:.36, amp:.44, hp:5800, bp:8600, metalAmp:.036}))
+      .then(function(b){ out.hihatOpen.push(norm(b,.56)); }));
   });
+  jobs.push(mkBell({decay:.95, amp:.60, tune:1.00}).then(function(b){ out.rideBell.push(norm(b,.82)); }));
+  jobs.push(mkBell({decay:.78, amp:.58, tune:1.16}).then(function(b){ out.rideBell.push(norm(b,.80)); }));
+  jobs.push(mkCrossStick({amp:.95, bp:2500}).then(function(b){ out.crossStick.push(norm(b,.88)); }));
+  jobs.push(mkCrossStick({amp:.92, bp:3200, tune:1.05}).then(function(b){ out.crossStick.push(norm(b,.88)); }));
+  jobs.push(mkPedal({amp:.85}).then(function(b){ out.pedal.push(norm(b,.74)); }));
+  jobs.push(mkPedal({amp:.80}).then(function(b){ out.pedal.push(norm(b,.72)); }));
   return Promise.all(jobs).then(function(){
     SOUND = out;
     window.__vd.buffers = Object.keys(out).reduce(function(a,k){ a[k] = out[k].length; return a; }, {});
-    window.__vd.S = out;           /* 검증용 참조 */
+    window.__vd.S = out;
     window.__vd.soundsReady = true;
   });
 }
 
-/* ---------- 오디오 출력 ---------- */
+/* ---------- 스튜디오 룸 리버브(임펄스 응답을 직접 만듭니다) ---------- */
+function makeIR(sec, decay){
+  var len = Math.floor(SR*sec);
+  var buf = AC.createBuffer(2, len, SR);
+  for(var ch=0; ch<2; ch++){
+    var d = buf.getChannelData(ch);
+    for(var i=0;i<len;i++){
+      var t = i/len;
+      d[i] = (Math.random()*2-1) * Math.pow(1-t, decay) * (i < SR*0.004 ? 0.35 : 1);
+    }
+    [0.007, 0.013, 0.019, 0.027, 0.037, 0.049].forEach(function(tt, k){
+      var idx = Math.floor(tt*SR*(ch ? 1.11 : 1));
+      if(idx < len) d[idx] += (ch ? -1 : 1) * 0.55 * Math.pow(1 - tt/sec, decay) * (1 - k*0.12);
+    });
+    var prev = 0;
+    for(var j=0;j<len;j++){ prev = prev*0.62 + d[j]*0.38; d[j] = prev; }
+  }
+  return buf;
+}
+
+/* ---------- 오디오 출력(마스터 컴프 + 룸 리버브) ---------- */
 function initAudio(){
   if(AC) return AC;
   var Ctx = window.AudioContext || window.webkitAudioContext;
   if(!Ctx) return null;
   AC = new Ctx({latencyHint:"interactive"});
   master = AC.createGain(); master.gain.value = state.vol;
-  var comp = AC.createDynamicsCompressor();
-  comp.threshold.value = -10; comp.knee.value = 12; comp.ratio.value = 3.2;
-  comp.attack.value = .003; comp.release.value = .16;
+  comp = AC.createDynamicsCompressor();
+  comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 3;
+  comp.attack.value = .004; comp.release.value = .16;
+  drumBus = AC.createGain(); drumBus.gain.value = 0.95;
   analyser = AC.createAnalyser(); analyser.fftSize = 2048; anaData = new Float32Array(analyser.fftSize);
-  master.connect(comp); comp.connect(analyser); analyser.connect(AC.destination);
+  drumBus.connect(comp); comp.connect(master);
+  master.connect(analyser); analyser.connect(AC.destination);
+  try{
+    reverb = AC.createConvolver(); reverb.buffer = makeIR(1.5, 2.6);
+    wetBus = AC.createGain(); wetBus.gain.value = 0.30;
+    reverb.connect(wetBus); wetBus.connect(master);
+  }catch(e){ reverb = null; }
   try{ var b = AC.createBuffer(1,1,AC.sampleRate), s = AC.createBufferSource(); s.buffer = b; s.connect(AC.destination); s.start(0); }catch(e){}
   window.__vd.ctx = AC.state;
   return AC;
@@ -429,7 +608,6 @@ function resumeAudio(){
   initAudio();
   if(!AC) return;
   if(AC.state !== "running") AC.resume().then(function(){ window.__vd.ctx = AC.state; }, function(){});
-  else window.__vd.ctx = AC.state;
   window.__vd.ctx = AC.state;
 }
 
@@ -448,6 +626,10 @@ function measurePeak(){
   tick();
 }
 
+/* 구역별 공간감(리버브 보냄) */
+var SEND = {kick:.05, snare:.16, crossStick:.10, tom:.13, ride:.22, rideBell:.18,
+            crash:.26, china:.24, hihat:.12, hihatOpen:.18, pedal:.10};
+
 function bankFor(zone){
   if(!SOUND) return null;
   if(zone === "kick") return SOUND.kick[state.kickV];
@@ -457,20 +639,52 @@ function bankFor(zone){
   if(zone === "china") return SOUND.china[state.cymV];
   if(zone === "hihat") return SOUND.hihat[state.cymV];
   if(zone === "hihatOpen") return SOUND.hihatOpen[state.cymV];
+  if(zone === "rideBell") return SOUND.rideBell[state.cymV];
+  if(zone === "crossStick") return SOUND.crossStick[state.snareV];
+  if(zone === "pedal") return SOUND.pedal[state.cymV];
   return SOUND.crash[state.cymV];
 }
-function play(zone, tune, gainTrim){
+
+var openHat = null;    /* 울리고 있는 오픈 하이햇 */
+function play(zone, tune, gainTrim, pan){
   if(!SOUND || !AC) return;
   var buf = bankFor(zone);
   if(!buf) return;
   if(AC.state !== "running") AC.resume();
+  /* 닫힌 하이햇·페달을 치면 울리던 오픈 하이햇을 즉시 멈춥니다(초킹) */
+  if((zone === "hihat" || zone === "pedal") && openHat){
+    try{
+      var now0 = AC.currentTime;
+      if(now0 - openHat.t < 4){
+        var og = openHat.gain.gain;
+        og.cancelScheduledValues(now0);
+        og.setValueAtTime(Math.max(og.value, 0.0002), now0);
+        og.linearRampToValueAtTime(0.0001, now0 + 0.026);
+        openHat.src.stop(now0 + 0.06);
+        window.__vd.choke = (window.__vd.choke || 0) + 1;
+      }
+    }catch(err){}
+    openHat = null;
+  }
   var src = AC.createBufferSource();
   src.buffer = buf;
-  src.playbackRate.value = (tune||1) * (0.985 + Math.random()*0.03);
+  src.playbackRate.value = (tune||1) * (0.987 + Math.random()*0.026);
   var g = AC.createGain();
-  g.gain.value = (gainTrim==null?1:gainTrim) * (0.92 + Math.random()*0.16);
-  src.connect(g); g.connect(master);
+  g.gain.value = (gainTrim==null ? 1 : gainTrim) * (0.93 + Math.random()*0.14);
+  var tail = null;
+  if(AC.createStereoPanner){
+    tail = AC.createStereoPanner();
+    tail.pan.value = Math.max(-1, Math.min(1, pan || 0));
+  }
+  src.connect(g);
+  if(tail){ g.connect(tail); tail.connect(drumBus); } else { g.connect(drumBus); }
+  if(reverb){
+    var s = AC.createGain();
+    s.gain.value = (SEND[zone] == null ? .12 : SEND[zone]);
+    (tail || g).connect(s); s.connect(reverb);
+  }
   src.start(0);
+  if(zone === "hihatOpen") openHat = {src:src, gain:g, t:AC.currentTime};
   var rec = {t:Math.round(AC.currentTime*1000)/1000, zone:zone, rate:Math.round(src.playbackRate.value*1000)/1000};
   window.__vd.hits.push(rec);
   if(window.__vd.hits.length > 500) window.__vd.hits.shift();
@@ -489,10 +703,21 @@ var pads = {};
 function cssImg(name){ return "url(" + IMG[name] + ")"; }
 
 var openZoneEl = null;
+/* 구역 안내 표시를 만듭니다 (mode 0: 같은 크기, 1: 아래쪽 절반) */
+function mark(cls, text, half){
+  var m = document.createElement("div");
+  m.className = "mark " + (half ? "sq" : "");
+  if(cls === "zone-bell"){ m.style.cssText = "left:35%;top:35%;width:30%;height:30%"; }
+  else if(cls === "zone-head"){ m.style.cssText = "left:1%;top:1%;width:98%;height:57%"; }
+  else if(cls === "openZone"){ m.style.cssText = "left:9%;right:9%;bottom:5%;height:33%;border-radius:0 0 50% 50%/0 0 92% 92%"; }
+  else if(cls === "half-top"){ m.style.cssText = "left:6%;right:6%;top:8%;height:34%;border-radius:50% 50% 30% 30%"; }
+  else if(cls === "half-bottom"){ m.style.cssText = "left:4%;right:4%;bottom:3%;height:38%;border-radius:30% 30% 50% 50%"; }
+  return m;
+}
 CYMS.forEach(function(c){
   var el = document.createElement("div");
   el.className = "pad cym";
-  el.dataset.id = c.id; el.dataset.zone = c.zone; el.dataset.tune = c.tune;
+  el.dataset.id = c.id; el.dataset.zone = c.zone; el.dataset.tune = c.tune; el.dataset.pan = c.pan || 0;
   el.style.setProperty("--x", c.x + "%");
   el.style.setProperty("--y", c.y + "%");
   el.style.setProperty("--w", c.w + "%");
@@ -504,12 +729,22 @@ CYMS.forEach(function(c){
   disc.className = "disc";
   disc.style.setProperty("--img", cssImg(c.img));
   el.appendChild(disc);
+  if(c.bell){
+    var bz = document.createElement("div");
+    bz.className = "zone zone-bell";
+    bz.dataset.zone = "rideBell";
+    el.appendChild(bz);
+    el.appendChild(mark("zone-bell", "벨 R", 0));
+  }
   if(c.open){
     var oz = document.createElement("div");
     oz.className = "openZone";
     oz.dataset.zone = "hihatOpen";
     el.appendChild(oz);
     openZoneEl = oz;
+    el.appendChild(mark("openZone", "열림 S", 1));
+    var mkClose = mark("half-top", "닫힘 A", 0);
+    el.appendChild(mkClose);
   }
   el.setAttribute("role", "button");
   el.setAttribute("aria-label", c.label);
@@ -520,7 +755,7 @@ CYMS.forEach(function(c){
 DRUMS.forEach(function(d){
   var el = document.createElement("div");
   el.className = "pad drum";
-  el.dataset.id = d.id; el.dataset.zone = d.zone; el.dataset.tune = d.tune;
+  el.dataset.id = d.id; el.dataset.zone = d.zone; el.dataset.tune = d.tune; el.dataset.pan = d.pan || 0;
   el.style.setProperty("--x", d.x + "%");
   el.style.setProperty("--y", d.y + "%");
   el.style.setProperty("--w", d.w + "%");
@@ -529,6 +764,14 @@ DRUMS.forEach(function(d){
   layer.className = "layer"; layer.src = IMG.kit; layer.alt = ""; layer.draggable = false;
   el.appendChild(layer);
   if(d.wide) el.classList.add("wide");
+  if(d.head){
+    var hz = document.createElement("div");
+    hz.className = "zone zone-head";
+    hz.dataset.zone = "snare";
+    el.appendChild(hz);
+    el.appendChild(mark("zone-head", "헤드 F", 0));
+    el.appendChild(mark("half-bottom", "림 · 크로스스틱 G", 1));
+  }
   var fl = document.createElement("div"); fl.className = "flash";
   el.appendChild(fl);
   el.setAttribute("role", "button");
@@ -536,6 +779,20 @@ DRUMS.forEach(function(d){
   scene.appendChild(el);
   pads[d.id] = el;
 });
+
+/* 하이햇 풋 페달(초킹) */
+var pedalEl = document.createElement("div");
+pedalEl.id = "pedal";
+pedalEl.className = "pad";
+pedalEl.dataset.id = "pedal";
+pedalEl.dataset.zone = "pedal";
+pedalEl.setAttribute("role", "button");
+pedalEl.setAttribute("aria-label", "하이햇 페달");
+var pedalLabel = document.createElement("i");
+pedalLabel.textContent = "페달 D";
+pedalEl.appendChild(pedalLabel);
+scene.appendChild(pedalEl);
+pads.pedal = pedalEl;
 
 /* 사진 조각을 원본 사진과 픽셀 단위로 겹치게 맞춥니다 */
 function alignLayers(){
@@ -578,7 +835,16 @@ function hitPad(el, zoneOverride){
   clearTimeout(el.__hitTimer);
   var hold = document.documentElement.classList.contains("slow") ? 9000 : 240;
   el.__hitTimer = setTimeout(function(){ el.classList.remove("hit"); }, hold);
-  play(zone, tune, zone === "kick" ? 1 : (zone === "snare" ? .95 : .9));
+  var trim = zone === "kick" ? 1 : (zone === "snare" ? .96 :
+             (zone === "crossStick" ? .95 : (zone === "rideBell" ? .88 : .9)));
+  var pan = parseFloat(el.dataset.pan || "0");
+  play(zone, tune, trim, pan);
+  if(zone === "pedal" && pads.hihat){
+    var h = pads.hihat;
+    h.classList.remove("hit"); void h.offsetWidth; h.classList.add("hit");
+    clearTimeout(h.__hitTimer);
+    h.__hitTimer = setTimeout(function(){ h.classList.remove("hit"); }, 240);
+  }
 }
 function padFromNode(node, stopAt){
   while(node && node !== stopAt){
@@ -630,21 +896,28 @@ scene.addEventListener("touchstart", function(e){ if(e.cancelable) e.preventDefa
 
 /* ---------- 키보드 ---------- */
 var KEYS = {};
-CYMS.concat(DRUMS).forEach(function(i){ if(i.key) KEYS[i.key.length === 1 ? "Key"+i.key : i.key] = i.id; });
-KEYS["Space"] = "kick";
-KEYS["KeyS"] = "hihat-open";
+CYMS.concat(DRUMS).forEach(function(i){
+  if(i.key) KEYS[i.key.length === 1 ? "Key"+i.key : i.key] = {pad:i.id, zone:null};
+});
+KEYS["Space"] = {pad:"kick", zone:null};
+KEYS["KeyF"] = {pad:"snare", zone:"snare"};          /* 스네어 헤드 */
+KEYS["KeyG"] = {pad:"snare", zone:"crossStick"};     /* 크로스 스틱 */
+KEYS["KeyA"] = {pad:"hihat", zone:"hihat"};          /* 닫힘 */
+KEYS["KeyS"] = {pad:"hihat", zone:"hihatOpen"};      /* 열림 */
+KEYS["KeyD"] = {pad:"pedal", zone:"pedal"};          /* 풋 페달(초킹) */
+KEYS["KeyE"] = {pad:"ride",  zone:"ride"};           /* 라이드 보우 */
+KEYS["KeyR"] = {pad:"ride",  zone:"rideBell"};       /* 라이드 벨 */
 var held = Object.create(null);
 
 window.addEventListener("keydown", function(e){
   if(e.repeat){ if(KEYS[e.code]) e.preventDefault(); return; }
-  var id = KEYS[e.code];
-  if(!id) return;
+  var k = KEYS[e.code];
+  if(!k) return;
   e.preventDefault();
   if(held[e.code]) return;
   held[e.code] = 1;
   resumeAudio();
-  var el = (id === "hihat-open") ? pads.hihat : pads[id];
-  hitPad(el, id === "hihat-open" ? "hihatOpen" : null);
+  hitPad(pads[k.pad], k.zone);
 }, {capture:true});
 window.addEventListener("keyup", function(e){ if(held[e.code]) delete held[e.code]; }, {capture:true});
 window.addEventListener("blur", function(){ held = Object.create(null); active = Object.create(null); });
@@ -714,13 +987,23 @@ function renderMenu(){
   lab.appendChild(cb); lab.appendChild(document.createTextNode("하단 키 안내 보기"));
   row2.appendChild(lab);
 
+  var row3 = document.createElement("div"); row3.className = "row";
+  var lab3 = document.createElement("label"); lab3.className = "tg";
+  var cb3 = document.createElement("input"); cb3.type = "checkbox"; cb3.checked = true;
+  cb3.addEventListener("change", function(){
+    document.body.classList.toggle("zones", cb3.checked);
+    try{ localStorage.setItem("vd_zones", cb3.checked ? "1" : "0"); }catch(e){}
+  });
+  lab3.appendChild(cb3); lab3.appendChild(document.createTextNode("연주 구역 표시 (라이드 벨 · 스네어 림 · 하이햇 페달)"));
+  row3.appendChild(lab3);
+
   var hint = document.createElement("div"); hint.className = "hint";
   hint.innerHTML =
-    "킥 <b>Space</b> · 스네어 <b>F</b> · 하이햇 <b>A</b>(닫힘) <b>S</b>(열림)<br>" +
+    "킥 <b>Space</b> · 스네어 헤드 <b>F</b> · 스네어 림/크로스스틱 <b>G</b><br>" +
     "하이 탐 <b>Z</b> · 미들 탐 <b>X</b> · 플로어 탐 <b>C</b><br>" +
-    "크래시 1 <b>Q</b> · 크래시 2 <b>W</b> · 라이드 <b>E</b><br>" +
-    "하이햇 아래 테두리를 누르면 열린 소리입니다.";
-  menuVol.appendChild(row1); menuVol.appendChild(row2); menuVol.appendChild(hint);
+    "하이햇 닫힘 <b>A</b> · 열림 <b>S</b> · 풋 페달 <b>D</b> (열린 소리를 바로 멈춤)<br>" +
+    "크래시 1 <b>Q</b> · 크래시 2 <b>W</b> · 라이드 보우 <b>E</b> · 라이드 벨 <b>R</b>";
+  menuVol.appendChild(row1); menuVol.appendChild(row2); menuVol.appendChild(row3); menuVol.appendChild(hint);
 })();
 
 document.getElementById("menuBtn").addEventListener("click", function(e){
@@ -749,6 +1032,7 @@ try{
 }catch(e){}
 
 if(location.search.indexOf("slow") >= 0) document.documentElement.classList.add("slow");
+try{ if(localStorage.getItem("vd_zones") !== "0") document.body.classList.add("zones"); }catch(e){ document.body.classList.add("zones"); }
 buildSounds().catch(function(err){ window.__vd.errors.push("sound: " + (err && err.message ? err.message : err)); });
 renderMenu();
 window.addEventListener("load", function(){ setTimeout(alignLayers, 120); });
