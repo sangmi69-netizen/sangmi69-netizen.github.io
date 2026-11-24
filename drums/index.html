@@ -561,7 +561,8 @@ function hitPad(el, zoneOverride){
   void el.offsetWidth;
   el.classList.add("hit");
   clearTimeout(el.__hitTimer);
-  el.__hitTimer = setTimeout(function(){ el.classList.remove("hit"); }, 240);
+  var hold = document.documentElement.classList.contains("slow") ? 9000 : 240;
+  el.__hitTimer = setTimeout(function(){ el.classList.remove("hit"); }, hold);
   play(zone, tune, zone === "kick" ? 1 : (zone === "snare" ? .95 : .9));
 }
 function padFromNode(node, stopAt){
