@@ -103,7 +103,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .zone{position:absolute;pointer-events:auto;z-index:2}
 .pad.cym .zone-bell{left:50%;top:50%;width:30%;height:30%;transform:translate(-50%,-50%);border-radius:50%}
 .pad.drum .zone-head{left:1%;top:1%;width:98%;height:57%;border-radius:50%}
-.mark{position:absolute;pointer-events:none;border:1px dashed rgba(255,255,255,.30);border-radius:50%;z-index:3;display:none}
+.mark{position:absolute;pointer-events:none;border:1px dashed rgba(255,255,255,.42);border-radius:50%;z-index:3;display:none}
 .mark i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-style:normal;
   font-size:clamp(9px,0.78vw,13px);letter-spacing:.04em;color:rgba(255,255,255,.75);
   background:rgba(0,0,0,.45);padding:1px 7px;border-radius:999px;white-space:nowrap}
@@ -263,10 +263,10 @@ var IMG = {kit:"data:image/webp;base64,UklGRgzfAABXRUJQVlA4IADfAAAQCgSdASoABgAEP
 
 /* ---------- 악기 배치(원본과 같은 구성) ---------- */
 var CYMS = [
-  {id:"crash1", img:"crash", x:26, y:17,   w:27, rot:-6, b:.95, hue:-5, sat:1.02, label:"크래시 1", key:"Q", zone:"crash", tune:1.00, pan:-0.45},
-  {id:"ride",   img:"ride",  x:69, y:14,   w:30, rot:4,  b:1.00, hue:0,  sat:1.00, label:"라이드",  key:"E", zone:"ride",  tune:1.00, bell:true, pan:0.28},
-  {id:"crash2", img:"crash", x:88, y:36,   w:24, rot:8,  b:1.00, hue:3,  sat:1.00, label:"크래시 2", key:"W", zone:"crash", tune:1.01, pan:0.5},
-  {id:"hihat",  img:"hihat", x:13, y:55,   w:23, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
+  {id:"crash1", img:"crash", x:24, y:19,   w:22, rot:-6, b:.95, hue:-5, sat:1.02, label:"크래시 1", key:"Q", zone:"crash", tune:1.00, pan:-0.45},
+  {id:"ride",   img:"ride",  x:67, y:16,   w:24, rot:4,  b:1.00, hue:0,  sat:1.00, label:"라이드",  key:"E", zone:"ride",  tune:1.00, bell:true, pan:0.28},
+  {id:"crash2", img:"crash", x:88, y:40,   w:18, rot:8,  b:1.00, hue:3,  sat:1.00, label:"크래시 2", key:"W", zone:"crash", tune:1.01, pan:0.5},
+  {id:"hihat",  img:"hihat", x:12, y:54,   w:19, rot:0,  b:.95, hue:-3, sat:1.00, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
 ];
 /* 드럼 — 사진(1536x1024) 안의 좌표(중심 x, 중심 y, 반폭, 반높이) — 5기통 */
 var KIT = {scale:1.15, bottom:-0.02};
@@ -741,7 +741,7 @@ CYMS.forEach(function(c){
     bz.className = "zone zone-bell";
     bz.dataset.zone = "rideBell";
     el.appendChild(bz);
-    el.appendChild(mark("zone-bell", "벨 R", 0));
+    el.appendChild(mark("zone-bell", "", 0));
   }
   if(c.open){
     var oz = document.createElement("div");
@@ -749,9 +749,7 @@ CYMS.forEach(function(c){
     oz.dataset.zone = "hihatOpen";
     el.appendChild(oz);
     openZoneEl = oz;
-    el.appendChild(mark("openZone", "열림 S", 1));
-    var mkClose = mark("half-top", "닫힘 A", 0);
-    el.appendChild(mkClose);
+    el.appendChild(mark("openZone", "", 1));
   }
   el.setAttribute("role", "button");
   el.setAttribute("aria-label", c.label);
@@ -776,8 +774,7 @@ DRUMS.forEach(function(d){
     hz.className = "zone zone-head";
     hz.dataset.zone = "snare";
     el.appendChild(hz);
-    el.appendChild(mark("zone-head", "헤드 F", 0));
-    el.appendChild(mark("half-bottom", "림 · 크로스스틱 G", 1));
+    el.appendChild(mark("zone-head", "", 0));
   }
   var fl = document.createElement("div"); fl.className = "flash";
   el.appendChild(fl);
