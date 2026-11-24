@@ -350,10 +350,15 @@ function mkKick(p){
     body.connect(gb); gb.connect(lp); lp.connect(oc.destination);
     body.start(t); body.stop(.32);
     /* 비터 클릭 2~4kHz */
-    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.04);
-    var bp = filt(oc, "bandpass", p.clickF, 1.0);
-    var gc = oc.createGain(); env(gc, t, p.click, .0008, .013);
+    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.05);
+    var bp = filt(oc, "bandpass", p.clickF, 0.9);
+    var gc = oc.createGain(); env(gc, t, p.click*1.6, .0006, .016);
     n.connect(bp); bp.connect(gc); gc.connect(oc.destination); n.start(t);
+    /* 비터가 헤드를 때리는 넓은 대역 */
+    var n1 = oc.createBufferSource(); n1.buffer = noiseBuf(oc,.04);
+    var hp1 = filt(oc, "highpass", 1100);
+    var g1 = oc.createGain(); env(g1, t, p.click*0.85, .0006, .011);
+    n1.connect(hp1); hp1.connect(g1); g1.connect(oc.destination); n1.start(t);
     /* 나무 비터의 짧은 '톡' */
     var tk = oc.createOscillator(); tk.type = "sine";
     tk.frequency.setValueAtTime(1600, t);
@@ -381,7 +386,7 @@ function mkSnare(p){
     var g0 = oc.createGain(); env(g0, t, p.amp*.55, .001, .03);
     n0.connect(bp0); bp0.connect(g0); g0.connect(oc.destination); n0.start(t);
     /* 스네어 와이어: 두 대역 + 살짝 떨림 */
-    [[5200, .30, 1.0], [7600, .20, .8], [3400, .12, 1.15]].forEach(function(w, i){
+    [[5200, .55, 1.0], [7600, .36, .8], [3400, .24, 1.15]].forEach(function(w, i){
       var n = oc.createBufferSource(); n.buffer = noiseBuf(oc, dur);
       var hp = filt(oc, "highpass", w[0]*0.5);
       var bp = filt(oc, "bandpass", w[0], 0.85);
@@ -430,12 +435,12 @@ function mkCrossStick(p){
       o.connect(g); g.connect(oc.destination); o.start(t); o.stop(.3);
     });
     var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.1);
-    var bp = filt(oc, "bandpass", p.bp||2500, 3.2);
-    var g2 = oc.createGain(); env(g2, t, p.amp*.75, .0006, .022);
+    var bp = filt(oc, "bandpass", p.bp||1900, 3.6);
+    var g2 = oc.createGain(); env(g2, t, p.amp*.80, .0006, .024);
     n.connect(bp); bp.connect(g2); g2.connect(oc.destination); n.start(t);
     var n2 = oc.createBufferSource(); n2.buffer = noiseBuf(oc,.22);
     var hp = filt(oc, "highpass", 4200);
-    var g3 = oc.createGain(); env(g3, t, p.amp*.13, .003, .085);
+    var g3 = oc.createGain(); env(g3, t, p.amp*.08, .003, .075);
     n2.connect(hp); hp.connect(g3); g3.connect(oc.destination); n2.start(t);
   });
 }
@@ -553,8 +558,8 @@ function buildSounds(){
   });
   jobs.push(mkBell({decay:.95, amp:.60, tune:1.00}).then(function(b){ out.rideBell.push(norm(b,.82)); }));
   jobs.push(mkBell({decay:.78, amp:.58, tune:1.16}).then(function(b){ out.rideBell.push(norm(b,.80)); }));
-  jobs.push(mkCrossStick({amp:.95, bp:2500}).then(function(b){ out.crossStick.push(norm(b,.88)); }));
-  jobs.push(mkCrossStick({amp:.92, bp:3200, tune:1.05}).then(function(b){ out.crossStick.push(norm(b,.88)); }));
+  jobs.push(mkCrossStick({amp:.95, bp:1900}).then(function(b){ out.crossStick.push(norm(b,.88)); }));
+  jobs.push(mkCrossStick({amp:.92, bp:2400, tune:1.05}).then(function(b){ out.crossStick.push(norm(b,.88)); }));
   jobs.push(mkPedal({amp:.85}).then(function(b){ out.pedal.push(norm(b,.74)); }));
   jobs.push(mkPedal({amp:.80}).then(function(b){ out.pedal.push(norm(b,.72)); }));
   var safe = jobs.map(function(p){
@@ -600,12 +605,13 @@ function initAudio(){
   comp.attack.value = .004; comp.release.value = .16;
   drumBus = AC.createGain(); drumBus.gain.value = 0.95;
   analyser = AC.createAnalyser(); analyser.fftSize = 2048; anaData = new Float32Array(analyser.fftSize);
-  drumBus.connect(comp); comp.connect(master);
+  var makeup = AC.createGain(); makeup.gain.value = 1.35;
+  drumBus.connect(comp); comp.connect(makeup); makeup.connect(master);
   master.connect(analyser); analyser.connect(AC.destination);
   try{
     reverb = AC.createConvolver(); reverb.buffer = makeIR(1.5, 2.6);
     wetBus = AC.createGain(); wetBus.gain.value = 0.30;
-    reverb.connect(wetBus); wetBus.connect(master);
+    reverb.connect(wetBus); wetBus.connect(makeup);
   }catch(e){ reverb = null; }
   try{ var b = AC.createBuffer(1,1,AC.sampleRate), s = AC.createBufferSource(); s.buffer = b; s.connect(AC.destination); s.start(0); }catch(e){}
   window.__vd.ctx = AC.state;
