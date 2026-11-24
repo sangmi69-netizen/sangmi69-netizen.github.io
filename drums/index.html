@@ -541,7 +541,7 @@ DRUMS.forEach(function(d){
 
 /* 사진 조각을 원본 사진과 픽셀 단위로 겹치게 맞춥니다 */
 function alignLayers(){
-  var kx = kitImg.offsetLeft, ky = kitImg.offsetTop;
+  var kx = kitImg.offsetLeft - kitImg.offsetWidth/2, ky = kitImg.offsetTop;
   var kw = kitImg.offsetWidth, kh = kitImg.offsetHeight;
   if(!kw) return;
   DRUMS.forEach(function(d){
