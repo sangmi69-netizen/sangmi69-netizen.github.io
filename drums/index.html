@@ -287,7 +287,7 @@ body.editing #keybar{opacity:.35}
   <h1>버추얼 <span>드럼</span></h1>
   <p>드러머 자리에서 내려다본 5기통 드럼입니다. 가죽이 위로 보이는 드럼과 심벌을 손가락으로 눌러 연주하세요.<br>
      두 개 이상을 동시에 눌러도 그대로 함께 울립니다.<br>
-     오른쪽 위 <b>⛶</b> 전체화면 · <b>✥</b> 위치 조정(드래그해서 내 배치로 저장)<br>
+     오른쪽 위 버튼으로 전체화면 · 위치 조정(드래그해서 내 배치로 저장)<br>
      키보드 — <kbd>Space</kbd> 킥 · <kbd>F</kbd> 스네어 · <kbd>G</kbd> 크로스스틱 · <kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd> 탐 · <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 하이햇 · <kbd>Q</kbd><kbd>W</kbd> 크래시 · <kbd>E</kbd> 라이드 · <kbd>R</kbd> 라이드벨</p>
   <button id="startBtn">시 작</button>
   <div id="introNote">이어폰이나 스피커로 들으면 더 좋습니다</div>
@@ -1222,7 +1222,9 @@ function renderMenu(){
 
   var row3 = document.createElement("div"); row3.className = "row";
   var lab3 = document.createElement("label"); lab3.className = "tg";
-  var cb3 = document.createElement("input"); cb3.type = "checkbox"; cb3.checked = true;
+  var zonesOn = false;
+  try{ zonesOn = localStorage.getItem("vd_zones") === "1"; }catch(e){}
+  var cb3 = document.createElement("input"); cb3.type = "checkbox"; cb3.checked = zonesOn;
   cb3.addEventListener("change", function(){
     document.body.classList.toggle("zones", cb3.checked);
     try{ localStorage.setItem("vd_zones", cb3.checked ? "1" : "0"); }catch(e){}
