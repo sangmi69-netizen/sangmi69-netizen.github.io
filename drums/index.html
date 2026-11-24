@@ -49,6 +49,8 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 
 /* ---------- 심벌 ---------- */
 .pad{position:absolute;touch-action:none}
+.pad.drum{z-index:2}
+.pad.cym{z-index:3}
 .pad.cym{
   left:var(--x);top:var(--y);width:var(--w);aspect-ratio:1/1;
   transform:translate(-50%,-50%) rotate(var(--rot,0deg)) scaleY(.6);
