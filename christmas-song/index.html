@@ -290,21 +290,35 @@ noscript{display:block;padding:20px;color:var(--gold-l)}
 @media (max-width:1000px){
   html,body{overflow:auto}
   .app{height:auto;min-height:100dvh}
-  .topbar{padding:10px 14px}
+  .topbar{padding:9px 12px;gap:10px}
+  .crest{width:34px;height:34px}
+  .crest svg{width:18px;height:18px}
+  h1{font-size:clamp(1rem,5.2vw,1.3rem)}
+  .badge{font-size:10px;letter-spacing:.1em;padding:2px 9px 2px 7px}
   .sub{display:none}
+  .tools{gap:6px;flex-wrap:nowrap}
+  .tools .btn{padding:7px 9px;border-radius:10px}
   .tools .btn span.lbl{display:none}
-  .player{position:sticky;top:0;grid-template-columns:auto 1fr;gap:10px 12px;padding:9px 13px}
-  .player .right{grid-column:1/-1;justify-content:space-between}
+  .player{position:sticky;top:0;grid-template-columns:auto 1fr;gap:8px 10px;padding:8px 12px}
+  .player .right{grid-column:1/-1;justify-content:space-between;gap:6px}
+  .chips{padding:2px}
+  .chip{padding:5px 7px;font-size:11px}
   .tabs{display:flex;gap:6px;padding:9px 12px 0;position:relative;z-index:4}
   .tabs button{flex:1 1 0;padding:9px;border-radius:11px 11px 0 0;font-size:12.5px;letter-spacing:.06em;color:var(--cream-d);border:1px solid var(--line);border-bottom:0;background:rgba(255,255,255,.03)}
   .tabs button.on{color:#1e1508;background:linear-gradient(180deg,#f0dbab,var(--gold));border-color:transparent;font-weight:600}
   main{display:block;padding:10px 12px 20px}
   .pane{height:auto}
+  .pane-head{flex-wrap:wrap;gap:6px 8px;padding:9px 12px}
+  .pane-head h2{font-size:13.5px;gap:6px;flex:1 1 100%}
+  .pane-head h2 .hint{display:none}
+  .pane-head .sp{margin-left:0;width:100%}
+  .lyr-head .switch{flex:1 1 auto;justify-content:center}
   body[data-tab="lyrics"] .pane.score{display:none}
   body[data-tab="score"] .pane.lesson{display:none}
-  .lyrics{padding-bottom:60vh}
-  .pane.score .score-body{max-height:none;min-height:60vh}
-  .line{grid-template-columns:22px 1fr 16px;padding:10px 9px}
+  .lyrics{padding-bottom:55vh}
+  .pane.score .score-body{max-height:none;min-height:62vh}
+  .line{grid-template-columns:20px 1fr 14px;padding:10px 8px}
+  .line .en{font-size:15.5px}
   .wide-only{display:none}
   .present .pbody{padding:16px}
 }
@@ -737,7 +751,7 @@ const curEl=$('#cur'), durEl=$('#dur'), secNow=$('#secNow'), nextHint=$('#nextHi
 let dur = DUR_FALLBACK;
 
 au.addEventListener('loadedmetadata', ()=>{
-  if(isFinite(au.duration)&&au.duration>1){ dur=au.duration; durEl.textContent=fmt(dur); }
+  if(isFinite(au.duration)&&au.duration>1){ dur=au.duration; durEl.textContent=fmt(Math.round(dur)); }
 });
 au.addEventListener('ended', ()=>{ setPlaying(false); });
 
@@ -848,7 +862,7 @@ function render(){
   if(t>d-0.1) durEl.textContent=fmt(d);
   seek.setAttribute('aria-valuenow', Math.round(t));
   $('#pFill').style.width=(p*100)+'%';
-  $('#pCur').textContent=fmt(t); $('#pDur').textContent=fmt(d);
+  $('#pCur').textContent=fmt(t); $('#pDur').textContent=fmt(Math.round(d));
   if(state.abA!==null&&state.abB!==null && (t>state.abB || t<state.abA-0.25)) seekTo(state.abA);
 
   const k = idxAt(t + state.sync);
