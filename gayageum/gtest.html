@@ -123,7 +123,8 @@ function run(){
   }
   at(function(){
     var vs = A.voices();
-    var v = vs.filter(function(x){ return x.i === 6; })[0];
+    var list = vs.filter(function(x){ return x.i === 6; });
+    var v = list[list.length - 1];
     try{
       log('농현 → 보이스 ' + JSON.stringify(v) + ' / 로그 ' + JSON.stringify(A.log.slice(w.__n4).map(function(e){ return e.i + 1; })));
     }catch(err){ log('농현 오류: ' + err.message); }

@@ -1135,7 +1135,7 @@ function onMove(ev){
   var dx = rec.x0 - p.x;                 /* 왼쪽(꼬리 쪽)으로 밀면 음이 올라간다 */
   var dy = p.y - rec.y0;
   rec.moved = Math.max(rec.moved, Math.abs(dy) + Math.abs(dx) * 0.7);
-  if(rec.voice && (rec.nong || rec.moved > ST.s * 0.30 || now - rec.tStart > 260)){
+  if(rec.voice && (rec.nong || rec.moved > ST.s * 0.26)){
     if(!rec.engaged){
       engageNong(rec.voice, 8, 5.2);
       rec.engaged = true;
@@ -1407,7 +1407,9 @@ window.__gaya = {
   pluck: function(i, v){ if(!AC.ctx) ensureAudio(); return pluck(i, v || 0.9, null); },
   voices: function(){
     return VOICES.filter(function(v){ return !v.dead; }).map(function(v){
-      return { i:v.i, bend:v.bend, nong:v.nong };
+      var rate = 1;
+      try{ rate = v.src.playbackRate.value; }catch(e){}
+      return { i:v.i, bend:v.bend, nong:v.nong, lfo:!!v.lfo, rate:+rate.toFixed(4) };
     });
   },
   labelText: function(i){ return labelText(i); },
