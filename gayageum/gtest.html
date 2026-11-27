@@ -55,6 +55,12 @@ function run(){
   fire('pointerup', p5.x, p5.y, 11);
   var tap = A.log.slice(n0).map(function(e){ return e.i + 1; });
   log('tap 5현 → ' + JSON.stringify(tap));
+  var vib1 = A.strings().filter(function(x){ return x.vib; }).map(function(x){ return x.i + 1; });
+  log('진동(즉시) → ' + JSON.stringify(vib1));
+  setTimeout(function(){
+    var vib2 = A.strings().filter(function(x){ return x.vib; }).map(function(x){ return x.i + 1; });
+    log('진동(200ms 뒤) → ' + JSON.stringify(vib2));
+  }, 200);
 
   // ── 2~5. 훑기·멀티·농현 (20ms 간격)
   var seq = [];
