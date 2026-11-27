@@ -858,10 +858,10 @@ function rebuild(){
 function layout(){
   var sizes = SETS[state.count].map(Number);
   var n = sizes.length;
-  var avail = 1560;
-  var gap = Math.max(16, Math.min(58, 1560 / 130 * 4.4));
+  var avail = 1580;
+  var gap = Math.max(18, Math.min(58, 1580 / 130 * 4.4));
   var k = (avail - gap * (n - 1)) / sizes.reduce(function(a, b){ return a + b; }, 0);
-  var arch = Math.max(36, Math.min(110, 16 * n));
+  var arch = Math.max(36, Math.min(140, 26 * n));
   var maxSize = Math.max.apply(null, sizes);
   k = Math.min(k, 22, (SCENE_H - 76 - arch) / maxSize);
   var D = sizes.map(function(s){ return s * k; });
@@ -874,7 +874,7 @@ function layout(){
   var tops = centers.map(function(c, i){ return c - D[i] / 2; });
   var bots = centers.map(function(c, i){ return c + D[i] / 2; });
   var minT = Math.min.apply(null, tops), maxB = Math.max.apply(null, bots);
-  var off = (SCENE_H - (maxB - minT)) / 2 - minT;
+  var off = (SCENE_H - (maxB - minT)) / 2 - minT + 8;
 
   for(var j = 0; j < n; j++){
     var el = drumEls[j];
