@@ -493,9 +493,9 @@ var IMG = {snare:"data:image/webp;base64,UklGRnT2AABXRUJQVlA4WAoAAAAQAAAA5QQA5QQ
 /* 하이햇(+페달) = 왼쪽, 라이드 = 오른쪽 */
 var CYMS = [
   /* z — 크래시 1은 하이햇보다 위 레이어(실제 드럼처럼 크래시가 하이햇 위쪽을 덮음) */
-  {id:"crash1", img:"crash", x:19, y:15, w:28, rot:-5, b:.95, hue:-5, sat:1.02, z:6, label:"크래시 1", key:"Q", zone:"crash", tune:1.00, pan:-0.45},
+  {id:"crash1", img:"crash", x:19, y:15, w:28, rot:-5, b:.95, hue:-5, sat:1.02, z:6, label:"크래시 1 (16인치)", key:"Q", zone:"crash16", tune:1.00, pan:-0.45},
   {id:"ride",   img:"ride",  x:83.5, y:36, w:28, rot:3, b:1.00, hue:0, sat:1.00, label:"라이드", key:"E", zone:"ride", tune:1.00, bell:true, pan:0.38},
-  {id:"crash2", img:"crash", x:56, y:11, w:26, rot:7,  b:1.00, hue:3,  sat:1.00, label:"크래시 2", key:"W", zone:"crash", tune:1.01, pan:0.5},
+  {id:"crash2", img:"crash", x:56, y:11, w:26, rot:7,  b:1.00, hue:3,  sat:1.00, label:"크래시 2 (14인치)", key:"W", zone:"crash14", tune:1.00, pan:0.5},
   {id:"hihat",  img:"hihat", x:13, y:44, w:24, rot:0,  b:.95, hue:-3, sat:1.00, z:3, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
 ];
 var DRUMS = [
@@ -518,6 +518,23 @@ function softClip(k){
 function noiseBuf(oc, dur){
   var len = Math.ceil(oc.sampleRate*dur), b = oc.createBuffer(1, len, oc.sampleRate), d = b.getChannelData(0);
   for(var i=0;i<len;i++) d[i] = Math.random()*2-1;
+  return b;
+}
+/* 핑크 노이즈 — 흰 노이즈의 거친 고역(지지직)을 부드럽게 만든 소스 */
+function pinkBuf(oc, dur){
+  var len = Math.ceil(oc.sampleRate*dur), b = oc.createBuffer(1, len, oc.sampleRate), d = b.getChannelData(0);
+  var b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for(var i=0;i<len;i++){
+    var w = Math.random()*2-1;
+    b0 = 0.99886*b0 + w*0.0555179;
+    b1 = 0.99332*b1 + w*0.0750759;
+    b2 = 0.96900*b2 + w*0.1538520;
+    b3 = 0.86650*b3 + w*0.3104856;
+    b4 = 0.55000*b4 + w*0.5329522;
+    b5 = -0.7616*b5 - w*0.0168980;
+    d[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
+    b6 = w*0.115926;
+  }
   return b;
 }
 function offline(dur, fn){
@@ -583,37 +600,53 @@ function mkKick(p){
   });
 }
 
-/* ===== 스네어: 헤드 펀치 + 와이어 잔향 ===== */
+/* ===== 스네어: 단단한 헤드 펀치 + 깔끔한 와이어 ===== */
 function mkSnare(p){
-  var dur = p.decay + .18;
+  var dur = p.decay + .24;
   return offline(dur, function(oc){
     var t = 0;
-    [[p.f1, 1, .62], [p.f2, .5, .42]].forEach(function(v, i){
-      var o = oc.createOscillator(); o.type = i ? "triangle" : "sine";
-      o.frequency.setValueAtTime(v[0], t);
-      o.frequency.exponentialRampToValueAtTime(v[0]*0.74, t + p.decay*.5);
-      var g = oc.createGain(); env(g, t, p.amp*v[1], .002, p.decay*v[2]);
-      o.connect(g); g.connect(oc.destination); o.start(t); o.stop(dur);
+    /* 헤드 바디 — 낮게 떨어지는 단단한 펀치 */
+    var body = oc.createOscillator(); body.type = "sine";
+    body.frequency.setValueAtTime(p.f1*1.28, t);
+    body.frequency.exponentialRampToValueAtTime(p.f1, t + .022);
+    body.frequency.exponentialRampToValueAtTime(p.f1*0.86, t + p.decay*0.9);
+    var gb = oc.createGain(); env(gb, t, p.amp*.70, .0012, p.decay*.62);
+    var ws = oc.createWaveShaper(); ws.curve = softClip(1.12); ws.oversample = "2x";
+    var bodyLp = filt(oc, "lowpass", 2600, .7);
+    body.connect(gb); gb.connect(ws); ws.connect(bodyLp); bodyLp.connect(oc.destination);
+    body.start(t); body.stop(dur);
+    /* 헤드 위쪽 배음 — 스네어 특유의 '통'한 울림 */
+    var tone = oc.createOscillator(); tone.type = "triangle";
+    tone.frequency.setValueAtTime(p.f2*1.10, t);
+    tone.frequency.exponentialRampToValueAtTime(p.f2, t + .03);
+    var gt = oc.createGain(); env(gt, t, p.amp*.26, .0015, p.decay*.42);
+    var toneLp = filt(oc, "lowpass", 1400, .7);
+    tone.connect(gt); gt.connect(toneLp); toneLp.connect(oc.destination);
+    tone.start(t); tone.stop(dur);
+    /* 스틱이 헤드를 때리는 어택 — 중역 위주, 짧고 단단하게 */
+    var na = oc.createBufferSource(); na.buffer = noiseBuf(oc,.05);
+    var bpA = filt(oc, "bandpass", 2050, 1.1);
+    var lpA = filt(oc, "lowpass", 5200, .7);
+    var ga = oc.createGain(); env(ga, t, p.amp*.48, .0008, .020);
+    na.connect(bpA); bpA.connect(lpA); lpA.connect(ga); ga.connect(oc.destination); na.start(t);
+    /* 헤드 자체의 낮은 '툭' — 바디감 */
+    var nb = oc.createBufferSource(); nb.buffer = pinkBuf(oc,.06);
+    var bpB = filt(oc, "bandpass", 620, 1.4);
+    var gb2 = oc.createGain(); env(gb2, t, p.amp*.30, .001, .034);
+    nb.connect(bpB); bpB.connect(gb2); gb2.connect(oc.destination); nb.start(t);
+    /* 스네어 와이어: 좁은 대역 + 핑크 노이즈 → 넓게 지지직대는 고역 잡음 제거 */
+    [[3900, 1.3, .85, 1.15], [5900, 1.6, .50, .95], [8600, 1.9, .20, .70]].forEach(function(w){
+      var n = oc.createBufferSource(); n.buffer = pinkBuf(oc, dur);
+      var bp = filt(oc, "bandpass", w[0], w[1]);
+      var lp = filt(oc, "lowpass", 10500, .7);
+      var g = oc.createGain(); env(g, t, p.amp*w[2]*(p.wire||1), .0015, p.decay*w[3]);
+      n.connect(bp); bp.connect(lp); lp.connect(g); g.connect(oc.destination); n.start(t);
     });
-    /* 헤드 어택 */
-    var n0 = oc.createBufferSource(); n0.buffer = noiseBuf(oc,.07);
-    var bp0 = filt(oc, "bandpass", 1750, .9);
-    var g0 = oc.createGain(); env(g0, t, p.amp*.55, .001, .03);
-    n0.connect(bp0); bp0.connect(g0); g0.connect(oc.destination); n0.start(t);
-    /* 스네어 와이어: 두 대역 + 살짝 떨림 */
-    [[5200, .55, 1.0], [7600, .36, .8], [3400, .24, 1.15]].forEach(function(w, i){
-      var n = oc.createBufferSource(); n.buffer = noiseBuf(oc, dur);
-      var hp = filt(oc, "highpass", w[0]*0.5);
-      var bp = filt(oc, "bandpass", w[0], 0.85);
-      var g = oc.createGain(); env(g, t, p.amp*w[1], .002, p.decay*w[2]);
-      n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(oc.destination);
-      n.start(t);
-      if(i === 0){
-        var lfo = oc.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 43;
-        var lg = oc.createGain(); lg.gain.value = p.amp*w[1]*0.35;
-        lfo.connect(lg); lg.connect(g.gain); lfo.start(t); lfo.stop(dur);
-      }
-    });
+    /* 와이어가 살랑이며 남는 옅은 꼬리 */
+    var nt = oc.createBufferSource(); nt.buffer = pinkBuf(oc, dur);
+    var bpT = filt(oc, "bandpass", 4600, .9);
+    var gT = oc.createGain(); env(gT, t, p.amp*.15*(p.wire||1), .006, p.decay*1.4);
+    nt.connect(bpT); bpT.connect(gT); gT.connect(oc.destination); nt.start(t);
   });
 }
 
@@ -660,25 +693,47 @@ function mkCrossStick(p){
   });
 }
 
-/* ===== 심벌(크래시·라이드·차이나·하이햇) ===== */
+/* ===== 심벌(크래시·차이나·하이햇) ===== */
 function mkCym(p){
-  var dur = p.decay + .1;
+  var dur = p.decay*(p.durMul||1.18) + .12;
   return offline(dur, function(oc){
     var t = 0;
-    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc, dur);
+    var n = oc.createBufferSource(); n.buffer = pinkBuf(oc, dur);
     var hp = filt(oc, "highpass", p.hp);
     var bp = filt(oc, "bandpass", p.bp, p.q || .8);
     var g = oc.createGain(); env(g, t, p.amp, .003, p.decay);
     n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(oc.destination); n.start(t);
     /* 비화성 금속 배음 */
-    [317, 451, 563, 712, 893, 1042, 1271].forEach(function(f, i){
+    (p.partials || [317, 451, 563, 712, 893, 1042, 1271]).forEach(function(f, i){
       var o = oc.createOscillator(); o.type = "square";
       o.frequency.value = f*p.tune*(1 + i*0.004);
-      var bp2 = filt(oc, "bandpass", f*p.tune*3.2, 6 + i);
+      var bp2 = filt(oc, "bandpass", f*p.tune*(p.metalMul||3.2), (p.metalQ||6) + i);
       var g2 = oc.createGain();
       env(g2, t, (p.metalAmp||.05)/(1 + i*.5), .004, p.decay*(.95 - i*.055));
       o.connect(bp2); bp2.connect(g2); g2.connect(oc.destination); o.start(t); o.stop(dur);
     });
+    /* 심벌 몸통(저·중역) */
+    if(p.body){
+      var nb = oc.createBufferSource(); nb.buffer = pinkBuf(oc, dur);
+      var bpB = filt(oc, "bandpass", p.body[0]*p.tune, p.body[1]);
+      var gB = oc.createGain(); env(gB, t, p.body[2], .006, p.decay*(p.body[3]||.9));
+      nb.connect(bpB); bpB.connect(gB); gB.connect(oc.destination); nb.start(t);
+    }
+    /* 어택의 쨍한 반짝임 */
+    if(p.shine){
+      var ns = oc.createBufferSource(); ns.buffer = noiseBuf(oc,.06);
+      var hpS = filt(oc, "highpass", 4800);
+      var gS = oc.createGain(); env(gS, t, p.shine, .0008, .045);
+      ns.connect(hpS); hpS.connect(gS); gS.connect(oc.destination); ns.start(t);
+    }
+    /* 긴 여음(테일) */
+    if(p.tail){
+      var nt = oc.createBufferSource(); nt.buffer = pinkBuf(oc, dur);
+      var bpT = filt(oc, "bandpass", p.tail[0]*p.tune, p.tail[1]);
+      var lp = filt(oc, "lowpass", 12000, .7);
+      var gT = oc.createGain(); env(gT, t, p.tail[2], .02, p.decay*p.tail[3]);
+      nt.connect(bpT); bpT.connect(lp); lp.connect(gT); gT.connect(oc.destination); nt.start(t);
+    }
     if(p.bell){
       [1, 1.51, 2.32, 3.12].forEach(function(m, i){
         var o = oc.createOscillator(); o.type = "sine"; o.frequency.value = 1010*m*p.tune;
@@ -686,6 +741,73 @@ function mkCym(p){
         o.connect(g2); g2.connect(oc.destination); o.start(t); o.stop(dur);
       });
     }
+  });
+}
+
+/* ===== 라이드 보우: 또렷한 스틱 팁 '핑' + 절제된 금속 wash (크래시와 다른 소리) ===== */
+function mkRide(p){
+  var dur = p.decay*1.25 + .16;
+  return offline(dur, function(oc){
+    var t = 0;
+    /* 스틱 팁이 심벌을 때리는 '핑' — 높은 대역의 좁고 단단한 음 */
+    [[2480, .26, .62], [3360, .20, .50], [4680, .11, .36]].forEach(function(v){
+      var o = oc.createOscillator(); o.type = "sine";
+      o.frequency.value = v[0]*(p.tune||1);
+      var g = oc.createGain(); env(g, t, p.amp*v[1], .0009, p.decay*v[2]);
+      o.connect(g); g.connect(oc.destination); o.start(t); o.stop(dur);
+    });
+    var tic = oc.createBufferSource(); tic.buffer = noiseBuf(oc,.03);
+    var bpT = filt(oc, "bandpass", 3600*(p.tune||1), 2.6);
+    var gT = oc.createGain(); env(gT, t, p.amp*.28, .0006, .012);
+    tic.connect(bpT); bpT.connect(gT); gT.connect(oc.destination); tic.start(t);
+    /* 금속 배음 — 크래시보다 좁고 또렷하며 빨리 잦아듭니다 */
+    [1, 1.73, 2.46, 3.19, 4.12].forEach(function(m, i){
+      var o = oc.createOscillator(); o.type = "sine";
+      o.frequency.value = 720*m*(p.tune||1);
+      var g = oc.createGain(); env(g, t, p.amp*(.19/(1+i*.7)), .0018, p.decay*(.60 - i*.07));
+      o.connect(g); g.connect(oc.destination); o.start(t); o.stop(dur);
+    });
+    /* 절제된 맑은 wash — 크래시처럼 넓게 퍼지지 않게 */
+    var n = oc.createBufferSource(); n.buffer = pinkBuf(oc, dur);
+    var hp = filt(oc, "highpass", 5200);
+    var bp = filt(oc, "bandpass", 7400, 1.1);
+    var g = oc.createGain(); env(g, t, p.amp*.18, .004, p.decay*.70);
+    n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(oc.destination); n.start(t);
+  });
+}
+
+/* ===== 오픈 하이햇: 길게 사라지는 '솨아' 여음 ===== */
+function mkOpenHat(p){
+  var dur = p.decay + .3;
+  return offline(dur, function(oc){
+    var t = 0;
+    /* 처음 '치익' — 밝은 어택 */
+    var n0 = oc.createBufferSource(); n0.buffer = noiseBuf(oc,.12);
+    var hp0 = filt(oc, "highpass", 6400);
+    var g0 = oc.createGain(); env(g0, t, p.amp*.42, .0015, .10);
+    n0.connect(hp0); hp0.connect(g0); g0.connect(oc.destination); n0.start(t);
+    /* 두 장이 벌어진 금속 배음 — 천천히 잦아듭니다 */
+    [205.3, 304.4, 369.6, 522.7, 540.0, 800.0].forEach(function(f, i){
+      var o = oc.createOscillator(); o.type = "square";
+      o.frequency.value = f*p.tune;
+      var bp = filt(oc, "bandpass", f*p.tune*6.2, 5.5 + i*0.8);
+      var g = oc.createGain();
+      env(g, t, (p.metalAmp)/(1 + i*.45), .004, p.decay*(1 - i*.06));
+      o.connect(bp); bp.connect(g); g.connect(oc.destination); o.start(t); o.stop(dur);
+    });
+    /* 길게 사라지는 공기 소리 — 두 단계 감쇠 */
+    [[5600, .95, .30, .58], [8200, 1.7, .17, 1.0]].forEach(function(v){
+      var n = oc.createBufferSource(); n.buffer = pinkBuf(oc, dur);
+      var hp = filt(oc, "highpass", v[0]*0.6);
+      var bp = filt(oc, "bandpass", v[0], v[1]);
+      var g = oc.createGain();
+      var pk = Math.max(p.amp*v[2], 0.0002);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(pk, t + .004);
+      g.gain.exponentialRampToValueAtTime(Math.max(pk*.32, 0.0002), t + p.decay*.48);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + p.decay*v[3]);
+      n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(oc.destination); n.start(t);
+    });
   });
 }
 
@@ -753,23 +875,34 @@ var CYMV = [
 ];
 
 function buildSounds(){
-  var out = {kick:[], snare:[], tom:[], crash:[], ride:[], china:[], hihat:[], hihatOpen:[],
+  var out = {kick:[], snare:[], tom:[], crash16:[], crash14:[], ride:[], china:[], hihat:[], hihatOpen:[],
              rideBell:[], crossStick:[], pedal:[]};
   var jobs = [];
   KICKS.forEach(function(p){ jobs.push(mkKick(p).then(function(b){ out.kick.push(norm(b,.95)); })); });
-  SNARES.forEach(function(p){ jobs.push(mkSnare(p).then(function(b){ out.snare.push(norm(b,.88)); })); });
+  SNARES.forEach(function(p){ jobs.push(mkSnare(p).then(function(b){ out.snare.push(norm(b,.86)); })); });
   TOMS.forEach(function(p){ jobs.push(mkTom(p).then(function(b){ out.tom.push(norm(b,.90)); })); });
   CYMV.forEach(function(p){
-    jobs.push(mkCym(Object.assign({}, p, {decay:1.9, amp:.50, bell:.05, bellDecay:.5}))
-      .then(function(b){ out.crash.push(norm(b,.80)); }));
-    jobs.push(mkCym(Object.assign({}, p, {decay:1.25, amp:.44, bell:.09, bellDecay:.45, hp:5000, bp:7400}))
+    /* 크래시 1(왼쪽) 16인치 — 낮고 묵직한 톤, 길고 깊은 여음 */
+    jobs.push(mkCym(Object.assign({}, p, {
+        decay:2.50, amp:.50, bell:.04, bellDecay:.5, tune:p.tune*0.88,
+        hp:2000, bp:3600, q:.60, metalAmp:.082, metalQ:5,
+        body:[940,.55,.15,1.02], shine:.10, tail:[2900,.50,.15,1.12]
+      })).then(function(b){ out.crash16.push(norm(b,.80)); }));
+    /* 크래시 2(오른쪽) 14인치 — 높고 밝은 톤, 빠르고 산뜻한 감쇠 */
+    jobs.push(mkCym(Object.assign({}, p, {
+        decay:1.00, amp:.54, bell:.05, bellDecay:.32, tune:p.tune*1.20,
+        hp:3400, bp:7300, q:.72, metalAmp:.050, metalQ:7,
+        body:[1850,.90,.07,.55], shine:.17, tail:[5400,.70,.09,.50]
+      })).then(function(b){ out.crash14.push(norm(b,.82)); }));
+    jobs.push(mkRide(Object.assign({}, p, {decay:1.00, amp:.46, tune:p.tune*1.02}))
       .then(function(b){ out.ride.push(norm(b,.74)); }));
-    jobs.push(mkCym(Object.assign({}, p, {decay:1.0, amp:.52, hp:2000, bp:3200, q:1.5, metalAmp:.085, tune:.8}))
+    jobs.push(mkCym(Object.assign({}, p, {decay:1.0, amp:.52, hp:2000, bp:3200, q:1.5, metalAmp:.085, tune:.8, durMul:1.1}))
       .then(function(b){ out.china.push(norm(b,.76)); }));
     jobs.push(mkCym(Object.assign({}, p, {decay:.055, amp:.40, hp:6800, bp:9400, metalAmp:.028}))
       .then(function(b){ out.hihat.push(norm(b,.56)); }));
-    jobs.push(mkCym(Object.assign({}, p, {decay:.36, amp:.44, hp:5800, bp:8600, metalAmp:.036}))
-      .then(function(b){ out.hihatOpen.push(norm(b,.56)); }));
+    /* 오픈 하이햇 — 여음을 길게 (약 1.6초) */
+    jobs.push(mkOpenHat(Object.assign({}, p, {decay:1.60, amp:.44, tune:p.tune}))
+      .then(function(b){ out.hihatOpen.push(norm(b,.62)); }));
   });
   jobs.push(mkBell({decay:.95, amp:.60, tune:1.00}).then(function(b){ out.rideBell.push(norm(b,.82)); }));
   jobs.push(mkBell({decay:.78, amp:.58, tune:1.16}).then(function(b){ out.rideBell.push(norm(b,.80)); }));
@@ -855,8 +988,8 @@ function measurePeak(){
 }
 
 /* 구역별 공간감(리버브 보냄) */
-var SEND = {kick:.05, snare:.16, crossStick:.10, tom:.13, ride:.22, rideBell:.18,
-            crash:.26, china:.24, hihat:.12, hihatOpen:.18, pedal:.10};
+var SEND = {kick:.05, snare:.16, crossStick:.10, tom:.13, ride:.20, rideBell:.18,
+            crash16:.30, crash14:.22, crash:.26, china:.24, hihat:.12, hihatOpen:.20, pedal:.10};
 
 function bankFor(zone){
   if(!SOUND) return null;
@@ -870,7 +1003,9 @@ function bankFor(zone){
   if(zone === "rideBell") return SOUND.rideBell[state.cymV];
   if(zone === "crossStick") return SOUND.crossStick[state.snareV];
   if(zone === "pedal") return SOUND.pedal[state.cymV];
-  return SOUND.crash[state.cymV];
+  if(zone === "crash16") return SOUND.crash16[state.cymV];
+  if(zone === "crash14") return SOUND.crash14[state.cymV];
+  return SOUND.crash16[state.cymV];
 }
 
 var openHat = null;    /* 울리고 있는 오픈 하이햇 */
