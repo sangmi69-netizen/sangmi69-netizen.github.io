@@ -570,20 +570,21 @@ function buildModel(W, H){
 
   var padY = Math.max(4, H * 0.045);
   var top = padY, bot = H - padY, bh = bot - top;
-  var s = bh * 0.80 / 11;
+  var taper = bh * 0.075;
+  var headH = bh - 2 * taper;
+  var s = headH * 0.88 / 11;
   ST.s = s;
-  var cy = H / 2;
-  var yTop = cy - 5.5 * s;
+  var span = 11 * s;
+  var yTop = H / 2 - span / 2;
   ST.yTop = yTop;
   var yOf = function(i){ return yTop + i * s; };
 
-  var taper = bh * 0.115;
   var yTopAt = function(x){ return top + taper * (x / W); };
   var yBotAt = function(x){ return bot - taper * (x / W); };
-  var rl = Math.min(bh * 0.16, W * 0.012);
+  var rl = Math.min(bh * 0.14, W * 0.012);
 
-  var tailW = Math.min(W * 0.105, s * 3.5);
-  var headW = Math.min(W * 0.155, s * 7.4);
+  var tailW = Math.min(W * 0.085, s * 3.6);
+  var headW = Math.min(W * 0.135, s * 7.6);
 
   var dBoard = boardPath(W, H, top, bot, taper, rl);
 
@@ -606,53 +607,54 @@ function buildModel(W, H){
   }
 
   rg("floorGlow", "50%", "50%", "50%", [
-    [0, "#ffbe78", ".15"], [45, "#c07a30", ".07"], [100, "#000000", "0"]
+    [0, "#ffbe78", ".16"], [46, "#c07a30", ".07"], [100, "#000000", "0"]
   ]);
-  lg("wood", "0", "0", "0.1", "1", [
-    [0, "#f4d6ab"], [16, "#e9c294"], [42, "#dbaa72"], [70, "#c9925b"], [90, "#b57c46"], [100, "#a06c3b"]
+  lg("wood", "0", "0", "0.08", "1", [
+    [0, "#f2d2a4"], [15, "#e7bd8b"], [38, "#d9a468"], [62, "#c88f55"],
+    [82, "#b57f4a"], [93, "#a5713e"], [100, "#956335"]
   ]);
   lg("woodTop", "0", "0", "0", "1", [
-    [0, "#fff3dc", ".34"], [26, "#ffffff", ".05"], [55, "#4a2410", ".02"], [100, "#3a1b08", ".26"]
+    [0, "#fff4de", ".30"], [22, "#ffffff", ".05"], [62, "#4a2410", ".03"], [100, "#3a1b08", ".22"]
   ]);
   lg("sideG", "0", "0", "0", "1", [[0, "#6f4826"], [55, "#4a2c16"], [100, "#2a1709"]]);
-  lg("ebonyG", "0", "0", "0.2", "1", [[0, "#5a3a22"], [45, "#3a2414"], [100, "#1d1108"]]);
-  lg("nutG", "0", "0", "0", "1", [[0, "#fff7e4"], [40, "#f0ddb6"], [75, "#cdb184"], [100, "#9c7c50"]]);
-  lg("brgG", "0", "0", "0.15", "1", [[0, "#f6ecd2"], [35, "#e6d2ab"], [72, "#c9ae80"], [100, "#8f7048"]]);
+  lg("capG", "0", "0", "0.15", "1", [[0, "#7a4f2c"], [30, "#5d3a1f"], [70, "#42280f"], [100, "#2b1909"]]);
+  lg("nutG", "0", "0", "0.2", "1", [[0, "#fffaf0"], [38, "#f3e3c1"], [72, "#d6bb8d"], [100, "#a98a5c"]]);
+  lg("brgG", "0", "0", "0.1", "1", [[0, "#fbf2dd"], [34, "#efe0bd"], [70, "#d3b98c"], [100, "#a4814f"]]);
   lg("brassG", "0", "0", "0.2", "1", [[0, "#ffeec2"], [45, "#e2bd78"], [100, "#8f6a34"]]);
-  lg("cordG", "0", "0", "0.3", "1", [[0, "#46578f"], [45, "#2e3d70"], [100, "#1a2450"]]);
-  rg("flashG", "50%", "50%", "50%", [[0, "#fff3cf", ".95"], [45, "#ffd88e", ".45"], [100, "#ffb85c", "0"]]);
-  rg("shadeG", "50%", "50%", "50%", [[0, "#000000", ".55"], [60, "#000000", ".22"], [100, "#000000", "0"]]);
+  lg("cordG", "0", "0", "0.3", "1", [[0, "#4d5f99"], [42, "#2f3f74"], [100, "#1a2450"]]);
+  rg("flashG", "50%", "50%", "50%", [[0, "#fff6d8", ".9"], [42, "#ffd88e", ".4"], [100, "#ffb85c", "0"]]);
+  rg("shadeG", "50%", "50%", "50%", [[0, "#000000", ".58"], [58, "#000000", ".24"], [100, "#000000", "0"]]);
 
   var clip = el("clipPath", { id:"boardClip" }, defs);
   el("path", { d:dBoard }, clip);
 
   /* ── 바닥 빛 · 그림자 ── */
-  var floor = el("ellipse", {
-    cx: W * 0.5, cy: H * 0.56, rx: W * 0.56, ry: H * 0.62,
+  el("ellipse", {
+    cx: W * 0.5, cy: H * 0.55, rx: W * 0.54, ry: H * 0.66,
     fill: "url(#floorGlow)", "pointer-events": "none"
   }, root);
-  var cast = el("ellipse", {
-    cx: W * 0.5, cy: bot + H * 0.055, rx: W * 0.48, ry: bh * 0.18,
-    fill: "url(#shadeG)", opacity: ".85", "pointer-events": "none"
+  el("ellipse", {
+    cx: W * 0.5, cy: bot + H * 0.06, rx: W * 0.46, ry: bh * 0.20,
+    fill: "url(#shadeG)", opacity: ".9", "pointer-events": "none"
   }, root);
 
-  /* ── 몸통(밤나무 옆판) ── */
+  /* ── 몸통(밤나무 옆판 + 오동나무 앞판) ── */
   var gBody = el("g", null, root);
   el("path", {
-    d: dBoard, transform: "translate(" + (s * 0.06) + "," + (bh * 0.045) + ")",
-    fill: "url(#sideG)", stroke: "#1b0f07", "stroke-width": Math.max(0.6, s * 0.045), opacity: ".97"
+    d: dBoard, transform: "translate(" + (s * 0.05) + "," + (bh * 0.05) + ")",
+    fill: "url(#sideG)", stroke: "#1b0f07", "stroke-width": Math.max(0.6, s * 0.05), opacity: ".98"
   }, gBody);
   el("path", { d: dBoard, fill: "url(#wood)" }, gBody);
 
   /* 나뭇결 */
-  var grain = el("g", { "clip-path": "url(#boardClip)", opacity: ".9", "pointer-events": "none" }, gBody);
+  var grain = el("g", { "clip-path": "url(#boardClip)", opacity: ".95", "pointer-events": "none" }, gBody);
   var gr = rng(24680);
-  var nGrain = Math.max(16, Math.round(bh / (s * 0.42)));
+  var nGrain = Math.max(18, Math.round(bh / (s * 0.40)));
   for(var gi = 0; gi < nGrain; gi++){
-    var gy = top + (bot - top) * ((gi + 0.35 + gr() * 0.5) / nGrain);
-    var amp = (gr() * 0.5 + 0.35) * s * 0.20;
+    var gy = top + (bot - top) * ((gi + 0.3 + gr() * 0.55) / nGrain);
+    var amp = (gr() * 0.5 + 0.35) * s * 0.18;
     var ph = gr() * 6.28;
-    var d = "M -20 " + gy;
+    var d = "M -20 " + gy.toFixed(2);
     var segs = 5;
     for(var q = 0; q < segs; q++){
       var x1 = -20 + (W + 40) * (q + 1) / segs;
@@ -662,149 +664,176 @@ function buildModel(W, H){
     }
     el("path", {
       d: d, fill: "none", stroke: (gi % 3 === 0 ? "#7a4a1f" : "#5d3413"),
-      "stroke-opacity": (0.05 + gr() * 0.07).toFixed(3),
-      "stroke-width": (s * (0.02 + gr() * 0.035)).toFixed(2)
+      "stroke-opacity": (0.05 + gr() * 0.08).toFixed(3),
+      "stroke-width": (s * (0.02 + gr() * 0.04)).toFixed(2)
     }, grain);
   }
-  /* 판의 볼록한 빛 */
   el("path", { d: dBoard, fill: "url(#woodTop)", "pointer-events": "none" }, gBody);
+  /* 앞판 테두리 */
+  el("path", { d: dBoard, fill: "none", stroke: "rgba(70,38,12,.42)", "stroke-width": Math.max(0.7, s * 0.045) }, gBody);
 
   /* ── 꼬리(봉미) · 부들 · 학슬 ── */
   var gTail = el("g", null, root);
-  var tW = tailW;
-  var tailY1 = yTopAt(0), tailY2 = yBotAt(0);
-  el("path", {
-    d: "M " + (tW * 0.62) + " " + (tailY1 + bh * 0.06) +
-       " L " + (tW * 0.05) + " " + (tailY1 + bh * 0.13) +
-       " Q " + (-tW * 0.10) + " " + (H / 2) + " " + (tW * 0.05) + " " + (tailY2 - bh * 0.13) +
-       " L " + (tW * 0.62) + " " + (tailY2 - bh * 0.06) + " Z",
-    fill: "url(#ebonyG)", stroke: "#160c05", "stroke-width": Math.max(0.7, s * 0.05)
+  var tX0 = -Math.max(2, tailW * 0.10);
+  var tX1 = tailW * 0.74;
+  var ty1 = yTopAt(0) - Math.max(1.5, s * 0.06);
+  var ty2 = yBotAt(0) + Math.max(1.5, s * 0.06);
+  var tR = Math.max(3, s * 0.22);
+  el("rect", {
+    x: tX0, y: ty1, width: tX1 - tX0, height: ty2 - ty1, rx: tR,
+    fill: "url(#capG)", stroke: "#150b04", "stroke-width": Math.max(0.6, s * 0.05)
   }, gTail);
-  /* 봉미의 두 날개 */
+  el("rect", {
+    x: tX0 + s * 0.10, y: ty1 + Math.max(1.5, s * 0.07),
+    width: (tX1 - tX0) - s * 0.22, height: (ty2 - ty1) * 0.14, rx: tR * 0.6,
+    fill: "rgba(255,232,196,.12)"
+  }, gTail);
+  /* 봉미의 갈라진 선 */
+  var tcx = tX0 + (tX1 - tX0) * 0.42;
   el("path", {
-    d: "M " + (tW * 0.58) + " " + (tailY1 + bh * 0.09) +
-       " C " + (tW * 0.30) + " " + (tailY1 + bh * 0.02) + " " + (tW * 0.16) + " " + (H / 2 - bh * 0.16) + " " + (tW * 0.30) + " " + (H / 2) +
-       " C " + (tW * 0.16) + " " + (H / 2 + bh * 0.16) + " " + (tW * 0.30) + " " + (tailY2 - bh * 0.02) + " " + (tW * 0.58) + " " + (tailY2 - bh * 0.09),
-    fill: "none", stroke: "rgba(246,217,162,.20)", "stroke-width": Math.max(0.7, s * 0.07)
+    d: "M " + tcx.toFixed(1) + " " + (ty1 + (ty2 - ty1) * 0.08) +
+       " C " + (tcx + tailW * 0.26).toFixed(1) + " " + (H / 2 - bh * 0.16).toFixed(1) +
+       " " + (tcx + tailW * 0.26).toFixed(1) + " " + (H / 2 + bh * 0.16).toFixed(1) +
+       " " + tcx.toFixed(1) + " " + (ty2 - (ty2 - ty1) * 0.08),
+    fill: "none", stroke: "rgba(255,226,184,.20)", "stroke-width": Math.max(0.7, s * 0.06)
   }, gTail);
 
-  var cordX0 = tW * 0.70, cordX1 = tW * 1.85;
+  var cordX0 = tX1 - s * 0.08, cordX1 = tX1 + s * 1.05;
   for(var ci = 0; ci < 12; ci++){
     var yy = yOf(ci);
     el("line", {
-      x1: cordX0, y1: yy + (yy - H / 2) * 0.05, x2: cordX1, y2: yy,
-      stroke: "url(#cordG)", "stroke-width": Math.max(1.3, s * 0.20),
-      "stroke-linecap": "round"
+      x1: cordX0, y1: yy, x2: cordX1, y2: yy,
+      stroke: "url(#cordG)", "stroke-width": Math.max(1.4, s * 0.22), "stroke-linecap": "round"
     }, gTail);
     el("line", {
-      x1: cordX0, y1: yy + (yy - H / 2) * 0.05, x2: cordX1, y2: yy,
-      stroke: "rgba(255,255,255,.16)", "stroke-width": Math.max(0.5, s * 0.05),
-      "stroke-linecap": "round"
+      x1: cordX0, y1: yy - s * 0.05, x2: cordX1, y2: yy - s * 0.05,
+      stroke: "rgba(255,255,255,.20)", "stroke-width": Math.max(0.5, s * 0.05), "stroke-linecap": "round"
     }, gTail);
     /* 학슬 — 색실을 감은 매듭 */
     el("rect", {
-      x: cordX1 - s * 0.30, y: yy - s * 0.115, width: s * 0.60, height: s * 0.23,
-      rx: s * 0.10, fill: "#8d2f2a", opacity: ".85"
+      x: cordX1 - s * 0.30, y: yy - s * 0.13, width: s * 0.52, height: s * 0.26,
+      rx: s * 0.10, fill: "#8f2f2b", opacity: ".88"
     }, gTail);
     el("line", {
-      x1: cordX1 - s * 0.30, y1: yy, x2: cordX1 + s * 0.30, y2: yy,
-      stroke: "#f6d9a2", "stroke-width": Math.max(0.4, s * 0.03), opacity: ".33"
+      x1: cordX1 - s * 0.28, y1: yy - s * 0.03, x2: cordX1 + s * 0.20, y2: yy - s * 0.03,
+      stroke: "#f7d9a4", "stroke-width": Math.max(0.4, s * 0.028), opacity: ".45"
     }, gTail);
   }
 
   /* ── 머리(좌단) · 현침 · 돌괘 ── */
   var gHead = el("g", null, root);
   var hx = W - headW;
+  var hy1 = yTopAt(hx) + bh * 0.03, hy2 = yBotAt(hx) - bh * 0.03;
+  var hy1r = yTopAt(W) + bh * 0.03, hy2r = yBotAt(W) - bh * 0.03;
+  var hr = Math.min(bh * 0.09, s * 0.55);
   el("path", {
-    d: "M " + (hx + headW * 0.30) + " " + (yTopAt(hx) + bh * 0.05) +
-       " L " + (W - rl * 0.6) + " " + (yTopAt(W) + bh * 0.07) +
-       " Q " + W + " " + (yTopAt(W) + bh * 0.09) + " " + W + " " + (yTopAt(W) + bh * 0.22) +
-       " L " + W + " " + (yBotAt(W) - bh * 0.22) +
-       " Q " + W + " " + (yBotAt(W) - bh * 0.09) + " " + (W - rl * 0.6) + " " + (yBotAt(W) - bh * 0.07) +
-       " L " + (hx + headW * 0.30) + " " + (yBotAt(hx) - bh * 0.05) + " Z",
-    fill: "url(#ebonyG)", stroke: "#160c05", "stroke-width": Math.max(0.7, s * 0.05)
+    d: "M " + hx.toFixed(1) + " " + hy1.toFixed(1) +
+       " L " + (W - hr).toFixed(1) + " " + hy1r.toFixed(1) +
+       " Q " + W + " " + hy1r.toFixed(1) + " " + W + " " + (hy1r + hr).toFixed(1) +
+       " L " + W + " " + (hy2r - hr).toFixed(1) +
+       " Q " + W + " " + hy2r.toFixed(1) + " " + (W - hr).toFixed(1) + " " + hy2r.toFixed(1) +
+       " L " + hx.toFixed(1) + " " + hy2.toFixed(1) + " Z",
+    fill: "url(#capG)", stroke: "#150b04", "stroke-width": Math.max(0.6, s * 0.05)
   }, gHead);
+  /* 좌단의 윗면 하이라이트 */
+  el("path", {
+    d: "M " + (hx + s * 0.12).toFixed(1) + " " + (hy1 + s * 0.10).toFixed(1) +
+       " L " + (W - hr * 1.4).toFixed(1) + " " + (hy1r + s * 0.10).toFixed(1),
+    fill: "none", stroke: "rgba(255,232,196,.16)", "stroke-width": Math.max(0.8, s * 0.07)
+  }, gHead);
+  /* 좌단 앞쪽 그늘 */
+  el("rect", { x: hx, y: hy1, width: s * 0.22, height: hy2 - hy1,
+               fill: "rgba(0,0,0,.30)" }, gHead);
 
-  var nutX = W - headW * 0.70;
-  var nutW = Math.max(2.5, s * 0.30);
+  var nutX = hx + headW * 0.30;
+  var nutW = Math.max(3.2, s * 0.38);
+  var nutT = yTop - s * 0.70, nutB = yTop + span + s * 0.70;
   el("rect", {
-    x: nutX, y: yTopAt(nutX) + bh * 0.02, width: nutW, height: (yBotAt(nutX) - yTopAt(nutX)) - bh * 0.04,
-    rx: nutW * 0.4, fill: "url(#nutG)", stroke: "#6d5128", "stroke-width": Math.max(0.4, s * 0.03)
+    x: nutX + nutW * 0.55, y: nutT + s * 0.14, width: nutW, height: nutB - nutT,
+    rx: nutW * 0.45, fill: "rgba(0,0,0,.38)"
   }, gHead);
-  /* 현침의 12 홈 */
+  el("rect", {
+    x: nutX, y: nutT, width: nutW, height: nutB - nutT,
+    rx: nutW * 0.45, fill: "url(#nutG)", stroke: "#6d5128", "stroke-width": Math.max(0.4, s * 0.028)
+  }, gHead);
   for(var ni = 0; ni < 12; ni++){
     el("rect", {
-      x: nutX + nutW * 0.18, y: yOf(ni) - s * 0.045, width: nutW * 0.64, height: s * 0.09,
-      fill: "#6b4c22", opacity: ".55"
+      x: nutX + nutW * 0.16, y: yOf(ni) - s * 0.05, width: nutW * 0.68, height: s * 0.10,
+      rx: s * 0.03, fill: "#6b4c22", opacity: ".5"
     }, gHead);
   }
   /* 돌괘 */
-  var pegX = W - headW * 0.20;
+  var pegX = W - headW * 0.24;
   for(var pi = 0; pi < 12; pi++){
+    el("circle", { cx: pegX, cy: yOf(pi), r: Math.max(2, s * 0.145), fill: "rgba(0,0,0,.45)" }, gHead);
     el("circle", {
-      cx: pegX, cy: yOf(pi), r: Math.max(1.6, s * 0.115),
-      fill: "url(#brassG)", stroke: "#4b3312", "stroke-width": Math.max(0.3, s * 0.025)
+      cx: pegX, cy: yOf(pi), r: Math.max(1.7, s * 0.125),
+      fill: "url(#brassG)", stroke: "#4b3312", "stroke-width": Math.max(0.3, s * 0.022)
     }, gHead);
     el("circle", {
-      cx: pegX - s * 0.035, cy: yOf(pi) - s * 0.035, r: Math.max(0.6, s * 0.035),
-      fill: "#fff6df", opacity: ".6"
+      cx: pegX - s * 0.038, cy: yOf(pi) - s * 0.038, r: Math.max(0.6, s * 0.036),
+      fill: "#fff6df", opacity: ".7"
     }, gHead);
   }
 
   /* ── 안족(기러기발) ── */
   var gBridge = el("g", null, root);
-  var bx0 = W * 0.375, bx1 = W * 0.475;
+  var bx0 = W * 0.355, bx1 = W * 0.468;
   ST.bridge = [];
   var jr = rng(7788);
+  var bw = s * 0.82, bhh = s * 1.15;
   for(var bi = 0; bi < 12; bi++){
-    var bxp = bx0 + (bx1 - bx0) * (bi / 11) + (jr() - 0.5) * s * 0.14;
+    var bxp = bx0 + (bx1 - bx0) * (bi / 11) + (jr() - 0.5) * s * 0.12;
     ST.bridge.push(bxp);
     var byy = yOf(bi);
-    var bw = s * 0.62, bhh = s * 0.92;
     /* 바닥 접촉 그림자 */
-    el("ellipse", { cx: bxp, cy: byy + bhh * 0.34, rx: bw * 0.72, ry: s * 0.10,
-                    fill: "#2a1505", opacity: ".30" }, gBridge);
-    var dBr = "M " + (-bw * 0.46) + " " + (bhh * 0.98) +
-      " C " + (-bw * 0.50) + " " + (bhh * 0.28) + " " + (-bw * 0.34) + " " + (-bhh * 0.06) + " " + (-bw * 0.145) + " " + (-bhh * 0.10) +
-      " L " + (-bw * 0.055) + " " + (-bhh * 0.02) +
-      " L " + (bw * 0.055) + " " + (-bhh * 0.02) +
-      " L " + (bw * 0.145) + " " + (-bhh * 0.10) +
-      " C " + (bw * 0.34) + " " + (-bhh * 0.06) + " " + (bw * 0.50) + " " + (bhh * 0.28) + " " + (bw * 0.46) + " " + (bhh * 0.98) + " Z";
-    el("path", {
-      d: dBr, transform: "translate(" + bxp.toFixed(2) + "," + (byy + bhh * 0.02).toFixed(2) + ")",
-      fill: "url(#brgG)", stroke: "#6d5027", "stroke-width": Math.max(0.4, s * 0.035),
-      "stroke-linejoin": "round"
-    }, gBridge);
-    el("path", {
-      d: dBr, transform: "translate(" + bxp.toFixed(2) + "," + (byy + bhh * 0.02).toFixed(2) + ")",
-      fill: "none", stroke: "rgba(255,255,255,.45)", "stroke-width": Math.max(0.3, s * 0.022),
-      opacity: ".5", "stroke-linejoin": "round"
-    }, gBridge);
+    el("ellipse", { cx: bxp + s * 0.10, cy: byy + bhh * 0.92, rx: bw * 0.78, ry: s * 0.16,
+                    fill: "#2a1505", opacity: ".28" }, gBridge);
+    /* 기러기발: 두 다리 + 가운데 홈 */
+    var dBr =
+      "M " + (-bw * 0.50) + " " + (bhh * 0.96) +
+      " C " + (-bw * 0.56) + " " + (bhh * 0.52) + " " + (-bw * 0.42) + " " + (bhh * 0.20) + " " + (-bw * 0.30) + " " + (bhh * 0.04) +
+      " L " + (-bw * 0.20) + " " + (-bhh * 0.02) +
+      " Q " + (-bw * 0.06) + " " + (bhh * 0.16) + " 0 " + (bhh * 0.18) +
+      " Q " + (bw * 0.06) + " " + (bhh * 0.16) + " " + (bw * 0.20) + " " + (-bhh * 0.02) +
+      " L " + (bw * 0.30) + " " + (bhh * 0.04) +
+      " C " + (bw * 0.42) + " " + (bhh * 0.20) + " " + (bw * 0.56) + " " + (bhh * 0.52) + " " + (bw * 0.50) + " " + (bhh * 0.96) +
+      " Z";
+    var tr = "translate(" + bxp.toFixed(2) + "," + (byy + bhh * 0.10).toFixed(2) + ")";
+    el("path", { d:dBr, transform:tr, fill:"url(#brgG)", stroke:"#5f4520",
+                 "stroke-width": Math.max(0.45, s * 0.035), "stroke-linejoin":"round" }, gBridge);
+    el("path", { d:dBr, transform:tr, fill:"none", stroke:"rgba(255,255,255,.55)",
+                 "stroke-width": Math.max(0.3, s * 0.02), opacity: ".55", "stroke-linejoin":"round" }, gBridge);
+    /* 홈에 걸린 줄 자리 */
+    el("path", { d: "M " + (-bw * 0.20) + " " + (-bhh * 0.02) + " Q 0 " + (bhh * 0.18) + " " + (bw * 0.20) + " " + (-bhh * 0.02),
+                 transform:tr, fill:"none", stroke:"rgba(60,34,10,.45)",
+                 "stroke-width": Math.max(0.5, s * 0.03) }, gBridge);
   }
 
   /* ── 명주실 12줄 ── */
   var gStr = el("g", null, root);
-  var xS0 = cordX1 + s * 0.30;
-  var xS1 = pegX;
+  var xS0 = cordX1 + s * 0.16;
+  var xS1 = pegX - s * 0.06;
   ST.xS0 = xS0; ST.xS1 = xS1;
   for(var si = 0; si < 12; si++){
     var sv = yOf(si);
-    var w = Math.max(0.9, ST.str[si].thick * s);
+    var w = Math.max(1.1, (si === 0 ? s * 0.175 : s * 0.175 * Math.pow(0.86, si)));
     var g1 = el("g", { "data-i": si }, gStr);
     var dd = "M " + xS0 + " " + sv + " L " + xS1 + " " + sv;
-    el("path", { d:dd, fill:"none", stroke:"#2a1507", "stroke-opacity":".40",
-                 "stroke-width": w + Math.max(1.2, s * 0.075), "stroke-linecap":"round" }, g1);
-    var main = el("path", { d:dd, fill:"none", stroke: (si < 4 ? "#f0e2c6" : "#f8f0dd"),
-                            "stroke-width": w, "stroke-linecap":"round", opacity: ".97" }, g1);
-    var hi = el("path", { d:dd, fill:"none", stroke:"#fffaf0",
-                          "stroke-width": Math.max(0.45, w * 0.34), opacity: ".55",
-                          "stroke-linecap":"round", transform:"translate(0," + (-w * 0.26).toFixed(2) + ")" }, g1);
-    VIB[si] = { main:main, hi:hi, y:sv, w:w, t0:-1, amp:0, px:(xS0 + xS1) / 2, hiOff: w * 0.26 };
+    el("path", { d:dd, fill:"none", stroke:"#3a1c07", "stroke-opacity":".52",
+                 "stroke-width": w + Math.max(1.6, s * 0.10), "stroke-linecap":"round",
+                 transform:"translate(0," + Math.max(1, s * 0.07).toFixed(2) + ")" }, g1);
+    var main = el("path", { d:dd, fill:"none", stroke: "#fffdf2",
+                            "stroke-width": w, "stroke-linecap":"round", opacity: ".99" }, g1);
+    var hi = el("path", { d:dd, fill:"none", stroke:"#ffffff",
+                          "stroke-width": Math.max(0.45, w * 0.34), opacity: ".8",
+                          "stroke-linecap":"round", transform:"translate(0," + (-w * 0.24).toFixed(2) + ")" }, g1);
+    VIB[si] = { main:main, hi:hi, y:sv, w:w, t0:-1, amp:0, px:(xS0 + xS1) / 2, hiOff: w * 0.24 };
   }
 
   /* ── 글자(줄 이름) ── */
   var gLab = el("g", null, root);
-  var labelX = W - headW - s * 1.15;
+  var labelX = hx - s * 1.15;
   ST.labelX = labelX;
   var fs = clamp(s * 0.40, 7.5, 15);
   ST.fs = fs;
@@ -815,27 +844,28 @@ function buildModel(W, H){
       x:0, y: (fs * 0.34).toFixed(1), "text-anchor":"middle",
       "font-family": "'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif",
       "font-size": fs.toFixed(1), "font-weight": "700",
-      fill: "#4a2c11", "paint-order": "stroke", stroke: "rgba(255,240,215,.62)",
-      "stroke-width": Math.max(1.1, fs * 0.20), "stroke-linejoin": "round"
+      fill: "#4a2c11", "paint-order": "stroke", stroke: "rgba(255,242,218,.70)",
+      "stroke-width": Math.max(1.1, fs * 0.22), "stroke-linejoin": "round"
     }, lg);
     lab.setAttribute("data-lab", li);
   }
 
   /* ── 안내 글자 ── */
-  var noteFs = clamp(s * 0.34, 7, 12);
-  var gAnno = el("g", { opacity:".38", "pointer-events":"none" }, root);
+  var noteFs = clamp(s * 0.32, 7, 12);
+  var gAnno = el("g", { opacity:".36", "pointer-events":"none" }, root);
+  var anY = (bot + noteFs * 1.05).toFixed(1);
   var an1 = txt("농현 · 안족 왼쪽", {
-    x:(W * 0.20).toFixed(1), y:(bot + noteFs * 1.1).toFixed(1), "text-anchor":"middle",
+    x:(W * 0.185).toFixed(1), y:anY, "text-anchor":"middle",
     "font-size": noteFs.toFixed(1), "font-weight":"700", fill:"#ffe6bd",
     "font-family": "'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif"
   }, gAnno);
-  an1.setAttribute("transform", "translate(0,0)" + (LAY.rot ? " rotate(90 " + (W * 0.20).toFixed(1) + " " + (bot + noteFs * 1.1).toFixed(1) + ")" : ""));
+  if(LAY.rot) an1.setAttribute("transform", "rotate(90 " + (W * 0.185).toFixed(1) + " " + anY + ")");
   var an2 = txt("뜯는 곳", {
-    x:(W * 0.905).toFixed(1), y:(bot + noteFs * 1.1).toFixed(1), "text-anchor":"middle",
+    x:(W * 0.80).toFixed(1), y:anY, "text-anchor":"middle",
     "font-size": noteFs.toFixed(1), "font-weight":"700", fill:"#ffe6bd",
     "font-family": "'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif"
   }, gAnno);
-  an2.setAttribute("transform", (LAY.rot ? "rotate(90 " + (W * 0.905).toFixed(1) + " " + (bot + noteFs * 1.1).toFixed(1) + ")" : ""));
+  if(LAY.rot) an2.setAttribute("transform", "rotate(90 " + (W * 0.80).toFixed(1) + " " + anY + ")");
 
   /* ── 효과 레이어 ── */
   var gFx = el("g", { "pointer-events":"none" }, root);
