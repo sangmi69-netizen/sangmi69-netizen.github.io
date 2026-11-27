@@ -12,10 +12,7 @@
 <style>
   :root{
     --gold:#f4d9a0;
-    --gold-dim:#c9a45f;
-    --ink:#f3ecff;
     --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
-    --serif:Georgia,"Times New Roman","Nanum Myeongjo",serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{
@@ -24,33 +21,25 @@
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
     -webkit-text-size-adjust:100%;text-size-adjust:100%;
   }
-  body{font-family:var(--ui);color:var(--ink)}
+  body{font-family:var(--ui);color:#f3ecff}
   #app{
     position:fixed;inset:0;touch-action:none;
     background:
-      radial-gradient(58% 46% at 50% 40%, rgba(126,88,229,.30) 0%, rgba(74,47,146,.16) 42%, rgba(11,5,24,0) 74%),
-      radial-gradient(120% 100% at 50% 40%, #1d1040 0%, #150a2c 45%, #08030f 100%);
+      radial-gradient(56% 44% at 50% 40%, rgba(126,88,229,.26) 0%, rgba(74,47,146,.13) 44%, rgba(11,5,24,0) 76%),
+      radial-gradient(120% 100% at 50% 40%, #1d1040 0%, #150a2c 46%, #07030e 100%);
     display:grid;place-items:center;
   }
-  /* 바닥 그림자 */
   #floor{
     position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-    width:min(96vw,94vh);aspect-ratio:1/1;border-radius:50%;
-    box-shadow:0 26px 70px -18px rgba(0,0,0,.85), 0 0 120px rgba(124,84,222,.20);
-    pointer-events:none;
+    border-radius:50%;pointer-events:none;
+    box-shadow:0 30px 80px -22px rgba(0,0,0,.9), 0 0 130px rgba(124,84,222,.18);
   }
-  #stage{
-    position:relative;width:min(94vw,90vh);aspect-ratio:1/1;
-    display:grid;place-items:center;touch-action:none;
-  }
-  #drum{
-    width:100%;height:100%;display:block;touch-action:none;
-    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-  }
+  #stage{position:relative;aspect-ratio:1/1;display:grid;place-items:center;touch-action:none}
+  #drum{width:100%;height:100%;display:block;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   #drum .key{touch-action:none}
   #drum text{pointer-events:none}
 
-  /* ── 좌상단 배지 ── */
   #badge{
     position:absolute;left:0;top:0;z-index:5;pointer-events:none;
     padding:calc(10px + env(safe-area-inset-top)) 0 0 calc(12px + env(safe-area-inset-left));
@@ -65,7 +54,6 @@
     white-space:nowrap;
   }
 
-  /* ── 표시 메뉴 ── */
   #ui{
     position:absolute;right:0;top:0;z-index:7;
     padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 0 0;
@@ -82,8 +70,8 @@
   }
   #menuBtn:active{transform:translateY(1px)}
   #menu{
-    display:none;min-width:170px;padding:6px;border-radius:14px;
-    background:rgba(26,15,52,.94);
+    display:none;min-width:176px;padding:6px;border-radius:14px;
+    background:rgba(26,15,52,.95);
     border:1px solid rgba(196,170,255,.28);
     box-shadow:0 14px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07);
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
@@ -100,36 +88,29 @@
   #menu button.on{background:rgba(140,110,230,.26);color:#fff}
   #menu button.on .tick{opacity:1}
 
-  /* ── 힌트 ── */
   #hint{
-    position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);
-    z-index:4;font-size:11.5px;color:rgba(226,213,255,.62);text-align:center;
-    letter-spacing:.01em;pointer-events:none;white-space:nowrap;
-    transition:opacity .8s ease;padding:0 10px;
+    position:absolute;left:50%;bottom:calc(9px + env(safe-area-inset-bottom));transform:translateX(-50%);
+    z-index:4;font-size:11.5px;color:rgba(226,213,255,.58);text-align:center;
+    pointer-events:none;white-space:nowrap;transition:opacity .8s ease;padding:0 10px;
   }
   #hint.gone{opacity:0}
 
-  /* ── 시작 커버 ── */
   #cover{
     position:absolute;inset:0;z-index:20;display:grid;place-items:center;
-    background:radial-gradient(60% 50% at 50% 45%, rgba(30,15,62,.62) 0%, rgba(8,3,16,.88) 100%);
+    background:radial-gradient(58% 48% at 50% 45%, rgba(28,14,58,.58) 0%, rgba(7,3,14,.9) 100%);
     backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
     touch-action:none;cursor:pointer;transition:opacity .45s ease;
   }
   #cover.hide{opacity:0;pointer-events:none}
-  #cover .box{text-align:center;transform:translateY(-2%)}
-  #cover .kicker{
-    font-size:10.5px;letter-spacing:.34em;color:rgba(200,180,255,.7);margin-bottom:14px;font-weight:700;
-  }
+  #cover .box{text-align:center}
+  #cover .kicker{font-size:10.5px;letter-spacing:.34em;color:rgba(200,180,255,.66);margin-bottom:14px;font-weight:700}
   #cover h1{
     margin:0 0 6px;font-size:clamp(23px,6.4vmin,40px);font-weight:800;letter-spacing:-.01em;
     background:linear-gradient(180deg,#fff 0%,#d7c6ff 52%,#a98bf0 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     text-shadow:0 0 40px rgba(150,110,255,.35);
   }
-  #cover h2{
-    margin:0 0 26px;font-size:clamp(11.5px,2.6vmin,14px);font-weight:600;color:rgba(213,197,255,.78);letter-spacing:.06em;
-  }
+  #cover h2{margin:0 0 26px;font-size:clamp(11.5px,2.6vmin,14px);font-weight:600;color:rgba(213,197,255,.78);letter-spacing:.06em}
   #cover .go{
     display:inline-flex;align-items:center;gap:9px;
     font-size:clamp(13px,3vmin,15px);font-weight:800;letter-spacing:.02em;color:#22123f;
@@ -138,8 +119,11 @@
     box-shadow:0 10px 26px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.35) inset;
     animation:pulse 2.2s ease-in-out infinite;
   }
-  @keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.35) inset}50%{transform:scale(1.035);box-shadow:0 12px 34px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.5) inset,0 0 34px rgba(240,212,155,.35)}}
-  #cover .sub{margin-top:16px;font-size:11.5px;color:rgba(196,178,234,.6)}
+  @keyframes pulse{
+    0%,100%{transform:scale(1);box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.35) inset}
+    50%{transform:scale(1.035);box-shadow:0 12px 34px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.5) inset,0 0 34px rgba(240,212,155,.35)}
+  }
+  #cover .sub{margin-top:16px;font-size:11.5px;color:rgba(196,178,234,.58)}
 </style>
 </head>
 <body>
@@ -148,70 +132,77 @@
   <div id="stage">
     <svg id="drum" viewBox="-560 -560 1120 1120" aria-label="보라색 C key 15음 텅드럼">
       <defs>
-        <radialGradient id="faceG" cx="42%" cy="34%" r="76%">
-          <stop offset="0%"  stop-color="#8f74de"/>
-          <stop offset="34%" stop-color="#6d51c4"/>
-          <stop offset="66%" stop-color="#4c3198"/>
-          <stop offset="88%" stop-color="#3a2478"/>
-          <stop offset="100%" stop-color="#2c1a5e"/>
+        <!-- 상판 -->
+        <radialGradient id="faceG" cx="40%" cy="32%" r="82%">
+          <stop offset="0%"   stop-color="#8b6fdc"/>
+          <stop offset="30%"  stop-color="#6f53c6"/>
+          <stop offset="62%"  stop-color="#543a9f"/>
+          <stop offset="84%"  stop-color="#412a80"/>
+          <stop offset="100%" stop-color="#33206a"/>
         </radialGradient>
-        <radialGradient id="bodyG" cx="50%" cy="42%" r="60%">
-          <stop offset="0%" stop-color="#7a5fd0"/>
-          <stop offset="62%" stop-color="#432c8a"/>
-          <stop offset="100%" stop-color="#1d1038"/>
+        <!-- 혀(살짝 밝은 강판) -->
+        <radialGradient id="tongueG" cx="40%" cy="32%" r="82%">
+          <stop offset="0%"   stop-color="#9d82ea"/>
+          <stop offset="34%"  stop-color="#8265d6"/>
+          <stop offset="70%"  stop-color="#6446b6"/>
+          <stop offset="100%" stop-color="#4e329b"/>
         </radialGradient>
-        <radialGradient id="tongueG" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"  stop-color="#a68cf3"/>
-          <stop offset="55%" stop-color="#8769dd"/>
-          <stop offset="100%" stop-color="#6a4bc0"/>
-        </radialGradient>
-        <linearGradient id="tongueLin" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"  stop-color="#b7a1f8"/>
-          <stop offset="46%" stop-color="#8e70e4"/>
-          <stop offset="100%" stop-color="#5f42b4"/>
+        <linearGradient id="bodyG" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0%"   stop-color="#3a2570"/>
+          <stop offset="45%"  stop-color="#241451"/>
+          <stop offset="100%" stop-color="#120a26"/>
+        </linearGradient>
+        <linearGradient id="ropeG" x1="0.1" y1="0" x2="0.5" y2="1">
+          <stop offset="0%"   stop-color="#e6ddf7"/>
+          <stop offset="34%"  stop-color="#cfc3e6"/>
+          <stop offset="66%"  stop-color="#a798c6"/>
+          <stop offset="100%" stop-color="#7c6da0"/>
+        </linearGradient>
+        <linearGradient id="goldG" x1="0" y1="0" x2="0.35" y2="1">
+          <stop offset="0%"   stop-color="#fff6dc"/>
+          <stop offset="44%"  stop-color="#f2d59f"/>
+          <stop offset="74%"  stop-color="#cda265"/>
+          <stop offset="100%" stop-color="#ab8147"/>
         </linearGradient>
         <radialGradient id="sheen" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#ffffff" stop-opacity=".55"/>
-          <stop offset="60%" stop-color="#e6d9ff" stop-opacity=".13"/>
+          <stop offset="0%"   stop-color="#ffffff" stop-opacity=".42"/>
+          <stop offset="55%"  stop-color="#e8dcff" stop-opacity=".10"/>
           <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
         </radialGradient>
-        <linearGradient id="ropeG" x1="0" y1="0" x2="0.6" y2="1">
-          <stop offset="0%"  stop-color="#e3daf6"/>
-          <stop offset="38%" stop-color="#c3b6de"/>
-          <stop offset="72%" stop-color="#9a8cbb"/>
-          <stop offset="100%" stop-color="#6e6091"/>
-        </linearGradient>
-        <linearGradient id="goldG" x1="0" y1="0" x2="0.3" y2="1">
-          <stop offset="0%"  stop-color="#fff3d2"/>
-          <stop offset="42%" stop-color="#f0d193"/>
-          <stop offset="72%" stop-color="#c99c56"/>
-          <stop offset="100%" stop-color="#a97f3f"/>
-        </linearGradient>
-        <radialGradient id="coreShade" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#2a1a5c" stop-opacity=".0"/>
-          <stop offset="70%" stop-color="#1a0f3c" stop-opacity=".18"/>
-          <stop offset="100%" stop-color="#0d0620" stop-opacity=".55"/>
+        <radialGradient id="edgeShade" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#120827" stop-opacity="0"/>
+          <stop offset="66%"  stop-color="#120827" stop-opacity=".06"/>
+          <stop offset="92%"  stop-color="#0d0620" stop-opacity=".42"/>
+          <stop offset="100%" stop-color="#0a0418" stop-opacity=".70"/>
         </radialGradient>
-        <filter id="glowF" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="9" result="b"/>
+        <linearGradient id="capShade" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%"   stop-color="#ffffff" stop-opacity=".16"/>
+          <stop offset="45%"  stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+        <filter id="glowF" x="-70%" y="-70%" width="240%" height="240%">
+          <feGaussianBlur stdDeviation="11" result="b"/>
           <feMerge><feMergeNode in="b"/><feMergeNode in="b"/></feMerge>
         </filter>
-        <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#05010c" flood-opacity=".62"/>
+        <filter id="innerBlur" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="7"/>
         </filter>
-        <pattern id="brushed" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(24)">
-          <rect width="6" height="6" fill="none"/>
-          <line x1="0" y1="0" x2="0" y2="6" stroke="#ffffff" stroke-opacity=".055" stroke-width="1"/>
-          <line x1="3" y1="0" x2="3" y2="6" stroke="#000000" stroke-opacity=".05" stroke-width="1"/>
+        <filter id="dropSoft" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="14" stdDeviation="20" flood-color="#05010c" flood-opacity=".65"/>
+        </filter>
+        <pattern id="brushed" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(26)">
+          <line x1="0" y1="0" x2="0" y2="5" stroke="#ffffff" stroke-opacity=".05" stroke-width="1"/>
+          <line x1="2.5" y1="0" x2="2.5" y2="5" stroke="#000000" stroke-opacity=".045" stroke-width="1"/>
         </pattern>
-        <pattern id="braid" width="34" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
-          <rect width="34" height="26" fill="none"/>
-          <path d="M0 0 q8.5 6.5 17 0 q8.5 6.5 17 0" fill="none" stroke="#6b5c8e" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"/>
-          <path d="M0 13 q8.5 6.5 17 0 q8.5 6.5 17 0" fill="none" stroke="#f2ecff" stroke-opacity=".5" stroke-width="3.4" stroke-linecap="round"/>
+        <!-- 땋은 로프: 비스듬한 마름모 꼬임 -->
+        <pattern id="braid" width="26" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(41)">
+          <rect width="26" height="20" fill="#b9abd4" fill-opacity="0"/>
+          <path d="M0 5 q6.5 5 13 0 q6.5 5 13 0" fill="none" stroke="#ffffff" stroke-opacity=".62" stroke-width="5.2" stroke-linecap="round"/>
+          <path d="M0 15 q6.5 5 13 0 q6.5 5 13 0" fill="none" stroke="#6a5b8e" stroke-opacity=".5" stroke-width="4.6" stroke-linecap="round"/>
         </pattern>
       </defs>
       <g id="shell"></g>
       <g id="keys"></g>
+      <g id="rim"></g>
     </svg>
   </div>
 
@@ -245,27 +236,22 @@
 (function(){
 "use strict";
 
-/* 오류 수집(확인용) */
 window.__errs = [];
 window.addEventListener("error", function(e){ window.__errs.push(String(e.message||e)); });
 window.addEventListener("unhandledrejection", function(e){ window.__errs.push("rejection:"+String(e.reason)); });
 
 /* ══════════════════════════════════════════════════════════════
    1. 악기 배치 — 사진(IMG_1074)의 15음 배열
-   · 가운데 큰 혀 = 3 (미, 가장 낮은 음 E3)
+   · 가운데 큰 혀 = 3 (미, 가장 낮은 E3)
    · 둘레 14혀는 12시부터 시계방향으로 3,3,1,1,6,6,4,4,5,5,7,7,2,2
-   · 같은 숫자가 이웃한 두 혀: 짧은 혀 = 한 옥타브 위, 긴 혀 = 아래
+   · 같은 숫자가 이웃한 두 혀 — 짧은 혀 = 한 옥타브 위, 긴 혀 = 아래
    ══════════════════════════════════════════════════════════════ */
 var A4 = 440;
-function hz(semi){ return A4 * Math.pow(2, semi/12); }          // A4 기준 반음 거리
+function hz(semi){ return A4 * Math.pow(2, semi/12); }
 var E3 = hz(-5), F3 = hz(-4), G3 = hz(-2), A3 = hz(0), B3 = hz(2),
     C4 = hz(3),  D4 = hz(5),  E4 = hz(7),  F4 = hz(8), G4 = hz(10),
     A4v = hz(12), B4 = hz(14), C5 = hz(15), D5 = hz(17), E5 = hz(19);
 
-/* deg: 계이름 숫자, oct: 4=가온(점 없음), 3=아래점, 5=위점 */
-var CORE = { deg:"3", sol:"미", name:"E", oct:3, freq:E3, kind:"core" };
-
-/* 12시부터 시계방향. kind:"short" = 짧은 혀(위 옥타브), "long" = 긴 혀(아래 옥타브) */
 var RING = [
   { deg:"3", sol:"미", name:"E", oct:5, freq:E5,  kind:"short" },
   { deg:"3", sol:"미", name:"E", oct:4, freq:E4,  kind:"long"  },
@@ -283,12 +269,10 @@ var RING = [
   { deg:"2", sol:"레", name:"D", oct:4, freq:D4,  kind:"long"  }
 ];
 
-var NOTES = [];
-NOTES.push({ idx:0, angle:0, core:true, deg:CORE.deg, sol:CORE.sol, name:CORE.name, oct:CORE.oct,
-             freq:CORE.freq, kind:"core", key:"a" });
+var NOTES = [{ idx:0, angle:0, core:true, deg:"3", sol:"미", name:"E", oct:3, freq:E3, kind:"core" }];
 RING.forEach(function(n,i){
   NOTES.push({ idx:i+1, angle:i*360/RING.length, core:false, deg:n.deg, sol:n.sol, name:n.name,
-               oct:n.oct, freq:n.freq, kind:n.kind, key:null });
+               oct:n.oct, freq:n.freq, kind:n.kind });
 });
 
 /* ══════════════════════════════════════════════════════════════
@@ -302,14 +286,17 @@ function el(tag, attrs, parent){
   return e;
 }
 
-var FACE_R   = 430;   // 상판 반지름
-var RIM_OUT  = 502;   // 테두리(땋은 링) 바깥
-var ARM_R    = 428;   // 혀의 두 갈래가 시작되는 반지름(상판 가장자리)
-var LONG     = { tip:236, hw:57, fs:45, labelPad:44 };
-var SHORT    = { tip:331, hw:42, fs:37, labelPad:38 };
-var CORE_G   = { hw:88, tip:112, arm:-158, fs:60 };
+var FACE_R  = 430;    /* 상판 */
+var RIM_IN  = 430;
+var RIM_OUT = 500;    /* 땋은 링 */
+var OUTER   = 528;    /* 강철 몸통 */
+var ARM_R   = 474;    /* 혀의 갈래 끝(링 밑으로 들어감) */
 
-/* 혀 모양: 국부좌표에서 -y 가 바깥(테두리), +y 가 안쪽(중심) */
+/* 긴 혀 / 짧은 혀: tip = 둥근 끝의 중심 반지름, hw = 반폭 */
+var LONG  = { tip:186, hw:57, fs:50, label:232 };
+var SHORT = { tip:300, hw:44, fs:42, label:322 };
+var CORE_G = { hw:88, arm:-146, tip:104, fs:62, label:-78 };
+
 function tonguePath(tip, hw, arm){
   return "M " + (-hw) + " " + arm +
          " L " + (-hw) + " " + tip +
@@ -319,93 +306,91 @@ function tonguePath(tip, hw, arm){
 
 var shell = document.getElementById("shell");
 var keysG = document.getElementById("keys");
+var rimG  = document.getElementById("rim");
 
-/* ── 몸통 ── */
-el("circle", {cx:0, cy:0, r:RIM_OUT+18, fill:"#120827", opacity:".9"}, shell);
-el("circle", {cx:0, cy:0, r:RIM_OUT+2,  fill:"url(#bodyG)", filter:"url(#softShadow)"}, shell);
-/* 땋은 테두리 링 */
-el("circle", {cx:0, cy:0, r:(FACE_R+RIM_OUT)/2, fill:"none",
-              stroke:"url(#ropeG)", "stroke-width":(RIM_OUT-FACE_R)}, shell);
-el("circle", {cx:0, cy:0, r:(FACE_R+RIM_OUT)/2, fill:"none",
-              stroke:"url(#braid)", "stroke-width":(RIM_OUT-FACE_R)}, shell);
-el("circle", {cx:0, cy:0, r:FACE_R+3, fill:"none", stroke:"#2a1a55", "stroke-width":5, opacity:".85"}, shell);
-el("circle", {cx:0, cy:0, r:RIM_OUT,   fill:"none", stroke:"#0e0620", "stroke-width":6, opacity:".9"}, shell);
-el("circle", {cx:0, cy:0, r:RIM_OUT-7, fill:"none", stroke:"#efe8ff", "stroke-width":1.6, opacity:".30"}, shell);
-/* 상판 */
+/* ── 몸통 · 상판 ── */
+el("circle", {cx:0, cy:0, r:OUTER, fill:"url(#bodyG)", filter:"url(#dropSoft)"}, shell);
+el("circle", {cx:0, cy:0, r:OUTER-1, fill:"none", stroke:"#0a0418", "stroke-width":3, opacity:".8"}, shell);
 el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#faceG)"}, shell);
 el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#brushed)"}, shell);
-el("ellipse",{cx:-150, cy:-225, rx:330, ry:215, fill:"url(#sheen)", opacity:".34", transform:"rotate(-24 -150 -225)"}, shell);
-el("ellipse",{cx:170, cy:250, rx:280, ry:190, fill:"url(#sheen)", opacity:".13", transform:"rotate(-24 170 250)"}, shell);
-el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#coreShade)"}, shell);
-/* 상판 위 얕은 원형 홈 */
-[410, 300, 196].forEach(function(r){
-  el("circle",{cx:0,cy:0,r:r,fill:"none",stroke:"#ffffff","stroke-opacity":".055","stroke-width":1.4},shell);
+el("ellipse",{cx:-165, cy:-235, rx:340, ry:225, fill:"url(#sheen)", opacity:".40",
+              transform:"rotate(-26 -165 -235)"}, shell);
+el("ellipse",{cx:150, cy:265, rx:250, ry:170, fill:"url(#sheen)", opacity:".10",
+              transform:"rotate(-26 150 265)"}, shell);
+el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#edgeShade)"}, shell);
+[396, 262].forEach(function(r){
+  el("circle",{cx:0, cy:0, r:r, fill:"none", stroke:"#ffffff", "stroke-opacity":".04", "stroke-width":1.2}, shell);
 });
 
-/* ── 혀 그리기 ── */
-var keyEls = [];   // {note, plate, glow, label, group}
+/* ── 혀 ── */
+var keyEls = [];
+var labelEls = [];
 
 function drawKey(note){
   var g = el("g", {transform:"rotate(" + note.angle + ")", class:"keygrp"}, keysG);
-  var path, tip, hw, fs, labelY;
+  var path, fs, labelY, hw;
 
   if(note.core){
-    /* 가운데 큰 혀: 갈래가 위(바깥)로, 둥근 끝이 아래(중심)로 */
     path = tonguePath(CORE_G.tip, CORE_G.hw, CORE_G.arm);
-    fs = CORE_G.fs;
-    labelY = -92;                   /* 둥근 끝과 갈래 사이 */
+    fs = CORE_G.fs; labelY = CORE_G.label; hw = CORE_G.hw;
   }else{
-    var cfg = note.kind === "long" ? LONG : SHORT;
-    path = tonguePath(cfg.tip, cfg.hw, -ARM_R);
-    fs = cfg.fs;
-    labelY = cfg.tip + cfg.labelPad;
+    var c = note.kind === "long" ? LONG : SHORT;
+    path = tonguePath(c.tip, c.hw, -ARM_R);
+    fs = c.fs; labelY = c.label; hw = c.hw;
   }
 
-  /* 홈(어두운 틈) */
-  el("path", {d:path, fill:"none", stroke:"#0d0520", "stroke-width":11, opacity:".85", "stroke-linejoin":"round"}, g);
+  /* 컷(틈) — 얇은 한 줄 + 살짝 번진 그림자 */
+  el("path", {d:path, fill:"none", stroke:"#0b0420", "stroke-width":9, opacity:".55",
+              "stroke-linejoin":"round", filter:"url(#innerBlur)"}, g);
+  el("path", {d:path, fill:"none", stroke:"#0a0418", "stroke-width":3.4,
+              "stroke-linejoin":"round", opacity:".95"}, g);
+
   /* 혀 판 */
-  var plate = el("path", {d:path, fill:"url(#tongueLin)", stroke:"#2b1856", "stroke-width":3,
-                          class:"plate", "data-i":note.idx}, g);
-  /* 판의 안쪽 그늘 + 하이라이트 */
-  el("path", {d:path, fill:"none", stroke:"#ffffff", "stroke-opacity":".30", "stroke-width":2.2,
-              transform:"translate(0,-2)", opacity:".7"}, g);
+  var plate = el("path", {d:path, fill:"url(#tongueG)", "data-i":note.idx, class:"plate"}, g);
+  /* 판 위 미세 결 */
+  el("path", {d:path, fill:"url(#brushed)", opacity:".5", "pointer-events":"none"}, g);
+  /* 컷 가장자리의 밝은 선 */
+  el("path", {d:path, fill:"none", stroke:"#ffffff", "stroke-opacity":".22", "stroke-width":1.6,
+              "stroke-linejoin":"round", opacity:".55", "pointer-events":"none"}, g);
+  /* 둥근 끝의 그늘 */
+  el("path", {d:path, fill:"url(#capShade)", opacity:".5", "pointer-events":"none"}, g);
+
   /* 빛남 */
-  var glow = el("path", {d:path, fill:"#fff1c9", filter:"url(#glowF)", opacity:"0",
+  var glow = el("path", {d:path, fill:"#ffe8b4", filter:"url(#glowF)", opacity:"0",
                           "pointer-events":"none"}, g);
 
   /* 이름표 */
-  var lab = el("g", {transform:"translate(0," + labelY + ") rotate(180)"}, g);
+  var lab = el("g", {transform:"translate(0," + labelY + ") rotate(180)", "pointer-events":"none"}, g);
   drawLabel(lab, note, fs);
 
   plate.addEventListener("pointerdown", onPointerDown, {passive:false});
-  keyEls.push({note:note, plate:plate, glow:glow, labelGroup:lab, fs:fs});
+  keyEls.push({note:note, plate:plate, glow:glow, fs:fs});
 
-  /* 가운데 혀 각인(도장) */
-  if(note.core){
-    var seal = el("g", {transform:"translate(0,26)", "pointer-events":"none"}, g);
-    el("rect", {x:-44, y:-66, width:88, height:132, rx:9, fill:"#2a1a58", opacity:".55"}, seal);
-    el("rect", {x:-44, y:-66, width:88, height:132, rx:9, fill:"none",
-                stroke:"url(#goldG)", "stroke-width":2.4, opacity:".95"}, seal);
-    ["텅","드","럼"].forEach(function(ch,i){
-      el("text", {x:0, y:-30 + i*44, "text-anchor":"middle", "dominant-baseline":"middle",
-                  "font-family":"Georgia, 'Times New Roman', serif", "font-size":30,
-                  fill:"url(#goldG)", "letter-spacing":"1"}, seal).textContent = ch;
-    });
-  }
+  if(note.core) drawSeal(g);
 }
 
-/* 이름표(숫자/계이름/음이름) */
-var labelEls = [];
+function drawSeal(g){
+  var seal = el("g", {transform:"translate(0,34)", "pointer-events":"none"}, g);
+  el("rect", {x:-43, y:-62, width:86, height:124, rx:8, fill:"#2a1a58", opacity:".45"}, seal);
+  el("rect", {x:-43, y:-62, width:86, height:124, rx:8, fill:"none",
+              stroke:"url(#goldG)", "stroke-width":2.2, opacity:".92"}, seal);
+  el("rect", {x:-37, y:-56, width:74, height:112, rx:5, fill:"none",
+              stroke:"url(#goldG)", "stroke-width":.9, opacity:".55"}, seal);
+  ["텅","드","럼"].forEach(function(ch,i){
+    el("text", {x:0, y:-28 + i*40, "text-anchor":"middle", "dominant-baseline":"middle",
+                "font-family":"Georgia,'Times New Roman',serif", "font-size":29,
+                fill:"url(#goldG)", "letter-spacing":"1"}, seal).textContent = ch;
+  });
+}
+
 function drawLabel(parent, note, fs){
   var txt = el("text", {
     x:0, y:0, "text-anchor":"middle", "dominant-baseline":"central",
-    "font-family":"Georgia, 'Times New Roman', serif",
-    "font-size":fs, "font-weight":"600",
-    fill:"url(#goldG)", "stroke":"#3a2a06", "stroke-width":".6", "stroke-opacity":".45",
-    "letter-spacing":"0"
+    "font-family":"Georgia,'Times New Roman',serif", "font-size":fs, "font-weight":"600",
+    fill:"url(#goldG)", stroke:"#33240a", "stroke-width":".55", "stroke-opacity":".5"
   }, parent);
-  var dotUp = el("circle", {cx:0, cy:-(fs*0.86), r:Math.max(3, fs*0.085), fill:"url(#goldG)"}, parent);
-  var dotDn = el("circle", {cx:0, cy: (fs*0.78), r:Math.max(3, fs*0.085), fill:"url(#goldG)"}, parent);
+  var dotUp = el("circle", {cx:0, cy:-(fs*0.84), r:Math.max(3.2, fs*0.082), fill:"url(#goldG)"}, parent);
+  var dotDn = el("circle", {cx:0, cy: (fs*0.76), r:Math.max(3.2, fs*0.082), fill:"url(#goldG)"}, parent);
   labelEls.push({note:note, txt:txt, up:dotUp, dn:dotDn, fs:fs});
 }
 
@@ -414,20 +399,16 @@ function applyLabels(){
   labelEls.forEach(function(L){
     var n = L.note, s = "", up = false, dn = false;
     if(LABEL_MODE === "num"){
-      s = n.deg;
-      up = n.oct === 5 || n.oct === 6;
-      dn = n.oct === 3;
+      s = n.deg; up = (n.oct === 5); dn = (n.oct === 3);
     }else if(LABEL_MODE === "photo"){
       s = n.deg;
     }else if(LABEL_MODE === "sol"){
-      s = n.sol;
-      up = n.oct === 5 || n.oct === 6;
-      dn = n.oct === 3;
+      s = n.sol; up = (n.oct === 5); dn = (n.oct === 3);
     }else{
       s = n.name + n.oct;
     }
     L.txt.textContent = s;
-    L.txt.setAttribute("font-size", LABEL_MODE === "nam" ? L.fs*0.74 : L.fs);
+    L.txt.setAttribute("font-size", LABEL_MODE === "nam" ? L.fs*0.76 : L.fs);
     L.up.setAttribute("display", up ? "inline" : "none");
     L.dn.setAttribute("display", dn ? "inline" : "none");
   });
@@ -442,16 +423,13 @@ function buildIR(ctx, seconds){
   var rate = ctx.sampleRate, len = Math.max(1, Math.floor(rate*seconds));
   var buf = ctx.createBuffer(2, len, rate);
   for(var ch=0; ch<2; ch++){
-    var d = buf.getChannelData(ch);
-    var last = 0;
+    var d = buf.getChannelData(ch), last = 0;
     for(var i=0; i<len; i++){
       var t = i/len;
       var env = Math.pow(1-t, 2.35) * Math.exp(-t*2.05);
-      var w = Math.random()*2 - 1;
-      last = last*0.42 + w*0.58;            // 살짝 부드러운 잡음
+      last = last*0.42 + (Math.random()*2-1)*0.58;
       d[i] = last * env * 0.62;
     }
-    /* 초기 반사음 */
     var taps = ch ? [0.011,0.019,0.031,0.047,0.061] : [0.013,0.023,0.036,0.052,0.068];
     for(var k=0;k<taps.length;k++){
       var idx = Math.floor(taps[k]*rate);
@@ -498,13 +476,12 @@ function initAudio(){
   return ctx;
 }
 
-/* 한 음 — c: 컨텍스트, dest: 건조 출력, wet: 컨볼버(공간), noise: 말렛 잡음 버퍼 */
 function makeVoice(c, dest, wet, freq, when, vel, noise){
   var t = when || c.currentTime;
   vel = (vel === undefined ? 1 : vel);
   var dur = Math.min(8.0, Math.max(2.7, 7.6 * Math.pow(170/freq, 0.46)));
 
-  var head = c.createGain();          /* 음 하나의 버스 */
+  var head = c.createGain();
   head.gain.value = 0.9;
   head.connect(dest);
   if(wet){
@@ -512,24 +489,26 @@ function makeVoice(c, dest, wet, freq, when, vel, noise){
     head.connect(send); send.connect(wet);
   }
 
-  /* 배음: 기음 + 옥타브 + 12도 + 2옥타브 + 금속성 */
   var parts = [
-    { r:1.000, a:1.00, d:1.00, det:0     },
-    { r:1.000, a:0.26, d:0.86, det:5.5   },   /* 살짝 어긋난 쌍 — 맥놀이 */
-    { r:2.000, a:0.34, d:0.56, det:-3.0  },
-    { r:3.020, a:0.13, d:0.33, det:2.0   },
-    { r:4.090, a:0.062,d:0.22, det:-2.0  },
-    { r:5.470, a:0.030,d:0.14, det:1.5   }
+    { r:1.000, a:1.00, d:1.00, det:0    },
+    { r:1.000, a:0.26, d:0.86, det:5.5  },
+    { r:2.000, a:0.34, d:0.56, det:-3.0 },
+    { r:3.020, a:0.13, d:0.33, det:2.0  },
+    { r:4.090, a:0.062,d:0.22, det:-2.0 },
+    { r:5.470, a:0.030,d:0.14, det:1.5  }
   ];
-  var tEnd = t + dur;
 
   for(var i=0;i<parts.length;i++){
     var p = parts[i];
     var o = c.createOscillator();
     o.type = "sine";
     var f = freq * p.r;
-    o.frequency.setValueAtTime(f * (p.r === 1 ? 1.006 : 1.0), t);
-    if(p.r === 1) o.frequency.exponentialRampToValueAtTime(f, t + 0.075);
+    if(p.r === 1){
+      o.frequency.setValueAtTime(f*1.006, t);
+      o.frequency.exponentialRampToValueAtTime(f, t + 0.075);
+    }else{
+      o.frequency.setValueAtTime(f, t);
+    }
     if(p.det) o.detune.setValueAtTime(p.det, t);
     var g = c.createGain();
     var peak = p.a * vel * 0.5;
@@ -542,7 +521,6 @@ function makeVoice(c, dest, wet, freq, when, vel, noise){
     o.stop(t + dur*p.d + 0.06);
   }
 
-  /* 말렛 어택 — 아주 짧은 잡음 */
   if(noise){
     var n = c.createBufferSource(); n.buffer = noise;
     var bp = c.createBiquadFilter();
@@ -554,31 +532,30 @@ function makeVoice(c, dest, wet, freq, when, vel, noise){
     n.connect(bp); bp.connect(ng); ng.connect(head);
     n.start(t); n.stop(t+0.08);
   }
-  return { end: tEnd };
+  return { end: t + dur };
 }
 
-/* 울림 방출 */
 var activeVoices = 0;
-function strike(note, vel, idxOverride){
+var lastHit = null;
+
+function strike(note, vel){
   var ctx = AC.ctx || initAudio();
   if(!ctx) return null;
   if(ctx.state === "suspended") ctx.resume();
-  var t = ctx.currentTime + 0.0005;
-  if(activeVoices > 26) return null;   /* 안전 상한 */
+  if(activeVoices > 26) return null;
   activeVoices++;
+  var t = ctx.currentTime + 0.0004;
   makeVoice(ctx, AC.master, AC.wet, note.freq, t, vel === undefined ? 1 : vel, AC.noise);
   var life = Math.min(8.0, Math.max(2.7, 7.6*Math.pow(170/note.freq,0.46)));
   setTimeout(function(){ activeVoices = Math.max(0, activeVoices-1); }, life*1000);
   lastHit = { idx: note.idx, deg: note.deg, name: note.name + note.oct, freq: note.freq, t: Date.now() };
   return lastHit;
 }
-var lastHit = null;
 
 /* ══════════════════════════════════════════════════════════════
-   4. 터치/마우스
+   4. 터치 / 마우스
    ══════════════════════════════════════════════════════════════ */
 var pointerSeen = Object.create(null);
-var lastStrikeAt = 0;
 
 function onPointerDown(ev){
   if(ev.pointerType === "mouse" && ev.button !== 0) return;
@@ -586,12 +563,10 @@ function onPointerDown(ev){
   var key = ev.pointerId || 0;
   if(pointerSeen[key]) return;
   pointerSeen[key] = 1;
-  var plate = ev.currentTarget;
-  var idx = parseInt(plate.getAttribute("data-i"), 10);
-  var note = NOTES[idx];
-  hit(note);
+  var idx = parseInt(ev.currentTarget.getAttribute("data-i"), 10);
+  hit(NOTES[idx]);
 }
-["pointerup","pointercancel","pointerout"].forEach(function(t){
+["pointerup","pointercancel"].forEach(function(t){
   document.addEventListener(t, function(ev){ delete pointerSeen[ev.pointerId || 0]; }, true);
 });
 
@@ -600,16 +575,14 @@ function hit(note){
   var k = keyEls[note.idx];
   if(k){
     try{
-      k.glow.animate([{opacity:".95"},{opacity:"0"}], {duration:820, easing:"cubic-bezier(.16,.7,.3,1)"});
-      k.plate.animate([{filter:"brightness(1.45) saturate(1.15)"},{filter:"brightness(1)"}],
+      k.glow.animate([{opacity:".9"},{opacity:"0"}], {duration:820, easing:"cubic-bezier(.16,.7,.3,1)"});
+      k.plate.animate([{filter:"brightness(1.4) saturate(1.12)"},{filter:"brightness(1)"}],
                       {duration:320, easing:"cubic-bezier(.2,.8,.3,1)"});
-    }catch(e){ /* WAAPI 미지원 시 무시 */ }
+    }catch(e){}
   }
-  lastStrikeAt = Date.now();
   hideHintSoon();
 }
 
-/* 확대·스크롤·새 창 방지 */
 var lastTouchEnd = 0;
 document.addEventListener("touchstart", function(e){
   if(e.touches && e.touches.length > 1 && e.cancelable) e.preventDefault();
@@ -626,7 +599,7 @@ document.addEventListener("dblclick", function(e){ e.preventDefault(); }, {passi
 document.addEventListener("contextmenu", function(e){ e.preventDefault(); }, {passive:false});
 
 /* ══════════════════════════════════════════════════════════════
-   5. 화면 구성 · 메뉴
+   5. 메뉴 · 시작 · 키보드 · 크기
    ══════════════════════════════════════════════════════════════ */
 var menuBtn = document.getElementById("menuBtn");
 var menu = document.getElementById("menu");
@@ -634,10 +607,7 @@ function setMenu(open){
   menu.classList.toggle("open", open);
   menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
 }
-menuBtn.addEventListener("click", function(e){
-  e.stopPropagation();
-  setMenu(!menu.classList.contains("open"));
-});
+menuBtn.addEventListener("click", function(e){ e.stopPropagation(); setMenu(!menu.classList.contains("open")); });
 menu.addEventListener("click", function(e){ e.stopPropagation(); });
 document.addEventListener("pointerdown", function(e){
   if(menu.classList.contains("open") && !menu.contains(e.target) && e.target !== menuBtn) setMenu(false);
@@ -654,21 +624,20 @@ Array.prototype.forEach.call(menu.querySelectorAll("button[data-mode]"), functio
   b.addEventListener("click", function(){ setMode(b.getAttribute("data-mode")); setMenu(false); });
 });
 
-/* 시작 커버 — 첫 제스처에서 오디오 잠금 해제 */
 var cover = document.getElementById("cover");
 function unlock(){
   var ctx = initAudio();
   if(ctx && ctx.state !== "running" && ctx.resume) ctx.resume();
-  cover.classList.add("hide");
-  setTimeout(function(){ if(cover.parentNode) cover.parentNode.removeChild(cover); }, 520);
+  if(cover && !cover.classList.contains("hide")){
+    cover.classList.add("hide");
+    setTimeout(function(){ if(cover.parentNode) cover.parentNode.removeChild(cover); }, 520);
+  }
   hideHintSoon();
 }
 cover.addEventListener("pointerdown", function(e){ e.preventDefault(); unlock(); }, {passive:false});
 cover.addEventListener("touchstart", function(e){ e.preventDefault(); unlock(); }, {passive:false});
 cover.addEventListener("click", function(e){ e.preventDefault(); unlock(); });
-window.addEventListener("keydown", function(){ if(!cover.classList.contains("hide")) unlock(); }, {once:false});
 
-/* 데스크톱 키보드 */
 var KEY_BY_NAME = {
   "1":"C4", "2":"D4", "3":"E4", "4":"F4", "5":"G4", "6":"A4", "7":"B4",
   "q":"C5", "w":"D5", "e":"E5",
@@ -682,32 +651,30 @@ window.addEventListener("keydown", function(e){
   var k = (e.key || "").toLowerCase();
   if(KEY_BY_NAME[k]){
     e.preventDefault();
-    if(!cover.classList.contains("hide")) unlock();
+    if(!AC.ready) unlock();
     var n = NAME_TO_NOTE[KEY_BY_NAME[k]];
     if(n) hit(n);
   }
 });
 
-/* 힌트 */
 var hint = document.getElementById("hint");
 var hintTimer = null;
 function hideHintSoon(){
   if(hintTimer) return;
-  hintTimer = setTimeout(function(){ hint.classList.add("gone"); }, 6000);
+  hintTimer = setTimeout(function(){ hint.classList.add("gone"); }, 5500);
 }
 setTimeout(function(){ hint.classList.add("gone"); }, 16000);
 
-/* 크기 조정 */
 function layout(){
   var vw = window.innerWidth, vh = window.innerHeight;
   var land = vw > vh;
-  var size = Math.min(vw * (land ? 0.98 : 0.94), vh * (land ? 0.94 : 0.86));
+  var size = Math.min(vw * (land ? 0.99 : 0.95), vh * (land ? 0.95 : 0.87));
   var stage = document.getElementById("stage");
   stage.style.width = size + "px";
   stage.style.height = size + "px";
   var floor = document.getElementById("floor");
-  floor.style.width = (size * 1.02) + "px";
-  floor.style.height = (size * 1.02) + "px";
+  floor.style.width = (size*1.0) + "px";
+  floor.style.height = (size*1.0) + "px";
 }
 window.addEventListener("resize", layout);
 window.addEventListener("orientationchange", function(){ setTimeout(layout, 120); });
@@ -715,10 +682,21 @@ window.addEventListener("orientationchange", function(){ setTimeout(layout, 120)
 /* ── 실행 ── */
 drawKey(NOTES[0]);
 for(var i=1;i<NOTES.length;i++) drawKey(NOTES[i]);
+
+/* 땋은 테두리 — 혀 위에 덮어 혀 끝이 링 밑으로 들어가 보이게 */
+el("circle", {cx:0, cy:0, r:(RIM_IN+RIM_OUT)/2, fill:"none", stroke:"url(#ropeG)",
+              "stroke-width":(RIM_OUT-RIM_IN)}, rimG);
+el("circle", {cx:0, cy:0, r:(RIM_IN+RIM_OUT)/2, fill:"none", stroke:"url(#braid)",
+              "stroke-width":(RIM_OUT-RIM_IN-4)}, rimG);
+el("circle", {cx:0, cy:0, r:RIM_IN+1.5, fill:"none", stroke:"#2a1a55", "stroke-width":4.5, opacity:".9"}, rimG);
+el("circle", {cx:0, cy:0, r:RIM_OUT-1.5, fill:"none", stroke:"#0d0620", "stroke-width":5, opacity:".85"}, rimG);
+el("circle", {cx:0, cy:0, r:RIM_IN+8, fill:"none", stroke:"#0a0418", "stroke-width":7, opacity:".28"}, rimG);
+el("circle", {cx:0, cy:0, r:RIM_OUT-9, fill:"none", stroke:"#ffffff", "stroke-width":1.4, opacity:".22"}, rimG);
+
 setMode("num");
 layout();
 
-/* 확인용 공개 API (테스트 하네스에서 사용) */
+/* 확인용 공개 API */
 window.__td = {
   notes: NOTES,
   makeVoice: makeVoice,
