@@ -1194,46 +1194,58 @@ function measure(i){
   var size = sizes[i];
   var target = hz(state.notes[size]);
   var Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-  var sr = 44100, dur = 2.2;
+  var sr = 44100, dur = 2.4;
   var oc = new Ctx(1, Math.floor(sr * dur), sr);
   var t = 0.02;
   makeVoice(oc, oc.destination, {t:t, freq:target, vel:1, pos:0.34, pan:0, gain:1});
   return oc.startRendering().then(function(buf){
-    var d = buf.getChannelData(0);
-    var start = Math.floor(sr * 0.16), N = 8192;
-    var lagMin = Math.floor(sr / (target * 1.10));
-    var lagMax = Math.min(Math.floor(sr / (target * 0.90)), Math.floor(N / 2) - 2);
-    var best = -1, bestLag = lagMin;
-    for(var lag = lagMin; lag <= lagMax; lag++){
-      var sum = 0, e1 = 0, e2 = 0;
-      for(var n = 0; n < N; n++){
-        var a = d[start + n], b = d[start + n + lag];
-        sum += a * b; e1 += a * a; e2 += b * b;
+    var raw = buf.getChannelData(0);
+    var start = Math.floor(sr * 0.20), N = Math.floor(sr * 1.5);
+    /* 기음만 남기도록 1.35배음 아래로 낮춘 뒤 주기를 잽니다 */
+    var w0 = 2 * Math.PI * (target * 1.12), alpha = Math.exp(-w0 / sr);
+    var a1 = -2 * alpha * Math.cos(w0 / sr), a2 = alpha * alpha;
+    var d = new Float32Array(N);
+    for(var n = 0; n < N; n++) d[n] = raw[start + n];
+    for(var pass = 0; pass < 3; pass++){
+      var y1 = 0, y2 = 0;
+      for(var m = 0; m < N; m++){
+        var xin = d[m];
+        var yout = (1 + a1 + a2) * xin - a1 * y1 - a2 * y2;
+        y2 = y1; y1 = yout;
+        d[m] = yout;
       }
-      var v = sum / Math.sqrt(e1 * e2 || 1);
-      if(v > best){ best = v; bestLag = lag; }
     }
-    /* 포물선 보정 */
-    function ac(lag){
-      var sum = 0, e1 = 0, e2 = 0;
-      for(var n = 0; n < N; n++){
-        var a = d[start + n], b = d[start + n + lag];
-        sum += a * b; e1 += a * a; e2 += b * b;
+    function acf(lag){
+      var s = 0, e1 = 0, e2 = 0;
+      for(var q = 0; q + lag < N - 1; q++){
+        var a = d[q], b = d[q + lag];
+        s += a * b; e1 += a * a; e2 += b * b;
       }
-      return sum / Math.sqrt(e1 * e2 || 1);
+      return s / Math.sqrt((e1 * e2) || 1);
     }
-    var y0 = ac(bestLag - 1), y1 = best, y2 = ac(bestLag + 1);
-    var denom = (y0 - 2 * y1 + y2);
-    var delta = denom !== 0 ? (0.5 * (y0 - y2)) / denom : 0;
-    var lagRef = bestLag + delta;
-    var measured = sr / lagRef;
+    var lag0 = sr / target;
+    var best = -2, bestLag = lag0, bestK = 1;
+    for(var k = 1; k <= 10; k++){
+      var center = lag0 * k;
+      if(center > N * 0.55) break;
+      var lo = Math.floor(center * 0.97), hi = Math.ceil(center * 1.03);
+      for(var lag = lo; lag <= hi; lag++){
+        var v = acf(lag);
+        if(v > best){ best = v; bestLag = lag; bestK = k; }
+      }
+    }
+    var y0 = acf(bestLag - 1), y1 = best, y2 = acf(bestLag + 1);
+    var den = (y0 - 2 * y1 + y2);
+    var delta = den !== 0 ? (0.5 * (y0 - y2)) / den : 0;
+    var measured = (sr * bestK) / (bestLag + delta);
     var peak = 0;
-    for(var q = 0; q < d.length; q++){ if(Math.abs(d[q]) > peak) peak = Math.abs(d[q]); }
+    for(var z = 0; z < raw.length; z++){ if(Math.abs(raw[z]) > peak) peak = Math.abs(raw[z]); }
     return {
       i:i, size:size, note:noteName(state.notes[size]),
-      targetHz:Math.round(target * 100) / 100,
-      measuredHz:Math.round(measured * 100) / 100,
+      targetHz:Math.round(target * 1000) / 1000,
+      measuredHz:Math.round(measured * 1000) / 1000,
       cents:Math.round(1200 * Math.log2(measured / target) * 100) / 100,
+      period:bestK,
       acf:Math.round(best * 1000) / 1000,
       peak:Math.round(peak * 1000) / 1000
     };
