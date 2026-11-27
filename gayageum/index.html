@@ -648,7 +648,7 @@ function buildModel(W, H){
     [0, "#d8c9a8"], [26, "#efe2c2"], [58, "#dccaa4"], [100, "#a58a60"]
   ]);
   lg("brgG", "0", "0", "0", "1", [
-    [0, "#f4e5c2"], [24, "#e8d3a4"], [58, "#c8a670"], [84, "#9c7844"], [100, "#6f5027"]
+    [0, "#e8d3a2"], [22, "#dcc28c"], [56, "#bd9a63"], [84, "#93703c"], [100, "#63431f"]
   ]);
   lg("silkLight", "0", "0", "0", "1", [
     [0, "#ffffff", ".95"], [30, "#fffaf0", ".55"], [62, "#e8d9bd", ".30"], [100, "#8d7a58", ".22"]
@@ -688,16 +688,15 @@ function buildModel(W, H){
   }
 
   /* ══════ 앞판 (실사 나뭇결 사진) ══════ */
-  var FLAT = /flat=1/.test(location.search);
   var gBoard = el("g", { "clip-path": "url(#boardClip)" }, root);
   el("image", {
     x: 0, y: top, width: W, height: bh, preserveAspectRatio: "none",
     href: TEX_BOARD
   }, gBoard);
   /* 조명·옻칠 */
-  if(!FLAT) el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#boardLight)" }, gBoard);
-  if(!FLAT) el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#lacquer)" }, gBoard);
-  if(!FLAT) el("ellipse", {
+  el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#boardLight)" }, gBoard);
+  el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#lacquer)" }, gBoard);
+  el("ellipse", {
     cx: W * 0.34, cy: top + bh * 0.24, rx: W * 0.30, ry: bh * 0.55,
     fill: "url(#sheenSpot)", opacity: ".16"
   }, gBoard);
@@ -772,7 +771,7 @@ function buildModel(W, H){
   for(var ci = 0; ci < 12; ci++){
     var yy = yOf(ci);
     var cy2 = yy + (yy - H / 2) * 0.03;
-    var cw = Math.max(1.5, s * 0.19);
+    var cw = Math.max(1.7, s * 0.22);
     /* 그림자 */
     el("line", { x1:cordX0, y1:cy2 + s * 0.10, x2:cordX1, y2:yy + s * 0.10,
                  stroke: "rgba(24,8,2,.45)", "stroke-width": cw + Math.max(1, s * 0.06),
@@ -918,8 +917,8 @@ function buildModel(W, H){
     var gid = "silk" + si;
     var gg = el("linearGradient", { id:gid, gradientUnits:"userSpaceOnUse",
                 x1:0, y1:(sv - w * 0.55).toFixed(2), x2:0, y2:(sv + w * 0.55).toFixed(2) }, defs);
-    el("stop", { offset:"0%", "stop-color":"#fffdf6" }, gg);
-    el("stop", { offset:"26%", "stop-color":"#f6ecd4" }, gg);
+    el("stop", { offset:"0%", "stop-color":"#fdf6e4" }, gg);
+    el("stop", { offset:"24%", "stop-color":"#f4e8cd" }, gg);
     el("stop", { offset:"62%", "stop-color":"#ddc9a2" }, gg);
     el("stop", { offset:"88%", "stop-color":"#a58f68" }, gg);
     el("stop", { offset:"100%", "stop-color":"#6f5c3c" }, gg);
@@ -930,9 +929,9 @@ function buildModel(W, H){
     el("path", { d:dd, fill:"none", stroke:"rgba(74,52,24,.55)",
                  "stroke-width": w + Math.max(0.7, s * 0.035), "stroke-linecap":"round" }, g1);
     /* 판 위에 드리우는 그림자 */
-    el("path", { d:dd, fill:"none", stroke:"#2a1405", "stroke-opacity":".38",
-                 "stroke-width": w * 1.7 + Math.max(1.1, s * 0.06), "stroke-linecap":"round",
-                 transform:"translate(0," + Math.max(1.1, s * 0.055).toFixed(2) + ")" }, g1);
+    el("path", { d:dd, fill:"none", stroke:"#241203", "stroke-opacity":".26",
+                 "stroke-width": w * 1.45 + Math.max(1.0, s * 0.05), "stroke-linecap":"round",
+                 transform:"translate(0," + Math.max(1.4, s * 0.070).toFixed(2) + ")" }, g1);
     var main = el("path", { d:dd, fill:"none", stroke: "url(#" + gid + ")",
                             "stroke-width": w, "stroke-linecap":"round" }, g1);
     var hi = el("path", { d:dd, fill:"none", stroke:"#ffffff", "stroke-opacity":".45",
@@ -1302,11 +1301,11 @@ function layout(){
 
   var modelW, modelH, boxW, boxH, rot = 0;
   if(!portrait){
-    modelW = availW - 18;
+    modelW = availW - 34;
     modelH = clamp(availH * 0.96, 150, 470);
     boxW = modelW; boxH = modelH;
   } else {
-    modelW = availH - 18;
+    modelW = availH - 34;
     modelH = clamp(availW * 0.96, 150, 470);
     boxW = modelH; boxH = modelW;
     rot = -90;
