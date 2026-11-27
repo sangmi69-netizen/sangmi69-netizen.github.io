@@ -140,7 +140,10 @@ async function audioTest(w){
                bands:a1.bands, harm:a1.harm, env:a1.blocks };
     r.yu = { targetHz:+(440*Math.pow(2,(m2.midi-69)/12)).toFixed(1), f0:a2.f0, peak:a2.peak, rms:a2.rms,
              bands:a2.bands, harm:a2.harm, env:a2.blocks };
-    r.nong = { targetHz:+(440*Math.pow(2,(m1.midi+12-69)/12)).toFixed(1), f0:a3.f0, peak:a3.peak, rms:a3.rms, bands:a3.bands };
+    var b4 = await w.__hg.renderOffline([{ s:0, midi:m1.midi + 12, at:0.02, dur:1.1 }], 1.9);
+    var a4 = w.__hg.analyze(b4);
+    r.nong = { targetHz:+(440*Math.pow(2,(m1.midi+12-69)/12)).toFixed(1), f0:a3.f0, peak:a3.peak, rms:a3.rms, bands:a3.bands,
+               trackOn:a3.track, trackOff:a4.track };
   }catch(e){ r.error = String(e && e.stack || e); }
   add('audio', r);
 }

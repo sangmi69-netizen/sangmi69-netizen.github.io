@@ -237,6 +237,13 @@
         <stop offset="50%" stop-color="#7d2a1f"/>
         <stop offset="100%" stop-color="#51190f"/>
       </linearGradient>
+      <linearGradient id="laneFade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f6d6a0" stop-opacity="0"/>
+        <stop offset="10%" stop-color="#f6d6a0" stop-opacity=".05"/>
+        <stop offset="50%" stop-color="#f6d6a0" stop-opacity=".075"/>
+        <stop offset="90%" stop-color="#f6d6a0" stop-opacity=".05"/>
+        <stop offset="100%" stop-color="#f6d6a0" stop-opacity="0"/>
+      </linearGradient>
       <radialGradient id="laneGlow" cx="50%" cy="50%" r="62%">
         <stop offset="0%" stop-color="#ffd79a" stop-opacity=".26"/>
         <stop offset="60%" stop-color="#f0b96a" stop-opacity=".09"/>
@@ -633,7 +640,7 @@ function buildStrings(){
   for(var s=0; s<2; s++){
     var g = (s === 0) ? strJungG : strYuG;
     strEls[s] = [];
-    var w = s === 0 ? 4.4 : 3.0;
+    var w = s === 0 ? 5.0 : 3.4;
     strEls[s].push(el("path", {d:"", fill:"none", stroke:"#b89f74", "stroke-width":w + 1.2, "stroke-linecap":"round", opacity:".85"}, g));
     strEls[s].push(el("path", {d:"", fill:"none", stroke:"url(#silkG)", "stroke-width":w, "stroke-linecap":"round"}, g));
     strEls[s].push(el("path", {d:"", fill:"none", stroke:"#fffaf0", "stroke-width":Math.max(0.7, w * 0.32), "stroke-linecap":"round", opacity:".5"}, g));
@@ -704,7 +711,7 @@ function buildOverlay(){
     var w = GEO.laneOuter - GEO.laneInner;
     var lane = el("rect", {
       x:x1, y:GEO.playTop, width:w, height:GEO.playH, rx:14,
-      fill:"rgba(246,214,160,0.013)", stroke:"none",
+      fill:"url(#laneFade)", stroke:"none",
       "data-lane":s, class:"lane"
     }, lanesG);
     lane.style.touchAction = "none";
@@ -714,15 +721,17 @@ function buildOverlay(){
     for(var r=0;r<n;r++){
       el("circle", {cx:GEO.strX[s], cy:rowY(r), r:3.4, fill:"url(#dotG)", opacity:".5"}, markG);
     }
-    /* 줄 경계 눈금 */
+    /* 줄 경계 — 손가락이 닿는 자리 */
     var outer = (s === 0) ? -GEO.laneOuter : GEO.laneOuter;
-    var inner = (s === 0) ? -GEO.laneOuter + 14 : GEO.laneOuter - 14;
+    var inner = (s === 0) ? -GEO.laneInner : GEO.laneInner;
     for(var b=0;b<=n;b++){
       var by = GEO.playTop + b * h;
-      el("line", {x1:inner, y1:by, x2:outer, y2:by, stroke:"rgba(246,214,160,.16)", "stroke-width":1}, markG);
+      el("line", {x1:inner, y1:by, x2:outer, y2:by, stroke:"rgba(246,214,160,.07)", "stroke-width":1}, markG);
     }
     el("line", {x1:outer, y1:GEO.playTop, x2:outer, y2:GEO.playTop + GEO.playH,
-                stroke:"rgba(246,214,160,.14)", "stroke-width":1}, markG);
+                stroke:"rgba(246,214,160,.13)", "stroke-width":1}, markG);
+    el("line", {x1:inner, y1:GEO.playTop, x2:inner, y2:GEO.playTop + GEO.playH,
+                stroke:"rgba(246,214,160,.05)", "stroke-width":1}, markG);
 
     for(var r2=0;r2<n;r2++){
       var d = ROWS[s][r2];
@@ -799,13 +808,13 @@ function updateLabels(){
 var CFG = {
   0: { /* 중현 */
     f1:300, g1:5.0, f2:700, g2:7.0, f3:1250, g3:9.0, f4:2200, g4:-6, lp:6400,
-    attack:0.075, peak:0.30, noise:0.20, nf:1450, nq:0.75,
-    vibRate:4.7, vibBase:7, vibMax:54, pan:-0.16, sub:0.16, shape:1.55
+    attack:0.075, peak:0.26, noise:0.20, nf:1450, nq:0.75,
+    vibRate:4.7, vibBase:7, vibMax:54, pan:-0.16, sub:0.14, shape:1.5
   },
   1: { /* 유현 */
     f1:360, g1:3.4, f2:860, g2:6.0, f3:1760, g3:10.0, f4:2700, g4:-6, lp:8800,
-    attack:0.048, peak:0.26, noise:0.15, nf:2500, nq:0.8,
-    vibRate:5.6, vibBase:6, vibMax:46, pan:0.16, sub:0.10, shape:1.35
+    attack:0.048, peak:0.23, noise:0.15, nf:2500, nq:0.8,
+    vibRate:5.6, vibBase:6, vibMax:46, pan:0.16, sub:0.08, shape:1.3
   }
 };
 
@@ -866,7 +875,7 @@ function bootAudio(){
   catch(e){ try{ c = new Ctx(); }catch(e2){ return null; } }
   AC.ctx = c;
 
-  var master = c.createGain(); master.gain.value = 0.60;
+  var master = c.createGain(); master.gain.value = 0.55;
   var comp = c.createDynamicsCompressor();
   comp.threshold.value = -16; comp.knee.value = 22; comp.ratio.value = 3.0;
   comp.attack.value = 0.004; comp.release.value = 0.25;
@@ -928,10 +937,10 @@ function Voice(ctx, dest, rev, strId, midi, opts){
   var o2 = c.createOscillator(); o2.type = "sawtooth";
   var o3 = c.createOscillator(); o3.type = "sine";
   o1.frequency.value = f;
-  o2.frequency.value = f * 1.0012;
+  o2.frequency.value = f * 2;
   o3.frequency.value = f;
-  var g1 = c.createGain(); g1.gain.value = 0.5;
-  var g2 = c.createGain(); g2.gain.value = 0.22;
+  var g1 = c.createGain(); g1.gain.value = 0.55;
+  var g2 = c.createGain(); g2.gain.value = 0.10;
   var g3 = c.createGain(); g3.gain.value = cfg.sub;
   o1.connect(g1); o2.connect(g2); o3.connect(g3);
   g1.connect(drive); g2.connect(drive); g3.connect(drive);
@@ -939,8 +948,8 @@ function Voice(ctx, dest, rev, strId, midi, opts){
 
   o1.frequency.setValueAtTime(f * 0.982, when);
   o1.frequency.exponentialRampToValueAtTime(f, when + 0.10);
-  o2.frequency.setValueAtTime(f * 1.0012 * 0.982, when);
-  o2.frequency.exponentialRampToValueAtTime(f * 1.0012, when + 0.10);
+  o2.frequency.setValueAtTime(f * 2 * 0.99, when);
+  o2.frequency.exponentialRampToValueAtTime(f * 2, when + 0.10);
 
   var lfo = c.createOscillator(); lfo.type = "sine"; lfo.frequency.value = cfg.vibRate;
   var lg = c.createGain(); lg.gain.value = cfg.vibBase;
@@ -980,7 +989,7 @@ Voice.prototype.setMidi = function(m){
   var a = this.oscs;
   try{ a[0].frequency.cancelScheduledValues(t); a[1].frequency.cancelScheduledValues(t); a[2].frequency.cancelScheduledValues(t); }catch(e){}
   a[0].frequency.setTargetAtTime(f, t, 0.028);
-  a[1].frequency.setTargetAtTime(f * 1.0012, t, 0.028);
+  a[1].frequency.setTargetAtTime(f * 2, t, 0.028);
   a[2].frequency.setTargetAtTime(f, t, 0.028);
 };
 
@@ -1531,8 +1540,25 @@ function analyze(buf){
     for(var m2=0;m2<bl && b2*bl+m2<n;m2++){ s3 += d[b2*bl+m2]*d[b2*bl+m2]; cnt++; }
     blocks.push(+Math.sqrt(s3 / Math.max(1,cnt)).toFixed(4));
   }
+  var track = [];
+  for(var w2=0; w2<6; w2++){
+    var s0 = Math.floor(sr * (0.45 + w2 * 0.09));
+    var wl = Math.min(2048, n - s0 - 1);
+    if(wl < 512) break;
+    var ww = new Float32Array(wl), mm = 0;
+    for(var q2=0;q2<wl;q2++){ ww[q2] = d[s0+q2]; mm += ww[q2]; }
+    mm /= wl;
+    for(var q3=0;q3<wl;q3++) ww[q3] -= mm;
+    var lo = Math.floor(sr / 1600), hi = Math.floor(sr / 60), bb = -1, bl2 = 0;
+    for(var lg=lo; lg<=hi; lg++){
+      var ac = 0;
+      for(var kk=0; kk<wl-lg; kk++) ac += ww[kk] * ww[kk + lg];
+      if(ac > bb){ bb = ac; bl2 = lg; }
+    }
+    track.push(bl2 ? +(sr / bl2).toFixed(1) : 0);
+  }
   return { peak:+peak.toFixed(4), rms:+rms.toFixed(4), f0:+f0.toFixed(1),
-           bands:bandsNorm, harm:harmNorm, blocks:blocks };
+           bands:bandsNorm, harm:harmNorm, blocks:blocks, track:track };
 }
 function renderOffline(list, sec){
   var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
