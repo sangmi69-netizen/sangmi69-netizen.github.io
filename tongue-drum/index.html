@@ -708,7 +708,7 @@ setTimeout(function(){ hint.classList.add("gone"); }, 16000);
 function layout(){
   var vw = window.innerWidth, vh = window.innerHeight;
   var land = vw > vh;
-  var size = Math.min(vw * (land ? 0.99 : 0.95), vh * (land ? 0.95 : 0.87));
+  var size = Math.min(vw * (land ? 0.99 : 0.96), vh * (land ? 0.87 : 0.80));
   var stage = document.getElementById("stage");
   stage.style.width = size + "px";
   stage.style.height = size + "px";
