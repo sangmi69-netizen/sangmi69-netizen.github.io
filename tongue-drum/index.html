@@ -318,11 +318,11 @@ function tonguePath(tipR, hw, armR){
 
 /* 가운데 혀: 화면 기준 세로 (갈래가 위로, 둥근 끝이 아래로) — 위 모서리는 살짝 둥글게 */
 function corePath(hw, armY, capY){
-  var r = 26;
-  return "M " + (-hw) + " " + (armY + r) +
-         " Q " + (-hw) + " " + armY + " " + (-hw + r) + " " + armY +
-         " L " + (hw - r) + " " + armY +
-         " Q " + hw + " " + armY + " " + hw + " " + (armY + r) +
+  var r = 30;
+  return "M " + (-hw) + " " + (armY + 14) +
+         " Q " + (-hw) + " " + armY + " " + (-hw + r) + " " + (armY - 6) +
+         " L " + (hw - r) + " " + (armY - 6) +
+         " Q " + hw + " " + armY + " " + hw + " " + (armY + 14) +
          " L " + hw + " " + capY +
          " A " + hw + " " + hw + " 0 0 0 " + (-hw) + " " + capY +
          " Z";
@@ -379,11 +379,11 @@ function drawKey(note){
 
   /* 혀 판 — 상판과 같은 강판(빛만 살짝 다르게) */
   var plate = el("path", {d:path, fill:"url(#faceG)", "data-i":note.idx, class:"plate"}, g);
-  el("path", {d:path, fill:"url(#plateSheen)", opacity:".55", "pointer-events":"none"}, g);
+  el("path", {d:path, fill:"url(#plateSheen)", opacity:".22", "pointer-events":"none"}, g);
   /* 판 위 미세 결 */
   el("path", {d:path, fill:"url(#brushed)", opacity:".35", "pointer-events":"none"}, g);
   /* 컷 가장자리의 밝은 선 */
-  el("path", {d:path, fill:"none", stroke:"#e9dcff", "stroke-opacity":".18", "stroke-width":1.2,
+  el("path", {d:path, fill:"none", stroke:"#e9dcff", "stroke-opacity":".13", "stroke-width":1.1,
               "stroke-linejoin":"round", opacity:".8", "pointer-events":"none"}, g);
   /* 안쪽 끝의 옅은 그늘 */
   el("path", {d:path, fill:"url(#capShade)", opacity:".35", "pointer-events":"none"}, g);
@@ -572,6 +572,7 @@ function makeVoice(c, dest, wet, freq, when, vel, noise){
 
 var activeVoices = 0;
 var lastHit = null;
+var hitLog = [];
 
 function strike(note, vel){
   var ctx = AC.ctx || initAudio();
@@ -584,6 +585,7 @@ function strike(note, vel){
   var life = Math.min(8.0, Math.max(2.7, 7.6*Math.pow(170/note.freq,0.46)));
   setTimeout(function(){ activeVoices = Math.max(0, activeVoices-1); }, life*1000);
   lastHit = { idx: note.idx, deg: note.deg, name: note.name + note.oct, freq: note.freq, t: Date.now() };
+  hitLog.push(lastHit); if(hitLog.length > 240) hitLog.shift();
   return lastHit;
 }
 
@@ -753,6 +755,7 @@ window.__td = {
   ctx: function(){ return AC.ctx; },
   ready: function(){ return AC.ready; },
   last: function(){ return lastHit; },
+  history: function(){ return hitLog; },
   unlock: unlock
 };
 })();
