@@ -208,6 +208,7 @@
       </defs>
       <g id="shell"></g>
       <g id="keys"></g>
+      <g id="gloss"></g>
       <g id="rim"></g>
     </svg>
   </div>
@@ -330,6 +331,7 @@ function corePath(hw, armY, capY){
 
 var shell = document.getElementById("shell");
 var keysG = document.getElementById("keys");
+var glossG = document.getElementById("gloss");
 var rimG  = document.getElementById("rim");
 
 /* ── 몸통 · 상판 ── */
@@ -337,14 +339,6 @@ el("circle", {cx:0, cy:0, r:OUTER, fill:"url(#bodyG)", filter:"url(#dropSoft)"},
 el("circle", {cx:0, cy:0, r:OUTER-1, fill:"none", stroke:"#0a0418", "stroke-width":3, opacity:".8"}, shell);
 el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#faceG)"}, shell);
 el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#brushed)"}, shell);
-el("ellipse",{cx:-165, cy:-235, rx:340, ry:225, fill:"url(#sheen)", opacity:".40",
-              transform:"rotate(-26 -165 -235)"}, shell);
-el("ellipse",{cx:150, cy:265, rx:250, ry:170, fill:"url(#sheen)", opacity:".10",
-              transform:"rotate(-26 150 265)"}, shell);
-el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#edgeShade)"}, shell);
-/* 큰 반사광 띠 */
-el("ellipse", {cx:-190, cy:-60, rx:230, ry:330, fill:"url(#sheen)", opacity:".17",
-               transform:"rotate(28 -190 -60)"}, shell);
 [396, 262].forEach(function(r){
   el("circle",{cx:0, cy:0, r:r, fill:"none", stroke:"#ffffff", "stroke-opacity":".04", "stroke-width":1.2}, shell);
 });
@@ -379,14 +373,13 @@ function drawKey(note){
 
   /* 혀 판 — 상판과 같은 강판(빛만 살짝 다르게) */
   var plate = el("path", {d:path, fill:"url(#faceG)", "data-i":note.idx, class:"plate"}, g);
-  el("path", {d:path, fill:"url(#plateSheen)", opacity:".22", "pointer-events":"none"}, g);
   /* 판 위 미세 결 */
   el("path", {d:path, fill:"url(#brushed)", opacity:".35", "pointer-events":"none"}, g);
   /* 컷 가장자리의 밝은 선 */
   el("path", {d:path, fill:"none", stroke:"#e9dcff", "stroke-opacity":".13", "stroke-width":1.1,
               "stroke-linejoin":"round", opacity:".8", "pointer-events":"none"}, g);
   /* 안쪽 끝의 옅은 그늘 */
-  el("path", {d:path, fill:"url(#capShade)", opacity:".35", "pointer-events":"none"}, g);
+  el("path", {d:path, fill:"url(#capShade)", opacity:".22", "pointer-events":"none"}, g);
 
   /* 빛남 */
   var glow = el("path", {d:path, fill:"#ffe8b4", filter:"url(#glowF)", opacity:"0",
@@ -719,6 +712,15 @@ window.addEventListener("orientationchange", function(){ setTimeout(layout, 120)
 /* ── 실행 ── */
 drawKey(NOTES[0]);
 for(var i=1;i<NOTES.length;i++) drawKey(NOTES[i]);
+
+/* ── 반사광(혀 위까지 같은 빛) ── */
+el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#edgeShade)", "pointer-events":"none"}, glossG);
+el("ellipse",{cx:-165, cy:-235, rx:340, ry:225, fill:"url(#sheen)", opacity:".38",
+               transform:"rotate(-26 -165 -235)", "pointer-events":"none"}, glossG);
+el("ellipse",{cx:-190, cy:-60, rx:210, ry:320, fill:"url(#sheen)", opacity:".14",
+               transform:"rotate(28 -190 -60)", "pointer-events":"none"}, glossG);
+el("ellipse",{cx:160, cy:270, rx:240, ry:160, fill:"url(#sheen)", opacity:".07",
+               transform:"rotate(-26 160 270)", "pointer-events":"none"}, glossG);
 
 /* 땋은 테두리 — 혀 위에 덮어 혀 끝이 링 밑으로 들어가 보이게 */
 var ropeR = (RIM_IN + RIM_OUT) / 2, ropeW = (RIM_OUT - RIM_IN);
