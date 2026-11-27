@@ -33,8 +33,11 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 }
 #scene{
   position:absolute;left:50%;top:50%;
+  /* 무대는 언제나 16:9 — 주소창이 접히거나 전체화면이 되어도 악기 사이 비율이 그대로입니다 */
   width:min(100vw,calc(100dvh * 16 / 9));
+  width:min(100vw,calc(100svh * 16 / 9));
   height:min(calc(100vw * 9 / 16),100dvh);
+  height:min(calc(100vw * 9 / 16),100svh);
   transform:translate(-50%,-50%);
   overflow:hidden;isolation:isolate;touch-action:none;
 }
@@ -43,7 +46,14 @@ button{font-family:inherit;color:inherit;cursor:pointer}
   background:radial-gradient(125% 105% at 50% 52%,rgba(0,0,0,0) 58%,rgba(0,0,0,.34) 84%,rgba(0,0,0,.72) 100%);
 }
 @media (orientation:portrait) and (max-width:900px){
-  #scene{width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
+  /* 세로로 열려도 무대는 같은 16:9 — 90° 돌리기만 하고 비율은 바꾸지 않습니다 */
+  #scene{
+    width:min(100vw,calc(100dvh * 9 / 16));
+    width:min(100vw,calc(100svh * 9 / 16));
+    height:min(calc(100vw * 16 / 9),100dvh);
+    height:min(calc(100vw * 16 / 9),100svh);
+    transform:translate(-50%,-50%) rotate(90deg)
+  }
 }
 
 /* ---------- 심벌 (위에서 내려다본 원형) ---------- */
@@ -496,8 +506,9 @@ var IMG = {snare:"data:image/webp;base64,UklGRnT2AABXRUJQVlA4WAoAAAAQAAAA5QQA5QQ
 var CYMS = [
   /* z — 크래시 1은 하이햇보다 위 레이어(실제 드럼처럼 크래시가 하이햇 위쪽을 덮음) */
   {id:"crash1", img:"crash", x:19, y:15, w:28, rot:-5, b:.95, hue:-5, sat:1.02, z:6, label:"크래시 1 (16인치)", key:"Q", zone:"crash16", tune:1.00, pan:-0.45},
-  {id:"ride",   img:"ride",  x:83.5, y:36, w:28, rot:3, b:1.00, hue:0, sat:1.00, label:"라이드", key:"E", zone:"ride", tune:1.00, bell:true, pan:0.38},
-  {id:"crash2", img:"crash", x:56, y:11, w:26, rot:7,  b:1.00, hue:3,  sat:1.00, label:"크래시 2 (14인치)", key:"W", zone:"crash14", tune:1.00, pan:0.5},
+  /* 라이드: 미들 탐 오른쪽 위에 살짝 걸치고 윗부분이 잘리지 않는 자리(상미 님 지정) / 크래시 2는 오른쪽으로 비켜 줌 */
+  {id:"ride",   img:"ride",  x:71, y:24, w:28, rot:3, b:1.00, hue:0, sat:1.00, label:"라이드", key:"E", zone:"ride", tune:1.00, bell:true, pan:0.38},
+  {id:"crash2", img:"crash", x:93, y:46, w:26, rot:7,  b:1.00, hue:3,  sat:1.00, label:"크래시 2 (14인치)", key:"W", zone:"crash14", tune:1.00, pan:0.5},
   {id:"hihat",  img:"hihat", x:13, y:44, w:24, rot:0,  b:.95, hue:-3, sat:1.00, z:3, label:"하이햇",  key:"A", zone:"hihat", tune:1.00, open:true, pan:-0.38}
 ];
 var DRUMS = [
@@ -1311,7 +1322,7 @@ pads.kickPedal = kickPedalEl;
 /* ================= 위치·크기 저장 · 편집 모드 ================= */
 var POS = Object.create(null);   /* id -> {x,y} 무대(16:9) 기준 % 좌표 */
 var SIZ = Object.create(null);   /* id -> 크기 배율 (0.6 ~ 1.6) */
-var LAYOUT_KEY = "vd_layout2";   /* 배치(하이햇↔라이드 스왑)가 바뀌어 저장 키를 올림 */
+var LAYOUT_KEY = "vd_layout3";   /* 라이드·크래시 2 기본 자리가 바뀌어 저장 키를 올림 */
 var SCALE_MIN = 0.6, SCALE_MAX = 1.6;
 function clampPct(v){ return Math.max(-4, Math.min(104, v)); }
 function clampScale(v){ return Math.max(SCALE_MIN, Math.min(SCALE_MAX, v)); }
