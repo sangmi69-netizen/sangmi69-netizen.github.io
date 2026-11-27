@@ -638,26 +638,6 @@ var SPEC_SNARE = {dur:0.6, parts:[[220.7,2,0.07], [323,0.6,0.042], [387.6,0.44,0
     [8000,3.94,0.0973],
     [10000,-10.42,0.1503],
     [12500,-51.67,0.3304]]};
-var SPEC_HIHAT = {dur:0.25, parts:[[4575.8,0.18,0.01], [5695.5,0.14,0.009], [7046.7,0.18,0.008], [8376.4,0.1,0.008], [522.2,0.05,0.014], [296.1,0.03,0.016]],
-  bands:[[250,28.67,0.005],
-    [315,-21.96,0.005],
-    [400,-8.59,0.0244],
-    [500,15.71,0.0083],
-    [630,-49.16,0.0149],
-    [800,-18.61,0.0183],
-    [1000,-1.08,0.0071],
-    [1250,-8.6,0.015],
-    [1600,11.67,0.005],
-    [2000,-0.46,0.0245],
-    [2500,-47.68,0.005],
-    [3150,15.37,0.0142],
-    [4000,-6.76,0.0086],
-    [5000,16.75,0.0111],
-    [6300,17.48,0.0113],
-    [8000,5.97,0.0066],
-    [10000,7.98,0.0081],
-    [12500,4.6,0.0071]]};
-/* 오픈 하이햇은 순음 부분음이 벨처럼 들려서 mkOpenHat(금속 노이즈 전용)으로 새로 만듭니다. */
 var SPEC_CRASH1 = {dur:2.6, parts:[[3020,0.07,0.22], [3375,0.06,0.2], [7741,0.05,0.18], [4301,0.04,0.17], [7138,0.035,0.16]],
   bands:[[315,5.19,0.1041],
     [400,24.6,0.0134],
@@ -885,36 +865,40 @@ function mkPedal(p){
   });
 }
 
-/* ===== 오픈 하이햇: 두 판이 부딪힌 뒤 여음이 열리는 순수 금속 노이즈 =====
-   순음(사인) 부분음을 넣지 않습니다. 클로즈 하이햇과 같은 고역 브론즈 잡음에
-   서로 다른 좁은 공명 대역을 여러 개 겹쳐 '츠아아~' 하고 울리게 합니다.
-   p = [음정배율, 감쇠배율, 고역기울기(dB)] — 심벌 소리 메뉴용입니다. */
-function mkOpenHat(p){
-  var tune = p[0] || 1, dmul = p[1] || 1, tilt = p[2] || 0;
-  var bright = Math.pow(10, tilt/20);
-  var dur = 2.0;
+/* ===== 하이햇(닫힘·열림): 두 판이 부딪힌 금속 잡음 + 게이트 =====
+   실제 소리는 잡음이 거의 같은 음량으로 잠깐(닫힘 0.06초 · 열림 0.40초) 유지되다
+   뚝 끊기는 모양입니다. 지수 감쇠 대신 1/6옥타브 대역 금속 잡음을 측정된 음량비로
+   겹치고, 전체에 어택 → 유지 → 급히 끊기는 게이트 엔벨로프를 씌웁니다.
+   순음(사인) 부분음은 넣지 않아 벨처럼 들리지 않습니다. */
+var HAT_CLOSED = {dur:0.16,atk:0.002,peak:1,sagT:0.016,sagDb:-2,gate:0.058,dropDb:-9,rel:0.02,q:8.6,lp:12000,
+  bands:[[45,-32.2,1.2],[90,-16.2,1.2],[130,-20.2,4],[160,-3.5],[179.6,-5.9],[201.6,-46.9],[226.3,3.3],[254,-1],[285.1,2.6],[320,-30.2],[359.2,-0.9],[403.2,-18.7],[452.5,-44.5,16],[508,1.1,16],[570.2,-3.2],[640,-53.6],[718.4,-24.9],[806.3,-14.4],[905.1,-27.7],[1015.9,-10.7],[1140.4,-16],[1280,-42.1],[1436.8,-10],[1612.7,-11.2],[1810.2,-27.9],[2031.9,-8],[2280.7,-26],[2560,-44],[2873.5,-5.8],[3225.4,-13.1],[3620.4,-32.2],[4063.7,-37.9],[4561.4,-2.9],[5120,-33.1],[5747,0],[6450.8,-24.8],[7240.8,-7],[8127.5,-8.6],[9122.8,-9.4],[10240,-7.9],[11494,-5.3]]};
+var HAT_OPEN = {dur:0.55,atk:0.0015,peak:1,sagT:0.012,sagDb:-4,gate:0.4,dropDb:-17.5,rel:0.035,q:8.6,lp:12000,
+  bands:[[45,-44.5,1.2],[90,-24.5,1.2],[130,-23.5,4],[160,-64.8],[179.6,-64.3],[201.6,-21.4],[226.3,-61.2],[254,-64.8],[285.1,-58.3],[320,-62.1],[359.2,-57.3],[403.2,-54.8],[452.5,-3.7,16],[508,3.1,16],[570.2,-40.6],[640,-15.9],[718.4,-7.7],[806.3,-50.5],[905.1,-60],[1015.9,-43.6],[1140.4,-42.1],[1280,-10.4],[1436.8,-54],[1612.7,-39.9],[1810.2,-5.5],[2031.9,1.5,16],[2280.7,-44.6],[2560,-47.7],[2873.5,-30.8],[3225.4,1,16],[3620.4,-20.9],[4063.7,-18.1],[4561.4,-4.9],[5120,-8.2],[5747,0],[6450.8,-26],[7240.8,-7.5],[8127.5,-11.7],[9122.8,-13.6],[10240,-11.8],[11494,-35.2]]};
+function mkHat(spec, tune, tiltDb, durMul){
+  var tn = tune || 1, tilt = tiltDb || 0, dm = durMul || 1, q = spec.q || 8.6;
+  var dur = spec.dur;
   return offline(dur, function(oc){
     var t = 0;
-    /* 두 판이 부딪히는 순간의 '칫' */
-    var na = oc.createBufferSource(); na.buffer = noiseBuf(oc, .06);
-    var hpa = filt(oc, "highpass", 5200*tune);
-    var ga = oc.createGain(); env(ga, t, .45, .0008, .012);
-    na.connect(hpa); hpa.connect(ga); ga.connect(oc.destination); na.start(t);
-    /* 본체 — 클로즈 하이햇과 같은 고역 브론즈 잡음층에 여음만 길게 */
-    var n = oc.createBufferSource(); n.buffer = pinkBuf(oc, dur);
-    var hp = filt(oc, "highpass", 1800*tune);
-    var bp = filt(oc, "bandpass", 4200*tune, .7);
-    var pk = filt(oc, "peaking", 3000*tune, .9); pk.gain.value = 4*bright;
-    var lp = filt(oc, "lowpass", 7000 + 4000*bright, .7);
-    var g = oc.createGain(); env(g, t, .95, .004, 1.55*dmul);
-    n.connect(hp); hp.connect(bp); bp.connect(pk); pk.connect(lp); lp.connect(g); g.connect(oc.destination); n.start(t);
-    /* 금속 공명 — 음정이 생기지 않도록 서로 다른 좁은 대역을 겹칩니다 */
-    [[2500,.10,.30],[3600,.12,.42],[4900,.11,.50],[6400,.08,.36],[8100,.05,.26]].forEach(function(v){
-      var nn = oc.createBufferSource(); nn.buffer = noiseBuf(oc, dur);
-      var b2 = filt(oc, "bandpass", v[0]*tune, 9);
-      var gg = oc.createGain(); env(gg, t, v[1]*(.6+.4*bright), .003, v[2]*dmul);
-      nn.connect(b2); b2.connect(gg); gg.connect(oc.destination); nn.start(t);
+    var nb = noiseBuf(oc, dur);
+    var mix = oc.createGain(); mix.gain.value = 1;
+    spec.bands.forEach(function(b, k){
+      var src = oc.createBufferSource(); src.buffer = nb;
+      var fc = Math.min(b[0]*tn, 19000);
+      var f = filt(oc, "bandpass", fc, b[2] || q);
+      var g = oc.createGain();
+      g.gain.value = dbA(b[1] + tilt*Math.log(fc/1000)/Math.LN2);
+      src.connect(f); f.connect(g); g.connect(mix);
+      src.start(t);
+      src.stop(dur);
     });
+    var lp = filt(oc, "lowpass", spec.lp || 12000, 0.7);
+    var gate = oc.createGain();
+    gate.gain.setValueAtTime(0.0001, t);
+    gate.gain.exponentialRampToValueAtTime(spec.peak, t + spec.atk);
+    gate.gain.exponentialRampToValueAtTime(spec.peak*dbA(spec.sagDb), t + spec.sagT);
+    gate.gain.exponentialRampToValueAtTime(spec.peak*dbA(spec.dropDb), t + spec.gate*dm);
+    gate.gain.exponentialRampToValueAtTime(0.0001, t + (spec.gate + spec.rel)*dm);
+    mix.connect(lp); lp.connect(gate); gate.connect(oc.destination);
   });
 }
 
@@ -987,8 +971,8 @@ function buildSounds(){
     /* 라이드 보우(가운데) — 영상 라이드 '핑' */
     jobs.push(mkKit(SPEC_RIDE_BOW, p[0], p[2], p[1]).then(function(b){ out.ride.push(normRms(b, .039)); }));
     /* 하이햇 닫힘 / 열림 */
-    jobs.push(mkKit(SPEC_HIHAT, p[0], p[2], p[1]).then(function(b){ out.hihat.push(normRms(b, .025)); }));
-    jobs.push(mkOpenHat(p).then(function(b){ out.hihatOpen.push(normRms(b, .036)); }));
+    jobs.push(mkHat(HAT_CLOSED, p[0], p[2], p[1]).then(function(b){ out.hihat.push(normRms(b, .0312)); }));
+    jobs.push(mkHat(HAT_OPEN, p[0], p[2], p[1]).then(function(b){ out.hihatOpen.push(normRms(b, .0249)); }));
     /* 차이나 — 영상에 없어 기존 합성 유지 */
     jobs.push(mkCym({hp:2000, bp:3200, q:1.5, metalAmp:.085, tune:.8*p[0], durMul:1.1,
         decay:1.0, amp:.52})
