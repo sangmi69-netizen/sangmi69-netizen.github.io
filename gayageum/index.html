@@ -808,33 +808,30 @@ function buildModel(W, H){
   var bx0 = W * 0.355, bx1 = W * 0.468;
   ST.bridge = [];
   var jr = rng(7788);
-  var bw = s * 0.68, bhh = s * 1.45;
+  var bw = s * 0.66, bhh = s * 1.32;
   for(var bi = 0; bi < 12; bi++){
     var bxp = bx0 + (bx1 - bx0) * (bi / 11) + (jr() - 0.5) * s * 0.12;
     ST.bridge.push(bxp);
     var byy = yOf(bi);
-    /* 바닥 접촉 그림자 */
-    el("ellipse", { cx: bxp + s * 0.16, cy: byy + bhh * 0.66, rx: bw * 0.70, ry: s * 0.14,
-                    fill: "#2a1505", opacity: ".32" }, gBridge);
-    /* 기러기발: 두 다리와 가운데 홈(줄이 앉는 자리) */
+    el("ellipse", { cx: bxp + s * 0.15, cy: byy + bhh * 0.66, rx: bw * 0.66, ry: s * 0.13,
+                    fill: "#2a1505", opacity: ".30" }, gBridge);
+    /* 두 다리와 얕은 홈 — 줄이 홈에 앉는다 */
     var dBr =
       "M " + (-bw * 0.50) + " " + (bhh * 0.72) +
-      " C " + (-bw * 0.56) + " " + (bhh * 0.46) + " " + (-bw * 0.40) + " " + (bhh * 0.10) + " " + (-bw * 0.28) + " " + (-bhh * 0.02) +
-      " L " + (-bw * 0.19) + " " + (-bhh * 0.28) +
-      " Q " + (-bw * 0.05) + " " + (bhh * 0.02) + " 0 " + (bhh * 0.035) +
-      " Q " + (bw * 0.05) + " " + (bhh * 0.02) + " " + (bw * 0.19) + " " + (-bhh * 0.28) +
-      " L " + (bw * 0.28) + " " + (-bhh * 0.02) +
-      " C " + (bw * 0.40) + " " + (bhh * 0.10) + " " + (bw * 0.56) + " " + (bhh * 0.46) + " " + (bw * 0.50) + " " + (bhh * 0.72) +
-      " Z";
+      " L " + (-bw * 0.33) + " " + (bhh * 0.10) +
+      " L " + (-bw * 0.19) + " " + (-bhh * 0.22) +
+      " L " + (-bw * 0.05) + " " + (-bhh * 0.05) +
+      " L " + (bw * 0.05) + " " + (-bhh * 0.05) +
+      " L " + (bw * 0.19) + " " + (-bhh * 0.22) +
+      " L " + (bw * 0.33) + " " + (bhh * 0.10) +
+      " L " + (bw * 0.50) + " " + (bhh * 0.72) + " Z";
     var tr = "translate(" + bxp.toFixed(2) + "," + byy.toFixed(2) + ")";
-    el("path", { d:dBr, transform:tr, fill:"url(#brgG)", stroke:"#5f4520",
-                 "stroke-width": Math.max(0.45, s * 0.035), "stroke-linejoin":"round" }, gBridge);
-    el("path", { d:dBr, transform:tr, fill:"none", stroke:"rgba(255,255,255,.30)",
-                 "stroke-width": Math.max(0.3, s * 0.018), opacity: ".5", "stroke-linejoin":"round" }, gBridge);
-    /* 홈 속의 그늘 */
-    el("path", { d: "M " + (-bw * 0.19) + " " + (-bhh * 0.28) + " Q 0 " + (bhh * 0.035) + " " + (bw * 0.19) + " " + (-bhh * 0.28),
-                 transform:tr, fill:"none", stroke:"rgba(60,34,10,.55)",
-                 "stroke-width": Math.max(0.5, s * 0.028) }, gBridge);
+    el("path", { d:dBr, transform:tr, fill:"url(#brgG)", stroke:"#5a401d",
+                 "stroke-width": Math.max(0.45, s * 0.032), "stroke-linejoin":"round" }, gBridge);
+    el("path", { d: "M " + (-bw * 0.33) + " " + (bhh * 0.10) + " L " + (-bw * 0.19) + " " + (-bhh * 0.22) +
+                    " L " + (-bw * 0.05) + " " + (-bhh * 0.05),
+                 transform:tr, fill:"none", stroke:"rgba(255,255,255,.42)",
+                 "stroke-width": Math.max(0.3, s * 0.018), "stroke-linejoin":"round" }, gBridge);
   }
 
   /* ── 명주실 12줄 ── */
