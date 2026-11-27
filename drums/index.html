@@ -567,17 +567,50 @@ function filt(oc, type, freq, q){
    ===================================================================== */
 function dbA(db){ return Math.pow(10, db/20); }
 
-var SPEC_KICK = {dur:0.6, parts:[[40,3.4,0.105,92,0.07], [134.6,1.55,0.075], [188.4,0.62,0.05], [269.2,0.42,0.04]],
-  bands:[[1250,15.47,0.005],
-    [1600,2.86,0.005],
-    [2000,6.24,0.005],
-    [2500,-7.8,0.0077],
-    [3150,3.47,0.0301],
-    [4000,7.46,0.0089],
-    [5000,-13.33,0.0178],
-    [6300,7.79,0.0105],
-    [8000,-3.28,0.014],
-    [10000,5.07,0.0125]]};
+/* ===== 킥: 비터 클릭 + 단단한 펀치 + 깊은 서브 =====
+   상미 님이 좋아하신 이전 버전의 낮고 묵직한 베이스 드럼으로 되돌린 합성입니다.
+   깊은 사인 서브(145→45Hz 스윕)에 소프트 클리핑을 걸고, 그 위에 삼각파 펀치와
+   비터 클릭을 얹습니다. */
+function mkKick(p){
+  var dur = p.decay + .16;
+  return offline(dur, function(oc){
+    var t = 0;
+    /* 서브 바디 */
+    var sub = oc.createOscillator(); sub.type = "sine";
+    sub.frequency.setValueAtTime(p.f0, t);
+    sub.frequency.exponentialRampToValueAtTime(p.f1, t + p.sweep);
+    sub.frequency.exponentialRampToValueAtTime(p.f1*0.96, t + dur);
+    var gs = oc.createGain(); env(gs, t, 1, .005, p.decay);
+    var ws = oc.createWaveShaper(); ws.curve = softClip(1.5); ws.oversample = "2x";
+    var hp = filt(oc, "highpass", 28);
+    sub.connect(gs); gs.connect(ws); ws.connect(hp); hp.connect(oc.destination);
+    sub.start(t); sub.stop(dur);
+    /* 중저음 펀치 */
+    var body = oc.createOscillator(); body.type = "triangle";
+    body.frequency.setValueAtTime(p.f0*2.3, t);
+    body.frequency.exponentialRampToValueAtTime(p.f1*1.7, t + .05);
+    var gb = oc.createGain(); env(gb, t, p.punch, .002, .10);
+    var lp = filt(oc, "lowpass", 1000, .7);
+    body.connect(gb); gb.connect(lp); lp.connect(oc.destination);
+    body.start(t); body.stop(.32);
+    /* 비터 클릭 2~4kHz */
+    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc,.05);
+    var bp = filt(oc, "bandpass", p.clickF, 0.9);
+    var gc = oc.createGain(); env(gc, t, p.click*1.6, .0006, .016);
+    n.connect(bp); bp.connect(gc); gc.connect(oc.destination); n.start(t);
+    /* 비터가 헤드를 때리는 넓은 대역 */
+    var n1 = oc.createBufferSource(); n1.buffer = noiseBuf(oc,.04);
+    var hp1 = filt(oc, "highpass", 1100);
+    var g1 = oc.createGain(); env(g1, t, p.click*0.85, .0006, .011);
+    n1.connect(hp1); hp1.connect(g1); g1.connect(oc.destination); n1.start(t);
+    /* 나무 비터의 짧은 '톡' */
+    var tk = oc.createOscillator(); tk.type = "sine";
+    tk.frequency.setValueAtTime(1600, t);
+    tk.frequency.exponentialRampToValueAtTime(520, t + .022);
+    var gt = oc.createGain(); env(gt, t, p.click*0.35, .0008, .018);
+    tk.connect(gt); gt.connect(oc.destination); tk.start(t); tk.stop(.08);
+  });
+}
 var SPEC_SNARE = {dur:0.6, parts:[[220.7,2,0.07], [323,0.6,0.042], [387.6,0.44,0.034], [463,0.52,0.028], [549.1,0.2,0.022], [624.5,0.2,0.02], [818.3,0.18,0.016], [920.5,0.12,0.014], [1507.3,0.05,0.011], [2287.9,0.05,0.009]],
   bands:[[1600,17.08,0.0592],
     [2000,14.35,0.023],
@@ -608,23 +641,7 @@ var SPEC_HIHAT = {dur:0.25, parts:[[4575.8,0.18,0.01], [5695.5,0.14,0.009], [704
     [8000,5.97,0.0066],
     [10000,7.98,0.0081],
     [12500,4.6,0.0071]]};
-var SPEC_HIHATOPEN = {dur:0.9, parts:[[5776.3,0.1,0.06], [7364.4,0.08,0.055], [2051,0.018,0.09], [3278.4,0.025,0.08], [4850.4,0.06,0.06]],
-  bands:[[400,-40.16,0.0392],
-    [500,-8.67,0.011],
-    [630,-56.66,0.1253],
-    [800,-26.53,0.005],
-    [1000,-60.63,0.2874],
-    [1250,-39.41,0.0276],
-    [1600,-27.92,0.2069],
-    [2000,-56.04,0.2267],
-    [2500,-21.37,0.0116],
-    [3150,-51.84,0.0118],
-    [4000,-22.46,0.1424],
-    [5000,-54.7,0.1527],
-    [6300,-54.68,0.1829],
-    [8000,-45.66,0.083],
-    [10000,-16.85,0.0168],
-    [12500,-49.19,0.4085]]};
+/* 오픈 하이햇은 순음 부분음이 벨처럼 들려서 mkOpenHat(금속 노이즈 전용)으로 새로 만듭니다. */
 var SPEC_CRASH1 = {dur:2.6, parts:[[3020,0.07,0.22], [3375,0.06,0.2], [7741,0.05,0.18], [4301,0.04,0.17], [7138,0.035,0.16]],
   bands:[[315,5.19,0.1041],
     [400,24.6,0.0134],
@@ -679,30 +696,13 @@ var SPEC_RIDE_BOW = {dur:1.8, parts:[[3424,0.042,0.075], [3327,0.034,0.075], [58
     [8000,-14,0.0639],
     [10000,-10.96,0.0506],
     [12500,-42.99,0.1102]]};
-var SPEC_RIDE_BELL = {dur:1.8, parts:[[4963,0.1,0.1], [2923,0.05,0.11], [2832,0.045,0.11], [4307,0.06,0.1], [4452,0.045,0.1], [3575,0.035,0.1], [7009,0.03,0.08]],
-  bands:[[315,-8.56,0.0303],
-    [400,3.03,0.0225],
-    [500,-20.52,0.005],
-    [630,-8.07,0.3977],
-    [800,-51.63,1.46],
-    [1000,-13.58,0.7708],
-    [1250,-48.14,2.2],
-    [1600,-18.88,0.5458],
-    [2000,-48.17,1.7546],
-    [2500,2.53,0.1625],
-    [3150,1.97,0.0222],
-    [4000,4.18,0.1609],
-    [5000,5.54,0.1046],
-    [6300,3.51,0.0438],
-    [8000,5.54,0.0105],
-    [10000,-2.85,0.1017],
-    [12500,-11.13,0.0069]]};
-/* 소리 종류(메뉴) — [음정배율, 감쇠배율, 고역기울기(dB/oct)] */
+/* 라이드 벨은 맑은 인하모닉 벨 배음으로 새로 만듭니다(mkRideBell). 라이드 보우(SPEC_RIDE_BOW)는 그대로입니다. */
+/* 소리 종류(메뉴) — 킥은 이전 버전(낮고 묵직한 소리)의 합성 파라미터입니다 */
 var KICKS = [
-  [1.00, 1.00, 0.0],   /* 1 딥 — 녹화 영상과 같은 소리 */
-  [1.10, 0.82, 1.0],   /* 2 록 */
-  [1.22, 0.64, 2.5],   /* 3 펀치 */
-  [0.94, 1.30, -2.0]   /* 4 재즈 */
+  {f0:145, f1:45,  decay:.50, sweep:.055, punch:.55, click:.34, clickF:2900, lp:3600},  /* 1 딥 */
+  {f0:126, f1:53,  decay:.36, sweep:.045, punch:.62, click:.48, clickF:3300, lp:4200},  /* 2 록 */
+  {f0:176, f1:60,  decay:.26, sweep:.032, punch:.70, click:.62, clickF:3900, lp:5200},  /* 3 펀치 */
+  {f0:110, f1:43,  decay:.58, sweep:.070, punch:.45, click:.22, clickF:2400, lp:2800}   /* 4 재즈 */
 ];
 var SNARES = [
   [1.00, 1.00, 0.0],   /* 1 타이트 — 녹화 영상과 같은 소리 */
@@ -869,6 +869,69 @@ function mkPedal(p){
   });
 }
 
+/* ===== 오픈 하이햇: 두 판이 부딪힌 뒤 여음이 열리는 순수 금속 노이즈 =====
+   순음(사인) 부분음을 넣지 않습니다. 클로즈 하이햇과 같은 고역 브론즈 잡음에
+   서로 다른 좁은 공명 대역을 여러 개 겹쳐 '츠아아~' 하고 울리게 합니다.
+   p = [음정배율, 감쇠배율, 고역기울기(dB)] — 심벌 소리 메뉴용입니다. */
+function mkOpenHat(p){
+  var tune = p[0] || 1, dmul = p[1] || 1, tilt = p[2] || 0;
+  var bright = Math.pow(10, tilt/20);
+  var dur = 2.0;
+  return offline(dur, function(oc){
+    var t = 0;
+    /* 두 판이 부딪히는 순간의 '칫' */
+    var na = oc.createBufferSource(); na.buffer = noiseBuf(oc, .06);
+    var hpa = filt(oc, "highpass", 6500);
+    var ga = oc.createGain(); env(ga, t, .80, .0008, .012);
+    na.connect(hpa); hpa.connect(ga); ga.connect(oc.destination); na.start(t);
+    /* 본체 — 클로즈 하이햇과 같은 고역 잡음층 */
+    var n = oc.createBufferSource(); n.buffer = pinkBuf(oc, dur);
+    var hp = filt(oc, "highpass", 3400*tune*Math.pow(bright, .5));
+    var pk = filt(oc, "peaking", 5600*tune, .9); pk.gain.value = 3.5*bright;
+    var g = oc.createGain(); env(g, t, .90, .004, 1.70*dmul);
+    n.connect(hp); hp.connect(pk); pk.connect(g); g.connect(oc.destination); n.start(t);
+    /* 금속 공명 — 음정이 생기지 않도록 서로 다른 좁은 대역을 겹칩니다 */
+    [[2700,.09,.30],[3900,.11,.42],[5200,.12,.50],[6900,.09,.36],[8800,.06,.26]].forEach(function(v){
+      var nn = oc.createBufferSource(); nn.buffer = noiseBuf(oc, dur);
+      var bp = filt(oc, "bandpass", v[0]*tune, 9);
+      var gg = oc.createGain(); env(gg, t, v[1]*(.6+.4*bright), .003, v[2]*dmul);
+      nn.connect(bp); bp.connect(gg); gg.connect(oc.destination); nn.start(t);
+    });
+  });
+}
+
+/* ===== 라이드 벨: 맑고 청아한 금속 벨 울림 =====
+   거친 대역 잡음 대신 인하모닉 사인 배음(1·2·2.78·3.72·4.72·6.06)을 또렷하게 쌓고,
+   아주 짧은 스틱 어택과 옅은 고역 반짝임만 더합니다. 라이드 보우는 그대로입니다. */
+function mkRideBell(tune, tilt, dmul){
+  var tn = tune || 1, dm = dmul || 1, bright = Math.pow(10, (tilt||0)/20);
+  var dur = 2.8;
+  return offline(dur, function(oc){
+    var t = 0, f0 = 1180*tn;
+    [[1,.55,1.70],[2.00,.20,1.10],[2.78,.12,.75],[3.72,.07,.50],[4.72,.05,.36],[6.06,.03,.24]].forEach(function(v){
+      var o = oc.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(f0*v[0]*1.005, t);
+      o.frequency.exponentialRampToValueAtTime(f0*v[0], t + .05);
+      var g = oc.createGain(); env(g, t, v[1], .0012, v[2]*dm);
+      o.connect(g); g.connect(oc.destination); o.start(t); o.stop(dur);
+    });
+    /* 스틱 팁 클릭 */
+    var n = oc.createBufferSource(); n.buffer = noiseBuf(oc, .05);
+    var bp = filt(oc, "bandpass", 3400, 1.2);
+    var g2 = oc.createGain(); env(g2, t, .26, .0006, .012);
+    n.connect(bp); bp.connect(g2); g2.connect(oc.destination); n.start(t);
+    /* 심벌 특유의 옅은 고역 반짝임 */
+    var n2 = oc.createBufferSource(); n2.buffer = pinkBuf(oc, dur);
+    var bp2 = filt(oc, "bandpass", 5200*tn, .7);
+    var g3 = oc.createGain(); env(g3, t, .035*bright, .002, .30*dm);
+    n2.connect(bp2); bp2.connect(g3); g3.connect(oc.destination); n2.start(t);
+    var n3 = oc.createBufferSource(); n3.buffer = pinkBuf(oc, dur);
+    var hp3 = filt(oc, "highpass", 9000);
+    var g4 = oc.createGain(); env(g4, t, .04*bright, .002, .18*dm);
+    n3.connect(hp3); hp3.connect(g4); g4.connect(oc.destination); n3.start(t);
+  });
+}
+
 function norm(buf, target){
   var d = buf.getChannelData(0), peak = 0, i, a;
   for(i=0;i<d.length;i++){ a = Math.abs(d[i]); if(a > peak) peak = a; }
@@ -892,7 +955,7 @@ function buildSounds(){
              rideBell:[], crossStick:[], pedal:[]};
   var jobs = [];
   KICKS.forEach(function(p){
-    jobs.push(mkKit(SPEC_KICK, p[0], p[2], p[1]).then(function(b){ out.kick.push(normRms(b, .200)); }));
+    jobs.push(mkKick(p).then(function(b){ out.kick.push(norm(b, .95)); }));
   });
   SNARES.forEach(function(p){
     jobs.push(mkKit(SPEC_SNARE, p[0], p[2], p[1]).then(function(b){ out.snare.push(normRms(b, .107)); }));
@@ -907,7 +970,7 @@ function buildSounds(){
     jobs.push(mkKit(SPEC_RIDE_BOW, p[0], p[2], p[1]).then(function(b){ out.ride.push(normRms(b, .039)); }));
     /* 하이햇 닫힘 / 열림 */
     jobs.push(mkKit(SPEC_HIHAT, p[0], p[2], p[1]).then(function(b){ out.hihat.push(normRms(b, .025)); }));
-    jobs.push(mkKit(SPEC_HIHATOPEN, p[0], p[2], p[1]).then(function(b){ out.hihatOpen.push(normRms(b, .036)); }));
+    jobs.push(mkOpenHat(p).then(function(b){ out.hihatOpen.push(normRms(b, .036)); }));
     /* 차이나 — 영상에 없어 기존 합성 유지 */
     jobs.push(mkCym({hp:2000, bp:3200, q:1.5, metalAmp:.085, tune:.8*p[0], durMul:1.1,
         decay:1.0, amp:.52})
@@ -916,8 +979,8 @@ function buildSounds(){
   jobs.push(mkCrossStick({amp:.95, bp:1900}).then(function(b){ out.crossStick.push(norm(b,.88)); }));
   jobs.push(mkPedal({amp:.85}).then(function(b){ out.pedal.push(norm(b,.74)); }));
   /* 라이드 벨 — 영상 라이드 가운데(벨) 타격 */
-  jobs.push(mkKit(SPEC_RIDE_BELL, 1.00, 0.0, 1.00).then(function(b){ out.rideBell.push(normRms(b, .036)); }));
-  jobs.push(mkKit(SPEC_RIDE_BELL, 0.94, -1.5, 1.12).then(function(b){ out.rideBell.push(normRms(b, .034)); }));
+  jobs.push(mkRideBell(1.00, 0.0, 1.00).then(function(b){ out.rideBell.push(normRms(b, .036)); }));
+  jobs.push(mkRideBell(0.94, -1.5, 1.12).then(function(b){ out.rideBell.push(normRms(b, .034)); }));
   jobs.push(mkCrossStick({amp:.92, bp:2400, tune:1.05}).then(function(b){ out.crossStick.push(norm(b,.88)); }));
   jobs.push(mkPedal({amp:.80}).then(function(b){ out.pedal.push(norm(b,.72)); }));
   var safe = jobs.map(function(p){
