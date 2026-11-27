@@ -464,6 +464,8 @@ body.editing .pad.sel::after{
 "use strict";
 /* 검증용 상태 훅 */
 window.__vd = {hits:[], errors:[], peak:0, ready:false, ctx:"none", buffers:{}, multi:0};
+window.addEventListener("error", function(e){ window.__vd.errors.push("js: " + (e.message || e.type)); });
+window.addEventListener("unhandledrejection", function(e){ window.__vd.errors.push("promise: " + (e.reason && e.reason.message ? e.reason.message : e.reason)); });
 
 /* ---------- 기본 동작 차단: 새 창·확대·선택·우클릭 메뉴 ---------- */
 (function harden(){
