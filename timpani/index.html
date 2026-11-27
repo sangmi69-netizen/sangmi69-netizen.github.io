@@ -870,7 +870,7 @@ function layout(){
   var k = (avail - gap * (n - 1)) / sizes.reduce(function(a, b){ return a + b; }, 0);
   var arch = Math.max(36, Math.min(140, 26 * n));
   var maxSize = Math.max.apply(null, sizes);
-  k = Math.min(k, 22, (SCENE_H - 76 - arch) / maxSize);
+  k = Math.min(k, 20);
   var D = sizes.map(function(s){ return s * k; });
   var totalW = D.reduce(function(a, b){ return a + b; }, 0) + gap * (n - 1);
   var x = [], cur = (SCENE_W - totalW) / 2;
@@ -881,7 +881,9 @@ function layout(){
   var tops = centers.map(function(c, i){ return c - D[i] / 2; });
   var bots = centers.map(function(c, i){ return c + D[i] / 2; });
   var minT = Math.min.apply(null, tops), maxB = Math.max.apply(null, bots);
-  var off = (SCENE_H - (maxB - minT)) / 2 - minT + 8;
+  /* 장면 높이를 내용에 맞춰 줄여, 작은 화면에서도 통이 최대한 크게 보이게 합니다 */
+  var sceneH = (maxB - minT) + 56;
+  var off = (sceneH - (maxB - minT)) / 2 - minT;
 
   for(var j = 0; j < n; j++){
     var el = drumEls[j];
@@ -890,10 +892,11 @@ function layout(){
     el.style.left = left + "px"; el.style.top = top + "px";
     el.style.setProperty("--d", d + "px");
   }
+  sceneEl.style.height = sceneH + "px";
   /* 무대 확대/축소 */
   var sw = stageEl.clientWidth, sh = stageEl.clientHeight;
-  var scale = Math.min(sw / SCENE_W, sh / SCENE_H);
-  sceneEl.style.transform = "translate(" + ((sw - SCENE_W * scale) / 2) + "px," + ((sh - SCENE_H * scale) / 2) + "px) scale(" + scale + ")";
+  var scale = Math.min(sw / SCENE_W, sh / sceneH);
+  sceneEl.style.transform = "translate(" + ((sw - SCENE_W * scale) / 2) + "px," + ((sh - sceneH * scale) / 2) + "px) scale(" + scale + ")";
 
   /* 콘솔 칸 — 각 통 바로 아래에 오도록 */
   var deckW = deckEl.clientWidth;
@@ -910,7 +913,7 @@ function layout(){
     deckEls[q].style.width = w + "px";
     deckEls[q].style.left = left2 + "px";
   }
-  window.__tp.lastLayout = {count:n, scale:Math.round(scale * 1000) / 1000, drums:D.map(function(d, idx){ return {size:sizes[idx], d:Math.round(d), x:Math.round(x[idx])}; })};
+  window.__tp.lastLayout = {count:n, scale:Math.round(scale * 1000) / 1000, sceneH:Math.round(sceneH), drums:D.map(function(d, idx){ return {size:sizes[idx], d:Math.round(d), x:Math.round(x[idx])}; })};
 }
 
 /* ══════════════════════════════════════════════════════════
