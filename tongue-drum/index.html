@@ -496,10 +496,10 @@ var THEMES = [
     glow1:"rgba(160,160,190,.16)", glow2:"rgba(80,80,100,.10)" }
 ];
 var INKS = [
-  { id:"gold",   name:"금색",   c1:"#fff6dc", c2:"#f2d59f", c3:"#cda265", halo:"#2a1c05" },
-  { id:"white",  name:"흰색",   c1:"#ffffff", c2:"#f6f4fb", c3:"#d6d2e2", halo:"#1d1233" },
-  { id:"silver", name:"은색",   c1:"#ffffff", c2:"#d5d8e4", c3:"#98a0b4", halo:"#12161f" },
-  { id:"black",  name:"검정",   c1:"#3b3b46", c2:"#16161c", c3:"#000000", halo:"#ffffff" }
+  { id:"gold",   name:"금색",   c1:"#fff6dc", c2:"#f2d59f", c3:"#cda265", dot:"#ffe6ac", halo:"#2a1c05" },
+  { id:"white",  name:"흰색",   c1:"#ffffff", c2:"#f6f4fb", c3:"#d6d2e2", dot:"#ffffff", halo:"#1d1233" },
+  { id:"silver", name:"은색",   c1:"#ffffff", c2:"#d5d8e4", c3:"#98a0b4", dot:"#eef1f9", halo:"#12161f" },
+  { id:"black",  name:"검정",   c1:"#3b3b46", c2:"#16161c", c3:"#000000", dot:"#14141a", halo:"#ffffff" }
 ];
 var THEMEMAP = {}; THEMES.forEach(function(t){ THEMEMAP[t.id] = t; });
 
@@ -635,10 +635,10 @@ function drawLabel(parent, note, fs){
     fill:"url(#inkG)", stroke:"#000", "stroke-width":Math.max(1.1, fs*0.05),
     "stroke-linejoin":"round"
   }), parent);
-  var dotUp = el("circle", {cx:0, cy:-(fs*0.62), r:Math.max(4.2, fs*0.115),
-                            fill:"url(#inkG)", stroke:"#000", "stroke-width":1.1}, parent);
-  var dotDn = el("circle", {cx:0, cy: (fs*0.56), r:Math.max(4.2, fs*0.115),
-                            fill:"url(#inkG)", stroke:"#000", "stroke-width":1.1}, parent);
+  var dotUp = el("circle", {cx:0, cy:-(fs*0.62), r:Math.max(4.6, fs*0.13),
+                            fill:"#fff", stroke:"#000", "stroke-width":1.4}, parent);
+  var dotDn = el("circle", {cx:0, cy: (fs*0.56), r:Math.max(4.6, fs*0.13),
+                            fill:"#fff", stroke:"#000", "stroke-width":1.4}, parent);
   labelEls.push({note:note, txt:txt, out:out, up:dotUp, dn:dotDn, fs:fs});
 }
 
@@ -665,6 +665,10 @@ function applyLabels(){
     L.out.setAttribute("stroke", CUR_INK.halo);
     L.up.setAttribute("display", up ? "inline" : "none");
     L.dn.setAttribute("display", dn ? "inline" : "none");
+    L.up.setAttribute("fill", CUR_INK.dot);
+    L.dn.setAttribute("fill", CUR_INK.dot);
+    L.up.setAttribute("stroke", CUR_INK.halo);
+    L.dn.setAttribute("stroke", CUR_INK.halo);
   });
 }
 
@@ -944,7 +948,7 @@ function applyKey(id, save){
   });
   var sub = document.getElementById("coverSub");
   if(sub){
-    var range = NOTES[0].name + NOTES[0].oct + " – " + NOTES[14].name + NOTES[14].oct;
+    var range = asc[0].name + asc[0].oct + " – " + asc[14].name + asc[14].oct;
     sub.textContent = key.letter.replace("♭","b") + " " + (key.mode === "maj" ? "장조" : "단조") +
                       " · 15음 · 공령고 (" + range + ")";
   }
