@@ -747,7 +747,7 @@ function copperTexture(){
   var S = 256, c = document.createElement("canvas");
   c.width = c.height = S;
   var x = c.getContext("2d");
-  x.fillStyle = "#c47c42"; x.fillRect(0, 0, S, S);
+  x.fillStyle = "#b9713a"; x.fillRect(0, 0, S, S);
 
   function wrap(px, py, r, fn){
     for(var dx = -1; dx <= 1; dx++){
@@ -772,13 +772,13 @@ function copperTexture(){
     });
   }
   /* 해머 자국 — 작은 오목한 점들이 위에서 온 빛을 받습니다 */
-  for(i = 0; i < 460; i++){
-    px = Math.random() * S; py = Math.random() * S; r = S * (0.008 + Math.random() * 0.013);
+  for(i = 0; i < 400; i++){
+    px = Math.random() * S; py = Math.random() * S; r = S * (0.010 + Math.random() * 0.014);
     wrap(px, py, r, function(cx, cy){
       var g = x.createRadialGradient(cx - r * 0.45, cy - r * 0.45, r * 0.05, cx, cy, r);
-      g.addColorStop(0, "rgba(255,244,220,.85)");
-      g.addColorStop(0.38, "rgba(248,186,124,.34)");
-      g.addColorStop(0.72, "rgba(112,52,18,.30)");
+      g.addColorStop(0, "rgba(255,238,208,.50)");
+      g.addColorStop(0.40, "rgba(228,158,96,.22)");
+      g.addColorStop(0.74, "rgba(96,44,14,.18)");
       g.addColorStop(1, "rgba(70,30,10,0)");
       x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, 6.2832); x.fill();
     });
