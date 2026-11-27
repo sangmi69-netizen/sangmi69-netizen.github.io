@@ -525,7 +525,7 @@ function warmBuffers(){
         break;
       }
     }
-    setTimeout(step, 24);
+    setTimeout(step, 70);
   }
   step();
 }
@@ -1118,7 +1118,7 @@ function onMove(ev){
   /* ── 훑기(스와이프) ── */
   var inside = p.x > ST.xS0 - ST.s * 0.4 && p.x < ST.W && p.y > ST.yTop - ST.s * 1.2 && p.y < ST.yTop + 11 * ST.s + ST.s * 1.2;
   var ni = nearestString(p.y);
-  if(inside && ni >= 0 && ni !== rec.idx && now - rec.lastPluck > 10){
+  if(inside && ni >= 0 && ni !== rec.idx){
     var step = ni > rec.idx ? 1 : -1;
     var cnt = Math.abs(ni - rec.idx);
     var vel = clamp(0.5 + speed * 2.6, 0.5, 1.1);
