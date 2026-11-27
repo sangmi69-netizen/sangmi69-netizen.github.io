@@ -688,15 +688,16 @@ function buildModel(W, H){
   }
 
   /* ══════ 앞판 (실사 나뭇결 사진) ══════ */
+  var FLAT = /flat=1/.test(location.search);
   var gBoard = el("g", { "clip-path": "url(#boardClip)" }, root);
   el("image", {
     x: 0, y: top, width: W, height: bh, preserveAspectRatio: "none",
     href: TEX_BOARD
   }, gBoard);
   /* 조명·옻칠 */
-  el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#boardLight)" }, gBoard);
-  el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#lacquer)" }, gBoard);
-  el("ellipse", {
+  if(!FLAT) el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#boardLight)" }, gBoard);
+  if(!FLAT) el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#lacquer)" }, gBoard);
+  if(!FLAT) el("ellipse", {
     cx: W * 0.34, cy: top + bh * 0.24, rx: W * 0.30, ry: bh * 0.55,
     fill: "url(#sheenSpot)", opacity: ".16"
   }, gBoard);
