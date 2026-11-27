@@ -113,7 +113,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 .k .bowl{
   position:absolute;inset:0;border-radius:50%;
   background-image:var(--hammer,none);
-  background-size:100% 100%;
+  background-size:230px 230px;
+  background-repeat:repeat;
   box-shadow:
     0 30px 54px -14px rgba(0,0,0,.9),
     0 8px 18px rgba(0,0,0,.65),
@@ -138,11 +139,11 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 .k .hoop{
   position:absolute;inset:6.6%;border-radius:50%;
   background:
-    repeating-linear-gradient(101deg, rgba(255,255,255,.13) 0 1px, rgba(0,0,0,.05) 1px 2px),
+    repeating-linear-gradient(101deg, rgba(255,255,255,.20) 0 1px, rgba(0,0,0,.16) 1px 3px),
     conic-gradient(from 10deg,
-      #f4f7f9 0deg,#c2c9cf 24deg,#eaefe0 44deg,#b6bec5 78deg,
-      #f2f6f9 112deg,#bcc4ca 148deg,#e9eef3 178deg,#aeb6bd 212deg,
-      #eff4f8 244deg,#b9c1c8 280deg,#e7ecf1 314deg,#b3bbc2 340deg,#f4f7f9 360deg);
+      #f2f5f7 0deg,#b6bec5 24deg,#e2e8ec 44deg,#a9b2b9 78deg,
+      #eef3f6 112deg,#b0b9c0 148deg,#e4eaef 178deg,#a3acb3 212deg,
+      #ebf0f4 244deg,#adb6bd 280deg,#e1e7ec 314deg,#a8b1b8 340deg,#f2f5f7 360deg);
   box-shadow:
     0 0 0 2px rgba(38,20,9,.92),
     0 3px 10px rgba(0,0,0,.7),
@@ -181,9 +182,9 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 }
 .k .grain{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;
-  background-image:
-    radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 60%, rgba(120,92,54,.20) 100%);
-  opacity:.55;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 74%, rgba(84,60,32,.16) 92%, rgba(70,48,24,.26) 100%);
+  opacity:.85;
 }
 .k .sheen{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;
@@ -742,46 +743,51 @@ function strike(i, vel, pos){
    3. 그림 — 해머드 구리 텍스처를 한 번 만들어 씁니다
    ══════════════════════════════════════════════════════════ */
 function copperTexture(){
-  var S = 320, c = document.createElement("canvas");
+  var S = 256, c = document.createElement("canvas");
   c.width = c.height = S;
   var x = c.getContext("2d");
-  var base = x.createLinearGradient(0, 0, S, S);
-  base.addColorStop(0, "#e6a05c");
-  base.addColorStop(0.40, "#cf8144");
-  base.addColorStop(0.75, "#b86a33");
-  base.addColorStop(1, "#95501f");
-  x.fillStyle = base; x.fillRect(0, 0, S, S);
+  x.fillStyle = "#c47c42"; x.fillRect(0, 0, S, S);
 
-  var i, px, py, r, g;
-  /* 넓은 얼룩 */
-  for(i = 0; i < 26; i++){
-    px = Math.random() * S; py = Math.random() * S; r = S * (0.12 + Math.random() * 0.22);
-    g = x.createRadialGradient(px, py, 0, px, py, r);
+  function wrap(px, py, r, fn){
+    for(var dx = -1; dx <= 1; dx++){
+      for(var dy = -1; dy <= 1; dy++){
+        var nx = px + dx * S, ny = py + dy * S;
+        if(nx + r < 0 || nx - r > S || ny + r < 0 || ny - r > S) continue;
+        fn(nx, ny);
+      }
+    }
+  }
+
+  var i, px, py, r;
+  /* 넓은 얼룩 — 이어져도 틈이 없도록 9번씩 그립니다 */
+  for(i = 0; i < 22; i++){
+    px = Math.random() * S; py = Math.random() * S; r = S * (0.10 + Math.random() * 0.20);
     var warm = Math.random() > 0.45;
-    g.addColorStop(0, warm ? "rgba(236,168,112,.20)" : "rgba(92,48,22,.16)");
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, 6.2832); x.fill();
+    wrap(px, py, r, function(cx, cy){
+      var g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, warm ? "rgba(246,182,126,.30)" : "rgba(96,48,18,.24)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, 6.2832); x.fill();
+    });
   }
   /* 해머 자국 — 작은 오목한 점들이 위에서 온 빛을 받습니다 */
-  for(i = 0; i < 620; i++){
-    px = Math.random() * S; py = Math.random() * S; r = S * (0.006 + Math.random() * 0.011);
-    g = x.createRadialGradient(px - r * 0.45, py - r * 0.45, r * 0.05, px, py, r);
-    g.addColorStop(0, "rgba(255,244,220,.80)");
-    g.addColorStop(0.40, "rgba(244,178,116,.30)");
-    g.addColorStop(0.74, "rgba(112,52,18,.26)");
-    g.addColorStop(1, "rgba(70,30,10,0)");
-    x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, 6.2832); x.fill();
+  for(i = 0; i < 460; i++){
+    px = Math.random() * S; py = Math.random() * S; r = S * (0.008 + Math.random() * 0.013);
+    wrap(px, py, r, function(cx, cy){
+      var g = x.createRadialGradient(cx - r * 0.45, cy - r * 0.45, r * 0.05, cx, cy, r);
+      g.addColorStop(0, "rgba(255,244,220,.85)");
+      g.addColorStop(0.38, "rgba(248,186,124,.34)");
+      g.addColorStop(0.72, "rgba(112,52,18,.30)");
+      g.addColorStop(1, "rgba(70,30,10,0)");
+      x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, 6.2832); x.fill();
+    });
   }
   /* 미세한 결 */
-  for(i = 0; i < 2600; i++){
+  for(i = 0; i < 3000; i++){
     px = Math.random() * S; py = Math.random() * S;
-    x.fillStyle = Math.random() > 0.5 ? "rgba(255,230,196,.05)" : "rgba(52,24,8,.06)";
+    x.fillStyle = Math.random() > 0.5 ? "rgba(255,230,196,.07)" : "rgba(52,24,8,.08)";
     x.fillRect(px, py, 1.2, 1.2);
   }
-  var vign = x.createRadialGradient(S / 2, S / 2, S * 0.30, S / 2, S / 2, S * 0.72);
-  vign.addColorStop(0, "rgba(0,0,0,0)");
-  vign.addColorStop(1, "rgba(40,16,4,.34)");
-  x.fillStyle = vign; x.fillRect(0, 0, S, S);
   return c.toDataURL("image/png");
 }
 
@@ -858,8 +864,8 @@ function rebuild(){
 function layout(){
   var sizes = SETS[state.count].map(Number);
   var n = sizes.length;
-  var avail = 1580;
-  var gap = Math.max(18, Math.min(58, 1580 / 130 * 4.4));
+  var avail = 1500;
+  var gap = Math.max(18, Math.min(58, 1500 / 130 * 4.4));
   var k = (avail - gap * (n - 1)) / sizes.reduce(function(a, b){ return a + b; }, 0);
   var arch = Math.max(36, Math.min(140, 26 * n));
   var maxSize = Math.max.apply(null, sizes);
