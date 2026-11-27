@@ -881,21 +881,23 @@ function mkOpenHat(p){
     var t = 0;
     /* 두 판이 부딪히는 순간의 '칫' */
     var na = oc.createBufferSource(); na.buffer = noiseBuf(oc, .06);
-    var hpa = filt(oc, "highpass", 6500);
-    var ga = oc.createGain(); env(ga, t, .80, .0008, .012);
+    var hpa = filt(oc, "highpass", 5200*tune);
+    var ga = oc.createGain(); env(ga, t, .70, .0008, .012);
     na.connect(hpa); hpa.connect(ga); ga.connect(oc.destination); na.start(t);
-    /* 본체 — 클로즈 하이햇과 같은 고역 잡음층 */
+    /* 본체 — 클로즈 하이햇과 같은 고역 브론즈 잡음층에 여음만 길게 */
     var n = oc.createBufferSource(); n.buffer = pinkBuf(oc, dur);
-    var hp = filt(oc, "highpass", 3400*tune*Math.pow(bright, .5));
-    var pk = filt(oc, "peaking", 5600*tune, .9); pk.gain.value = 3.5*bright;
-    var g = oc.createGain(); env(g, t, .90, .004, 1.70*dmul);
-    n.connect(hp); hp.connect(pk); pk.connect(g); g.connect(oc.destination); n.start(t);
+    var hp = filt(oc, "highpass", 1800*tune);
+    var bp = filt(oc, "bandpass", 4200*tune, .7);
+    var pk = filt(oc, "peaking", 3000*tune, .9); pk.gain.value = 4*bright;
+    var lp = filt(oc, "lowpass", 7000 + 4000*bright, .7);
+    var g = oc.createGain(); env(g, t, .85, .004, 1.55*dmul);
+    n.connect(hp); hp.connect(bp); bp.connect(pk); pk.connect(lp); lp.connect(g); g.connect(oc.destination); n.start(t);
     /* 금속 공명 — 음정이 생기지 않도록 서로 다른 좁은 대역을 겹칩니다 */
-    [[2700,.09,.30],[3900,.11,.42],[5200,.12,.50],[6900,.09,.36],[8800,.06,.26]].forEach(function(v){
+    [[2500,.10,.30],[3600,.12,.42],[4900,.11,.50],[6400,.08,.36],[8100,.05,.26]].forEach(function(v){
       var nn = oc.createBufferSource(); nn.buffer = noiseBuf(oc, dur);
-      var bp = filt(oc, "bandpass", v[0]*tune, 9);
+      var b2 = filt(oc, "bandpass", v[0]*tune, 9);
       var gg = oc.createGain(); env(gg, t, v[1]*(.6+.4*bright), .003, v[2]*dmul);
-      nn.connect(bp); bp.connect(gg); gg.connect(oc.destination); nn.start(t);
+      nn.connect(b2); b2.connect(gg); gg.connect(oc.destination); nn.start(t);
     });
   });
 }
