@@ -842,6 +842,26 @@ function bodyDb(f){
   return BODY[n-1][1];
 }
 function tiltDb(f, slope){ return slope * Math.log(f / 1000) / Math.LN2; }
+/* 줄마다 다른 결 — 중현은 저역이 두툼하고, 유현은 3.1 kHz가 더 꺼져 얇고 코맹맹이 */
+var EQ = {
+  0: [[110,9],[180,8],[250,6],[350,3],[520,0]],
+  1: [[2800,-3],[3100,-7],[3300,-4],[3450,-1]]
+};
+function eqDb(f, strId){
+  var t = EQ[strId];
+  if(!t) return 0;
+  var n = t.length;
+  if(f <= t[0][0]) return t[0][1];
+  if(f >= t[n-1][0]) return t[n-1][1];
+  for(var i=1;i<n;i++){
+    if(f <= t[i][0]){
+      var a = t[i-1], b = t[i];
+      var u = (Math.log(f) - Math.log(a[0])) / (Math.log(b[0]) - Math.log(a[0]));
+      return a[1] + (b[1]-a[1]) * u;
+    }
+  }
+  return 0;
+}
 function mulberry(seed){
   return function(){
     seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
@@ -921,7 +941,7 @@ function makeWave(c, strId, f0){
   var rnd = mulberry(strId * 7919 + Math.round(f0 * 16));
   for(var k=1; k<=nh; k++){
     var f = k * f0;
-    var db = bodyDb(f) + tiltDb(f, cfg.tilt) + cfg.lowTrim * Math.min(1, Math.max(0, (700 - f) / 400));
+    var db = bodyDb(f) + tiltDb(f, cfg.tilt) + cfg.lowTrim * Math.min(1, Math.max(0, (700 - f) / 400)) + eqDb(f, strId);
     var a = Math.pow(10, db / 20) * (1 + (rnd() - 0.5) * 0.05);
     amps.push(a);
     if(a > mx) mx = a;
@@ -1645,7 +1665,7 @@ function renderOffline(list, sec){
 }
 
 window.__hg = {
-  S: S, L: L, GEO: GEO, cfg: CFG, body: BODY, bodyDb: bodyDb,
+  S: S, L: L, GEO: GEO, cfg: CFG, body: BODY, bodyDb: bodyDb, eqDb: eqDb,
   rows: function(s){ return ROWS[s]; },
   rowY: rowY, rowH: rowH, rowCount: rowCount,
   active: function(){ return active.map(function(a){ return {id:a.id, s:a.s, r:a.r, midi:(a.voice ? a.voice.midi : a.midi), alive:(a.voice ? a.voice.alive : false)}; }); },
