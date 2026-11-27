@@ -614,11 +614,12 @@ function buildModel(W, H){
     [82, "#ad7440"], [93, "#9b6634"], [100, "#8d5b2c"]
   ]);
   lg("woodTop", "0", "0", "0", "1", [
-    [0, "#fff4de", ".30"], [22, "#ffffff", ".05"], [62, "#4a2410", ".03"], [100, "#3a1b08", ".22"]
+    [0, "#fff4de", ".20"], [30, "#ffffff", ".04"], [64, "#4a2410", ".04"], [100, "#3a1b08", ".24"]
   ]);
-  lg("sideG", "0", "0", "0", "1", [[0, "#6f4826"], [55, "#4a2c16"], [100, "#2a1709"]]);
+  lg("sideG", "0", "0", "0", "1", [[0, "#7d5330"], [45, "#57371d"], [100, "#33200f"]]);
   lg("capG", "0", "0", "0.28", "1", [[0, "#77502e"], [26, "#5f3d21"], [62, "#46290f"], [100, "#301c0b"]]);
-  lg("nutG", "0", "0", "0.2", "1", [[0, "#fffaf0"], [38, "#f3e3c1"], [72, "#d6bb8d"], [100, "#a98a5c"]]);
+  lg("headG", "0", "0", "0.25", "1", [[0, "#8a5c33"], [26, "#6f4524"], [64, "#4e2f16"], [100, "#341f0c"]]);
+  lg("nutG", "0", "0", "0.2", "1", [[0, "#f8efd9"], [38, "#e8d5ad"], [72, "#c8aa7b"], [100, "#9c7d4c"]]);
   lg("brgG", "0", "0", "0.1", "1", [[0, "#f7ebd0"], [34, "#e9d6ac"], [70, "#c9ab77"], [100, "#96743f"]]);
   lg("brassG", "0", "0", "0.2", "1", [[0, "#ffeec2"], [45, "#e2bd78"], [100, "#8f6a34"]]);
   lg("cordG", "0", "0", "0.3", "1", [[0, "#4d5f99"], [42, "#2f3f74"], [100, "#1a2450"]]);
@@ -641,7 +642,7 @@ function buildModel(W, H){
   /* ── 몸통(밤나무 옆판 + 오동나무 앞판) ── */
   var gBody = el("g", null, root);
   el("path", {
-    d: dBoard, transform: "translate(" + (s * 0.05) + "," + (bh * 0.05) + ")",
+    d: dBoard, transform: "translate(" + (s * 0.05) + "," + (bh * 0.032) + ")",
     fill: "url(#sideG)", stroke: "#1b0f07", "stroke-width": Math.max(0.6, s * 0.05), opacity: ".98"
   }, gBody);
   el("path", { d: dBoard, fill: "url(#wood)" }, gBody);
@@ -738,7 +739,7 @@ function buildModel(W, H){
        " L " + W + " " + (hy2r - hr).toFixed(1) +
        " Q " + W + " " + hy2r.toFixed(1) + " " + (W - hr).toFixed(1) + " " + hy2r.toFixed(1) +
        " L " + hx.toFixed(1) + " " + hy2.toFixed(1) + " Z",
-    fill: "url(#capG)", stroke: "#150b04", "stroke-width": Math.max(0.6, s * 0.05)
+    fill: "url(#headG)", stroke: "#150b04", "stroke-width": Math.max(0.6, s * 0.05)
   }, gHead);
   el("path", {
     d: "M " + (hx + s * 0.16).toFixed(1) + " " + (hy1 + s * 0.10).toFixed(1) +
@@ -799,8 +800,8 @@ function buildModel(W, H){
       "M " + (-bw * 0.50) + " " + (bhh * 0.96) +
       " C " + (-bw * 0.54) + " " + (bhh * 0.60) + " " + (-bw * 0.36) + " " + (bhh * 0.26) + " " + (-bw * 0.27) + " " + (bhh * 0.05) +
       " L " + (-bw * 0.19) + " " + (-bhh * 0.015) +
-      " Q " + (-bw * 0.05) + " " + (bhh * 0.10) + " 0 " + (bhh * 0.105) +
-      " Q " + (bw * 0.05) + " " + (bhh * 0.10) + " " + (bw * 0.19) + " " + (-bhh * 0.015) +
+      " Q " + (-bw * 0.055) + " " + (bhh * 0.20) + " 0 " + (bhh * 0.21) +
+      " Q " + (bw * 0.055) + " " + (bhh * 0.20) + " " + (bw * 0.19) + " " + (-bhh * 0.015) +
       " L " + (bw * 0.27) + " " + (bhh * 0.05) +
       " C " + (bw * 0.36) + " " + (bhh * 0.26) + " " + (bw * 0.54) + " " + (bhh * 0.60) + " " + (bw * 0.50) + " " + (bhh * 0.96) +
       " Z";
@@ -810,7 +811,7 @@ function buildModel(W, H){
     el("path", { d:dBr, transform:tr, fill:"none", stroke:"rgba(255,255,255,.55)",
                  "stroke-width": Math.max(0.3, s * 0.02), opacity: ".55", "stroke-linejoin":"round" }, gBridge);
     /* 홈에 걸린 줄 자리 */
-    el("path", { d: "M " + (-bw * 0.19) + " " + (-bhh * 0.015) + " Q 0 " + (bhh * 0.105) + " " + (bw * 0.19) + " " + (-bhh * 0.015),
+    el("path", { d: "M " + (-bw * 0.19) + " " + (-bhh * 0.015) + " Q 0 " + (bhh * 0.21) + " " + (bw * 0.19) + " " + (-bhh * 0.015),
                  transform:tr, fill:"none", stroke:"rgba(60,34,10,.45)",
                  "stroke-width": Math.max(0.5, s * 0.03) }, gBridge);
   }
@@ -844,7 +845,7 @@ function buildModel(W, H){
   ST.fs = fs;
   for(var li = 0; li < 12; li++){
     var ly = yOf(li) - s * 0.30;
-    var lg = el("g", { transform:"translate(" + labelX.toFixed(1) + "," + ly.toFixed(1) + ")" + (LAY.rot ? " rotate(90)" : "") }, gLab);
+    var lg = el("g", { transform:"translate(" + labelX.toFixed(1) + "," + ly.toFixed(1) + ")" }, gLab);
     var lab = txt(labelText(li), {
       x:0, y: (fs * 0.34).toFixed(1), "text-anchor":"middle",
       "font-family": "'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif",
@@ -1192,7 +1193,7 @@ var stage = document.getElementById("stage");
 function layout(){
   var vw = window.innerWidth, vh = window.innerHeight;
   var portrait = vh > vw * 1.02;
-  var topPad = 54, botPad = 44;
+  var topPad = 54, botPad = portrait ? 66 : 46;
   var availW = Math.max(120, vw - 14);
   var availH = Math.max(120, vh - topPad - botPad);
 
