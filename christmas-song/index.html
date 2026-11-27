@@ -288,7 +288,8 @@ noscript{display:block;padding:20px;color:var(--gold-l)}
 :focus-visible{outline:2px solid rgba(215,184,120,.7);outline-offset:2px}
 
 @media (max-width:1000px){
-  html,body{overflow:auto}
+  html{overflow-y:auto;overflow-x:hidden}
+  body{overflow:visible;height:auto}
   .app{height:auto;min-height:100dvh}
   .topbar{padding:9px 12px;gap:10px}
   .crest{width:34px;height:34px}
@@ -908,8 +909,13 @@ function autoScroll(k, force){
   if(!el) return;
   if(!force && Date.now()-userScrollAt < 4000) return;   // 사용자가 직접 넘긴 직후엔 양보
   if(document.body.dataset.tab==='score') return;
-  const top = el.offsetTop - lyr.clientHeight*0.32;
-  lyr.scrollTo({top: Math.max(0,top), behavior:'smooth'});
+  if(lyr.scrollHeight > lyr.clientHeight + 8){
+    lyr.scrollTo({top: Math.max(0, el.offsetTop - lyr.clientHeight*0.32), behavior:'smooth'});
+  } else {
+    // 모바일: 가사 상자가 길게 늘어나 화면 전체가 스크롤되는 구조
+    const r = el.getBoundingClientRect();
+    window.scrollTo({top: Math.max(0, window.scrollY + r.top - window.innerHeight*0.32), behavior:'smooth'});
+  }
 }
 /* 소절 클릭 이동 */
 lyr.addEventListener('click', e=>{
