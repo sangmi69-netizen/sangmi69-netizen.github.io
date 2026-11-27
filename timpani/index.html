@@ -786,7 +786,7 @@ function copperTexture(){
 /* ══════════════════════════════════════════════════════════
    4. 배치
    ══════════════════════════════════════════════════════════ */
-var SCENE_W = 1600, SCENE_H = 760;
+var SCENE_W = 1600, SCENE_H = 700;
 var stageEl = document.getElementById("stage");
 var sceneEl = document.getElementById("scene");
 var drumsEl = document.getElementById("drums");
@@ -800,8 +800,8 @@ function buildDrumEl(i){
   for(var a = 0; a < 8; a++){
     var ang = a * 45 + 22.5;
     var rad = ang * Math.PI / 180;
-    var lx = 50 + 38.9 * Math.cos(rad);
-    var ly = 50 + 38.9 * Math.sin(rad);
+    var lx = 50 + 46.2 * Math.cos(rad);
+    var ly = 50 + 46.2 * Math.sin(rad);
     lugs += '<i class="lug" style="left:' + lx.toFixed(2) + '%;top:' + ly.toFixed(2) + '%;transform:translate(-50%,-50%) rotate(' + (ang + 90).toFixed(1) + 'deg)"></i>';
   }
   el.innerHTML =
@@ -872,7 +872,7 @@ function layout(){
   var tops = centers.map(function(c, i){ return c - D[i] / 2; });
   var bots = centers.map(function(c, i){ return c + D[i] / 2; });
   var minT = Math.min.apply(null, tops), maxB = Math.max.apply(null, bots);
-  var off = (SCENE_H - (maxB - minT)) / 2 - minT;
+  var off = (SCENE_H - 30) - maxB;
 
   for(var j = 0; j < n; j++){
     var el = drumEls[j];
