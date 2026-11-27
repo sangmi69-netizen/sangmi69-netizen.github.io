@@ -391,7 +391,7 @@ function drawKey(note){
   }
 
   /* 빛남 */
-  var glow = el("path", {d:path, fill:"#ffe8b4", filter:"url(#glowF)", opacity:"0",
+  var glow = el("path", {d:path, fill:"#ffeec2", filter:"url(#glowF)", opacity:"0",
                           "pointer-events":"none"}, g);
 
   /* 이름표 — 둘레 혀는 방사형, 가운데 혀는 똑바로 */
@@ -622,18 +622,22 @@ function hit(note, cx, cy){
 
 /* 타격한 혀가 부드럽게 빛나며 울리는 효과 — requestAnimationFrame */
 var litList = [];
+var lastFrameT = 0;
 function glowLoop(ts){
   window.__frames = (window.__frames||0) + 1;
+  var dt = lastFrameT ? Math.min(0.1, (ts - lastFrameT)/1000) : 0.016;
+  lastFrameT = ts;
+  var decay = Math.exp(-dt / 1.15);          /* 화면 주사율과 무관한 시간 기반 감쇠 */
   for(var i=litList.length-1; i>=0; i--){
     var k = litList[i];
-    k.e *= 0.945;
+    k.e *= decay;
     if(k.e < 0.012){
       k.e = 0; k.lit = false;
       k.glow.setAttribute("opacity", "0");
       litList.splice(i,1);
       continue;
     }
-    var shimmer = 0.74 + 0.26*Math.sin(ts/42 + k.note.idx*1.7);
+    var shimmer = 0.80 + 0.20*Math.sin(ts/46 + k.note.idx*1.7);
     k.glow.setAttribute("opacity", (k.e * shimmer).toFixed(3));
   }
   requestAnimationFrame(glowLoop);
