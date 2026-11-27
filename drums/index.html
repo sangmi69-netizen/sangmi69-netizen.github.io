@@ -71,7 +71,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 }
 .pad.cym .openZone{
   position:absolute;left:10%;right:10%;top:4%;height:34%;
-  border-radius:50% 50% 0 0/92% 92% 0 0;pointer-events:auto;
+  border-radius:50% 50% 0 0/92% 92% 0 0;pointer-events:auto;touch-action:none;
 }
 
 /* ---------- 드럼 (위에서 내려다본 드러머 시점 · 가죽이 위로) ---------- */
@@ -1064,8 +1064,18 @@ function initAudio(){
     reverb = AC.createConvolver();
     wetBus = AC.createGain(); wetBus.gain.value = 0.30;
     reverb.connect(wetBus); wetBus.connect(makeup);
-    /* 임펄스 응답 생성(약 13만 샘플)은 첫 제스처 경로에서 빼고 바로 뒤로 미룹니다. */
-    setTimeout(function(){ try{ if(reverb && !reverb.buffer){ reverb.buffer = makeIR(1.5, 2.6); window.__vd.irReady = true; } }catch(e){} }, 0);
+    /* 임펄스 응답 생성(약 13만 샘플)은 첫 제스처 경로에서 빼고 바로 뒤로 미룹니다.
+       (버퍼 샘플레이트가 컨텍스트와 다르면 ConvolverNode 가 예외를 던지므로, 지금까지와
+        같은 조건(44100Hz 컨텍스트)에서만 켭니다 — 소리는 예전과 같습니다.) */
+    window.__vd.reverb = {enabled:false, ctxRate: AC.sampleRate, irRate: SR};
+    setTimeout(function(){
+      try{
+        if(reverb && !reverb.buffer && AC.sampleRate === SR){
+          reverb.buffer = makeIR(1.5, 2.6);
+          window.__vd.reverb.enabled = true;
+        }
+      }catch(e){ window.__vd.reverb.error = String(e); }
+    }, 0);
   }catch(e){ reverb = null; }
   unlockAudio();
   reportAudio();
@@ -1157,7 +1167,7 @@ function play(zone, tune, gainTrim, pan){
   }
   src.connect(g);
   if(tail){ g.connect(tail); tail.connect(drumBus); } else { g.connect(drumBus); }
-  if(reverb){
+  if(reverb && reverb.buffer){
     var s = AC.createGain();
     s.gain.value = (SEND[zone] == null ? .12 : SEND[zone]);
     (tail || g).connect(s); s.connect(reverb);
