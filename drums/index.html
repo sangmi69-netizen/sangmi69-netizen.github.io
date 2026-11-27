@@ -46,13 +46,16 @@ button{font-family:inherit;color:inherit;cursor:pointer}
   background:radial-gradient(125% 105% at 50% 52%,rgba(0,0,0,0) 58%,rgba(0,0,0,.34) 84%,rgba(0,0,0,.72) 100%);
 }
 @media (orientation:portrait) and (max-width:900px){
-  /* 세로로 열려도 무대는 같은 16:9 — 90° 돌리기만 하고 비율은 바꾸지 않습니다 */
+  /* 세로로 열려도 무대는 같은 16:9 — 90° 돌리기만 하고 비율은 바꾸지 않습니다.
+     90° 돌리면 무대의 '높이'가 화면 가로(100vw)를, 무대의 '너비'가 화면 세로(100svh)를 차지하므로
+     두 방향 모두 넘지 않는 크기를 골라 정중앙에 둡니다. → width ≤ min(100svh, 100vw*16/9), height = width*9/16 */
   #scene{
-    width:min(100vw,calc(100dvh * 9 / 16));
-    width:min(100vw,calc(100svh * 9 / 16));
-    height:min(calc(100vw * 16 / 9),100dvh);
-    height:min(calc(100vw * 16 / 9),100svh);
-    transform:translate(-50%,-50%) rotate(90deg)
+    width:min(100dvh,calc(100vw * 16 / 9));
+    width:min(100svh,calc(100vw * 16 / 9));
+    height:min(calc(100dvh * 9 / 16),100vw);
+    height:min(calc(100svh * 9 / 16),100vw);
+    transform:translate(-50%,-50%) rotate(90deg);
+    transform-origin:center center;
   }
 }
 
