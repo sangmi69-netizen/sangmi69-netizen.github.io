@@ -688,15 +688,16 @@ function buildModel(W, H){
   }
 
   /* ══════ 앞판 (실사 나뭇결 사진) ══════ */
+  var FLAT = /flat=1/.test(location.search);
   var gBoard = el("g", { "clip-path": "url(#boardClip)" }, root);
   el("image", {
     x: 0, y: top, width: W, height: bh, preserveAspectRatio: "none",
     href: TEX_BOARD
   }, gBoard);
   /* 조명·옻칠 */
-  el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#boardLight)" }, gBoard);
-  el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#lacquer)" }, gBoard);
-  el("ellipse", {
+  if(!FLAT) el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#boardLight)" }, gBoard);
+  if(!FLAT) el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#lacquer)" }, gBoard);
+  if(!FLAT) el("ellipse", {
     cx: W * 0.34, cy: top + bh * 0.24, rx: W * 0.30, ry: bh * 0.55,
     fill: "url(#sheenSpot)", opacity: ".16"
   }, gBoard);
@@ -907,7 +908,7 @@ function buildModel(W, H){
 
   /* ══════ 명주실 12줄 ══════ */
   var gStr = el("g", null, root);
-  var xS0 = cordX1 + s * 0.30;
+  var xS0 = cordX1 - s * 0.02;
   var xS1 = pegX - s * 0.02;
   ST.xS0 = xS0; ST.xS1 = xS1;
   for(var si = 0; si < 12; si++){
@@ -917,9 +918,9 @@ function buildModel(W, H){
     var gid = "silk" + si;
     var gg = el("linearGradient", { id:gid, gradientUnits:"userSpaceOnUse",
                 x1:0, y1:(sv - w * 0.55).toFixed(2), x2:0, y2:(sv + w * 0.55).toFixed(2) }, defs);
-    el("stop", { offset:"0%", "stop-color":"#fdf6e4" }, gg);
-    el("stop", { offset:"24%", "stop-color":"#f4e8cd" }, gg);
-    el("stop", { offset:"62%", "stop-color":"#ddc9a2" }, gg);
+    el("stop", { offset:"0%", "stop-color":"#f7ecd6" }, gg);
+    el("stop", { offset:"26%", "stop-color":"#eddfc0" }, gg);
+    el("stop", { offset:"62%", "stop-color":"#cfb891" }, gg);
     el("stop", { offset:"88%", "stop-color":"#a58f68" }, gg);
     el("stop", { offset:"100%", "stop-color":"#6f5c3c" }, gg);
 
@@ -934,7 +935,7 @@ function buildModel(W, H){
                  transform:"translate(0," + Math.max(1.4, s * 0.070).toFixed(2) + ")" }, g1);
     var main = el("path", { d:dd, fill:"none", stroke: "url(#" + gid + ")",
                             "stroke-width": w, "stroke-linecap":"round" }, g1);
-    var hi = el("path", { d:dd, fill:"none", stroke:"#ffffff", "stroke-opacity":".45",
+    var hi = el("path", { d:dd, fill:"none", stroke:"#fffbef", "stroke-opacity":".34",
                           "stroke-width": Math.max(0.32, w * 0.22), "stroke-linecap":"round",
                           transform:"translate(0," + (-w * 0.24).toFixed(2) + ")" }, g1);
     VIB[si] = { main:main, hi:hi, y:sv, w:w, t0:-1, amp:0, px:(xS0 + xS1) / 2, hiOff: w * 0.24 };
@@ -942,7 +943,7 @@ function buildModel(W, H){
 
   /* ══════ 글자(줄 이름) ══════ */
   var gLab = el("g", null, root);
-  var labelX = hx - s * 1.10;
+  var labelX = hx - s * 1.45;
   ST.labelX = labelX;
   var fs = clamp(s * 0.42, 8, 16);
   ST.fs = fs;
