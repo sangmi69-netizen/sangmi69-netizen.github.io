@@ -115,10 +115,14 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
   background-image:var(--hammer,none);
   background-size:100% 100%;
   box-shadow:
-    0 26px 46px -12px rgba(0,0,0,.85),
-    0 6px 14px rgba(0,0,0,.6),
-    inset -8px -12px 30px rgba(0,0,0,.55),
-    inset 6px 8px 26px rgba(255,214,168,.22);
+    0 30px 54px -14px rgba(0,0,0,.9),
+    0 8px 18px rgba(0,0,0,.65),
+    inset -10px -14px 34px rgba(40,14,2,.6),
+    inset 8px 10px 30px rgba(255,206,150,.28);
+}
+.k .bowl::before{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 55%,rgba(30,10,2,.30) 88%,rgba(10,4,1,.55) 100%);
 }
 .k .bowl::after{
   content:"";position:absolute;inset:0;border-radius:50%;
@@ -130,46 +134,47 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
   mix-blend-mode:overlay;
 }
 .k .hoop{
-  position:absolute;inset:5.2%;border-radius:50%;
+  position:absolute;inset:6.6%;border-radius:50%;
   background:
-    conic-gradient(from 12deg,
-      #e6b184 0deg,#8d4f28 26deg,#f2caa0 62deg,#9c5b30 104deg,
-      #edbf92 146deg,#8a4c26 188deg,#f4cfa4 224deg,#95562c 268deg,
-      #e9b98b 306deg,#8d4f28 342deg,#e6b184 360deg);
+    conic-gradient(from 8deg,
+      #f6d4b0 0deg,#c88a56 18deg,#8d4f28 40deg,#e8b98c 70deg,#b9723f 96deg,
+      #7f4624 126deg,#f2cda6 152deg,#c98a58 182deg,#8b4e28 210deg,
+      #eabf94 238deg,#c07b48 264deg,#7c4321 294deg,#f6d8b6 322deg,#c88a56 348deg,#f6d4b0 360deg);
   box-shadow:
-    0 0 0 2px rgba(52,27,12,.85),
-    inset 0 0 0 3px rgba(255,226,190,.25),
-    inset 0 0 14px rgba(0,0,0,.55),
-    0 8px 20px rgba(0,0,0,.55);
+    0 0 0 2px rgba(46,22,9,.9),
+    0 3px 9px rgba(0,0,0,.65),
+    inset 0 0 0 2px rgba(255,229,193,.30),
+    inset 0 0 10px rgba(52,24,8,.55);
 }
-.k .hoop::after{
+.k .hoop::before{
   content:"";position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(120% 120% at 32% 22%,rgba(255,246,226,.36),rgba(255,246,226,0) 46%);
-  mix-blend-mode:screen;
+  background:
+    radial-gradient(120% 120% at 30% 18%,rgba(255,250,238,.55),rgba(255,246,226,0) 42%),
+    radial-gradient(120% 120% at 72% 88%,rgba(60,26,8,.45),rgba(60,26,8,0) 46%);
+  mix-blend-mode:overlay;
 }
 .k .lug{
-  position:absolute;left:50%;top:50%;width:4.6%;height:7.2%;
-  margin-left:-2.3%;margin-top:-3.6%;border-radius:22%/26%;
-  background:linear-gradient(180deg,#f0c79c,#a05f31 55%,#5c3017);
-  box-shadow:0 1px 3px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,240,214,.6);
-  transform-origin:50% 50%;
+  position:absolute;width:5.4%;height:3.4%;border-radius:26%;
+  background:linear-gradient(180deg,#ffe6c8,#d69a68 42%,#8a4a24 100%);
+  box-shadow:0 2px 4px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,246,228,.8);
 }
 .k .head{
-  position:absolute;inset:9.6%;border-radius:50%;overflow:hidden;
+  position:absolute;inset:13.2%;border-radius:50%;overflow:hidden;
   background:
-    radial-gradient(circle at 36% 28%, #fffaf0 0%, #f4ecda 34%, #e6d9c0 62%, #cdbb9b 86%, #b9a684 100%);
+    radial-gradient(circle at 33% 25%, #fffdf6 0%, #f8f1e1 24%, #efe3cc 48%, #e0d0b2 72%, #cbb995 90%, #b5a17e 100%);
   box-shadow:
-    inset 0 0 0 1px rgba(94,64,34,.45),
-    inset 0 6px 16px rgba(255,255,255,.55),
-    inset 0 -12px 24px rgba(88,58,26,.22);
+    inset 0 0 0 2px rgba(84,54,26,.55),
+    inset 0 0 0 4px rgba(255,250,240,.45),
+    inset 0 10px 26px rgba(255,255,255,.40),
+    inset 0 -22px 46px rgba(104,70,32,.26),
+    0 2px 6px rgba(0,0,0,.35);
   touch-action:none;
 }
 .k .grain{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;
   background-image:
-    radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 62%, rgba(120,92,54,.16) 100%),
-    repeating-radial-gradient(circle at 47% 46%, rgba(255,255,255,.05) 0 2px, rgba(150,120,80,.05) 2px 4px);
-  opacity:.7;
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 60%, rgba(120,92,54,.20) 100%);
+  opacity:.55;
 }
 .k .sheen{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;
@@ -773,7 +778,7 @@ function copperTexture(){
 /* ══════════════════════════════════════════════════════════
    4. 배치
    ══════════════════════════════════════════════════════════ */
-var SCENE_W = 1600, SCENE_H = 820;
+var SCENE_W = 1600, SCENE_H = 760;
 var stageEl = document.getElementById("stage");
 var sceneEl = document.getElementById("scene");
 var drumsEl = document.getElementById("drums");
@@ -783,18 +788,17 @@ var drumEls = [], deckEls = [];
 function buildDrumEl(i){
   var el = document.createElement("div");
   el.className = "k"; el.dataset.i = i;
+  var lugs = "";
+  for(var a = 0; a < 8; a++){
+    var ang = a * 45 + 22.5;
+    var rad = ang * Math.PI / 180;
+    var lx = 50 + 38.9 * Math.cos(rad);
+    var ly = 50 + 38.9 * Math.sin(rad);
+    lugs += '<i class="lug" style="left:' + lx.toFixed(2) + '%;top:' + ly.toFixed(2) + '%;transform:translate(-50%,-50%) rotate(' + (ang + 90).toFixed(1) + 'deg)"></i>';
+  }
   el.innerHTML =
     '<div class="bowl"></div>' +
-    '<div class="hoop">' +
-      '<i class="lug" style="transform:rotate(0deg) translateY(-47.6%)"></i>' +
-      '<i class="lug" style="transform:rotate(45deg) translateY(-47.6%)"></i>' +
-      '<i class="lug" style="transform:rotate(90deg) translateY(-47.6%)"></i>' +
-      '<i class="lug" style="transform:rotate(135deg) translateY(-47.6%)"></i>' +
-      '<i class="lug" style="transform:rotate(180deg) translateY(-47.6%)"></i>' +
-      '<i class="lug" style="transform:rotate(225deg) translateY(-47.6%)"></i>' +
-      '<i class="lug" style="transform:rotate(270deg) translateY(-47.6%)"></i>' +
-      '<i class="lug" style="transform:rotate(315deg) translateY(-47.6%)"></i>' +
-    '</div>' +
+    '<div class="hoop">' + lugs + '</div>' +
     '<div class="head">' +
       '<div class="grain"></div>' +
       '<div class="sheen"></div>' +
@@ -844,19 +848,19 @@ function rebuild(){
 function layout(){
   var sizes = SETS[state.count].map(Number);
   var n = sizes.length;
-  var avail = 1500;
-  var gap = Math.max(16, Math.min(56, avail / 130 * 4.4));
+  var avail = 1560;
+  var gap = Math.max(16, Math.min(58, 1560 / 130 * 4.4));
   var k = (avail - gap * (n - 1)) / sizes.reduce(function(a, b){ return a + b; }, 0);
-  k = Math.min(k, 19.2);
+  var arch = Math.max(44, Math.min(150, 24 * n));
+  var maxSize = Math.max.apply(null, sizes);
+  k = Math.min(k, 22, (SCENE_H - 76 - arch) / maxSize);
   var D = sizes.map(function(s){ return s * k; });
   var totalW = D.reduce(function(a, b){ return a + b; }, 0) + gap * (n - 1);
   var x = [], cur = (SCENE_W - totalW) / 2;
   for(var i = 0; i < n; i++){ x.push(cur + D[i] / 2); cur += D[i] + gap; }
 
   var cx = SCENE_W / 2, half = Math.max(1, totalW / 2);
-  var arch = Math.max(22, Math.min(54, 17 * n));
-  var base = 0;
-  var centers = x.map(function(xi){ var r = (xi - cx) / half; return base + arch * r * r; });
+  var centers = x.map(function(xi){ var r = (xi - cx) / half; return arch * r * r; });
   var tops = centers.map(function(c, i){ return c - D[i] / 2; });
   var bots = centers.map(function(c, i){ return c + D[i] / 2; });
   var minT = Math.min.apply(null, tops), maxB = Math.max.apply(null, bots);
