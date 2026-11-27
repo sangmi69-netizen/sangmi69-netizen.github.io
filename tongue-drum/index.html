@@ -623,6 +623,7 @@ function hit(note, cx, cy){
 /* 타격한 혀가 부드럽게 빛나며 울리는 효과 — requestAnimationFrame */
 var litList = [];
 function glowLoop(ts){
+  window.__frames = (window.__frames||0) + 1;
   for(var i=litList.length-1; i>=0; i--){
     var k = litList[i];
     k.e *= 0.945;
