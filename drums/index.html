@@ -109,7 +109,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .slow .pad.cym.hit .disc{animation-duration:11s !important}
 
 /* ---------- 특수 구역(라이드 벨 · 스네어 림 · 하이햇 페달) ---------- */
-.zone{position:absolute;pointer-events:auto;z-index:2}
+.zone{position:absolute;pointer-events:auto;z-index:2;touch-action:none}
 .pad.cym .zone-bell{left:50%;top:50%;width:31%;height:31%;transform:translate(-50%,-50%);border-radius:50%}
 .pad.drum .zone-head{left:9%;top:9%;width:82%;height:82%;border-radius:50%}
 .mark{position:absolute;pointer-events:none;border:1px dashed rgba(255,255,255,.42);border-radius:50%;z-index:3;display:none}
@@ -1017,11 +1017,38 @@ function makeIR(sec, decay){
 }
 
 /* ---------- 오디오 출력(마스터 컴프 + 룸 리버브) ---------- */
+/* 출력 버퍼 지연을 줄이려고 latencyHint:'interactive' 를 명시합니다.
+   (기본 'balanced' 보다 출력 버퍼가 짧아 터치→소리 지연이 줄어듭니다) */
+var unlocked = false;
+function unlockAudio(){
+  if(!AC) return;
+  try{ if(AC.state !== "running") AC.resume(); }catch(e){}
+  if(unlocked) return;
+  try{
+    /* iOS Safari: 무음 버퍼를 한 번 실제로 재생해야 오디오 잠금이 확실히 풀립니다 */
+    var n = Math.max(1, Math.ceil(AC.sampleRate * 0.06));
+    var b = AC.createBuffer(1, n, AC.sampleRate);
+    var s = AC.createBufferSource(); s.buffer = b;
+    var g = AC.createGain(); g.gain.value = 0.0001;
+    s.connect(g); g.connect(AC.destination); s.start(0);
+    unlocked = true;
+    window.__vd.unlocked = true;
+  }catch(e){}
+}
+function reportAudio(){
+  window.__vd.audio = {
+    latencyHint: "interactive",
+    state: AC ? AC.state : null,
+    sampleRate: AC ? AC.sampleRate : null,
+    baseLatency: AC && AC.baseLatency != null ? +AC.baseLatency.toFixed(4) : null,
+    outputLatency: AC && AC.outputLatency != null ? +AC.outputLatency.toFixed(4) : null
+  };
+}
 function initAudio(){
   if(AC) return AC;
   var Ctx = window.AudioContext || window.webkitAudioContext;
   if(!Ctx) return null;
-  AC = new Ctx({latencyHint:"interactive"});
+  try{ AC = new Ctx({latencyHint:"interactive"}); }catch(e){ AC = new Ctx(); }
   master = AC.createGain(); master.gain.value = state.vol;
   comp = AC.createDynamicsCompressor();
   comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 3;
@@ -1032,24 +1059,35 @@ function initAudio(){
   drumBus.connect(comp); comp.connect(makeup); makeup.connect(master);
   master.connect(analyser); analyser.connect(AC.destination);
   try{
-    reverb = AC.createConvolver(); reverb.buffer = makeIR(1.5, 2.6);
+    reverb = AC.createConvolver();
     wetBus = AC.createGain(); wetBus.gain.value = 0.30;
     reverb.connect(wetBus); wetBus.connect(makeup);
+    /* 임펄스 응답 생성(약 13만 샘플)은 첫 제스처 경로에서 빼고 바로 뒤로 미룹니다. */
+    setTimeout(function(){ try{ if(reverb && !reverb.buffer) reverb.buffer = makeIR(1.5, 2.6); }catch(e){} }, 0);
   }catch(e){ reverb = null; }
-  try{ var b = AC.createBuffer(1,1,AC.sampleRate), s = AC.createBufferSource(); s.buffer = b; s.connect(AC.destination); s.start(0); }catch(e){}
+  unlockAudio();
+  reportAudio();
   window.__vd.ctx = AC.state;
   return AC;
 }
 function resumeAudio(){
   initAudio();
   if(!AC) return;
-  if(AC.state !== "running") AC.resume().then(function(){ window.__vd.ctx = AC.state; }, function(){});
+  /* 기다리지 않고 즉시 재생합니다(resume().then() 대기 = 지연). */
+  unlockAudio();
   window.__vd.ctx = AC.state;
 }
+/* 첫 터치/키 입력이 어디서든 오디오 잠금을 풀도록 문서 전체에서 한 번 잡습니다. */
+["pointerdown","touchstart","mousedown","keydown"].forEach(function(t){
+  document.addEventListener(t, function(){ resumeAudio(); }, {capture:true, passive:true});
+});
 
-var peakRAF = 0;
+var peakRAF = 0, peakLast = 0;
 function measurePeak(){
   if(!analyser) return;
+  var t = performance.now();
+  if(t - peakLast < 120) return;      /* 연타 때 rAF·미터 작업이 다음 타격을 막지 않게 */
+  peakLast = t;
   cancelAnimationFrame(peakRAF);
   var n = 0;
   function tick(){
@@ -1057,7 +1095,7 @@ function measurePeak(){
     var p = 0, a;
     for(var i=0;i<anaData.length;i++){ a = Math.abs(anaData[i]); if(a > p) p = a; }
     if(p > window.__vd.peak) window.__vd.peak = Math.round(p*1000)/1000;
-    if(++n < 22) peakRAF = requestAnimationFrame(tick);
+    if(++n < 16) peakRAF = requestAnimationFrame(tick);
   }
   tick();
 }
@@ -1083,12 +1121,13 @@ function bankFor(zone){
   return SOUND.crash16[state.cymV];
 }
 
+var TAP = {ev:0, h0:0};   /* 반응속도 계측용 (이벤트 시각, 핸들러 진입 시각) */
 var openHat = null;    /* 울리고 있는 오픈 하이햇 */
 function play(zone, tune, gainTrim, pan){
   if(!SOUND || !AC) return;
   var buf = bankFor(zone);
   if(!buf) return;
-  if(AC.state !== "running") AC.resume();
+  if(AC.state !== "running") unlockAudio();
   /* 닫힌 하이햇·페달을 치면 울리던 오픈 하이햇을 즉시 멈춥니다(초킹) */
   if((zone === "hihat" || zone === "pedal") && openHat){
     try{
@@ -1122,6 +1161,20 @@ function play(zone, tune, gainTrim, pan){
     (tail || g).connect(s); s.connect(reverb);
   }
   src.start(0);
+  /* ---- 반응속도 계측: 터치 이벤트 → src.start() 까지의 JS 시간 ---- */
+  if(TAP.h0){
+    var tEnd = performance.now();
+    var rec2 = {zone:zone,
+      dispatch: Math.round((TAP.h0 - TAP.ev)*100)/100,
+      handlerToStart: Math.round((tEnd - TAP.h0)*100)/100,
+      total: Math.round((tEnd - TAP.ev)*100)/100};
+    window.__vd.lastTap = rec2;
+    if(!window.__vd.taps) window.__vd.taps = [];
+    window.__vd.taps.push(rec2);
+    if(window.__vd.taps.length > 100) window.__vd.taps.shift();
+    if(rec2.handlerToStart > (window.__vd.tapMax || 0)) window.__vd.tapMax = rec2.handlerToStart;
+    TAP.h0 = 0; TAP.ev = 0;
+  }
   if(zone === "hihatOpen") openHat = {src:src, gain:g, t:AC.currentTime};
   var rec = {t:Math.round(AC.currentTime*1000)/1000, zone:zone, rate:Math.round(src.playbackRate.value*1000)/1000};
   window.__vd.hits.push(rec);
@@ -1519,6 +1572,19 @@ fsBtn.addEventListener("click", function(e){
 var active = Object.create(null);
 var lastHit = Object.create(null);
 
+function flashPad(el){
+  el.classList.remove("hit");
+  void el.offsetWidth;                /* 애니메이션 재시작용 리플로우 — 소리 뒤로 미적습니다 */
+  el.classList.add("hit");
+  clearTimeout(el.__hitTimer);
+  var hold = document.documentElement.classList.contains("slow") ? 9000 : 240;
+  el.__hitTimer = setTimeout(function(){ el.classList.remove("hit"); }, hold);
+}
+/* 화면 표시는 다음 프레임으로 한 번만 예약합니다 */
+function queueFlash(el){
+  if(el.__flashRAF) return;
+  el.__flashRAF = requestAnimationFrame(function(){ el.__flashRAF = 0; flashPad(el); });
+}
 function hitPad(el, zoneOverride){
   if(!el) return;
   if(helpOpen()) return;                                    /* 사용설명서를 보는 중에는 소리 없음 */
@@ -1529,22 +1595,14 @@ function hitPad(el, zoneOverride){
   var now = performance.now();
   if(lastHit[id] && now - lastHit[id] < 20) return;
   lastHit[id] = now;
-  el.classList.remove("hit");
-  void el.offsetWidth;
-  el.classList.add("hit");
-  clearTimeout(el.__hitTimer);
-  var hold = document.documentElement.classList.contains("slow") ? 9000 : 240;
-  el.__hitTimer = setTimeout(function(){ el.classList.remove("hit"); }, hold);
   var trim = zone === "kick" ? 1 : (zone === "snare" ? .96 :
              (zone === "crossStick" ? .95 : (zone === "rideBell" ? .88 : .9)));
   var pan = parseFloat(el.dataset.pan || "0");
+  /* 1) 소리 먼저 — 터치 순간 src.start(0) 를 최우선으로 실행합니다 */
   play(zone, tune, trim, pan);
-  if(zone === "pedal" && pads.hihat){
-    var h = pads.hihat;
-    h.classList.remove("hit"); void h.offsetWidth; h.classList.add("hit");
-    clearTimeout(h.__hitTimer);
-    h.__hitTimer = setTimeout(function(){ h.classList.remove("hit"); }, 240);
-  }
+  /* 2) 시각 애니메이션은 뒤로 — 강제 리플로우·필터 애니메이션이 오디오를 미루지 않게 */
+  queueFlash(el);
+  if(zone === "pedal" && pads.hihat) queueFlash(pads.hihat);
 }
 function padFromNode(node, stopAt){
   while(node && node !== stopAt){
@@ -1563,16 +1621,17 @@ function zoneFromNode(node){
 }
 
 scene.addEventListener("pointerdown", function(e){
+  TAP.ev = e.timeStamp; TAP.h0 = performance.now();   /* 계측 + 아래 처리 순서를 지키기 위한 기준점 */
   if(document.body.classList.contains("editing")) return;
   var padEl = padFromNode(e.target, scene);
   if(!padEl) return;
   if(e.cancelable) e.preventDefault();
-  resumeAudio();
+  resumeAudio();                     /* 이미 풀려 있으면 상태 확인만 하고 바로 돌아옵니다 */
+  hitPad(padEl, zoneFromNode(e.target));
   active[e.pointerId] = padEl.dataset.id;
   var n = Object.keys(active).length;
   window.__vd.pointerCount = n;
   if(n > 1) window.__vd.multi = n;
-  hitPad(padEl, zoneFromNode(e.target));
   try{ padEl.setPointerCapture(e.pointerId); }catch(err){}
 }, {passive:false});
 
