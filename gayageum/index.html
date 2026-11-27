@@ -288,8 +288,8 @@ function buildStrings(){
     var m = T.midi[i], f = midiToFreq(m), t = i / 11;
     ST.str.push({
       i:i, midi:m, freq:f,
-      T60: clamp(2.15, 7.0, 6.9 * Math.pow(98 / f, 0.52)),
-      bright: clamp(0.24, 0.94, 0.24 + 0.62 * (Math.log(f / 98) / Math.LN2) / 3.1),
+      T60: clamp(6.9 * Math.pow(98 / f, 0.52), 2.15, 7.0),
+      bright: clamp(0.24 + 0.62 * (Math.log(f / 98) / Math.LN2) / 3.1, 0.24, 0.94),
       thick: lerp(0.195, 0.058, t)
     });
   }
