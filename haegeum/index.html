@@ -197,7 +197,7 @@
         <stop offset="58%" stop-color="#ffffff" stop-opacity=".06"/>
         <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
       </radialGradient>
-      <linearGradient id="neckG" x1="-46" y1="0" x2="46" y2="0" gradientUnits="userSpaceOnUse">
+      <linearGradient id="ipjukG" x1="-46" y1="0" x2="46" y2="0" gradientUnits="userSpaceOnUse">
         <stop offset="0%" stop-color="#1c1409"/>
         <stop offset="10%" stop-color="#5a4526"/>
         <stop offset="30%" stop-color="#8d6d3f"/>
@@ -253,8 +253,8 @@
     </defs>
     <g id="sceneT">
       <g id="art">
-        <g id="bodyG"></g>
         <g id="neckG"></g>
+        <g id="bodyG"></g>
         <g id="strYuG"></g>
         <g id="bowG"></g>
         <g id="strJungG"></g>
@@ -382,16 +382,16 @@ var GEO = {
   laneOuter: 190,
   labelX: [-215, 215],
   neckHalf: 46,
-  bodyCY: 560,
-  bodyR: 110,
-  boardR: 94,
-  wonsanY: 505,
-  gamY: 668,
+  bodyCY: 600,
+  bodyR: 112,
+  boardR: 95,
+  wonsanY: 578,
+  gamY: 700,
   pegY: [-455, -378],
   strTopY: [-448, -368],
   bowY: 430,
   topY: -520,
-  botY: 735
+  botY: 772
 };
 
 /* ══════════════════════════════════════════════════════════
@@ -547,7 +547,7 @@ function buildBody(){
 
   for(var i=0;i<5;i++){
     el("path", {
-      d:"M " + (-62 - i*7) + " " + (505 + i*13) + " Q " + (-4 + i*3) + " " + (494 + i*12) + " " + (66 + i*4) + " " + (516 + i*13),
+      d:"M " + (-62 - i*7) + " " + (548 + i*13) + " Q " + (-4 + i*3) + " " + (537 + i*12) + " " + (66 + i*4) + " " + (559 + i*13),
       fill:"none", stroke:"#8a6740", "stroke-width":1.15, opacity:(0.13 - i*0.018)
     }, bodyG);
   }
@@ -581,9 +581,9 @@ function buildBody(){
 }
 
 function buildNeck(){
-  el("path", {d:"M 0 470 L 0 -424 Q 0 -492 24 -508", fill:"none", stroke:"url(#neckG)",
+  el("path", {d:"M 0 545 L 0 -424 Q 0 -492 24 -508", fill:"none", stroke:"url(#ipjukG)",
               "stroke-width":GEO.neckHalf * 2, "stroke-linecap":"butt"}, neckG);
-  el("path", {d:"M 0 470 L 0 -424 Q 0 -492 24 -508", fill:"none", stroke:"url(#neckSheen)",
+  el("path", {d:"M 0 545 L 0 -424 Q 0 -492 24 -508", fill:"none", stroke:"url(#neckSheen)",
               "stroke-width":GEO.neckHalf * 2, "stroke-linecap":"butt"}, neckG);
 
   var nodes = [402, 292, 182, 72, -38, -148, -258, -368];
@@ -602,6 +602,9 @@ function buildNeck(){
     el("ellipse", {cx:rx, cy:ry, rx:2.2 + rnd() * 3.4, ry:1.4 + rnd() * 2.4,
                    fill:"#0f0903", opacity:(0.2 + rnd() * 0.3)}, neckG);
   }
+
+  el("rect", {x:-54, y:462, width:108, height:20, rx:6, fill:"#6f7d63", stroke:"#1b2318", "stroke-width":1.2}, neckG);
+  el("rect", {x:-50, y:466, width:100, height:5, rx:2, fill:"#e8f0da", opacity:".26"}, neckG);
 
   drawPeg(GEO.pegY[0]);
   drawPeg(GEO.pegY[1]);
@@ -670,16 +673,16 @@ function drawString(s){
 }
 
 function buildBow(){
-  el("path", {d:"M -258 454 Q 0 492 258 446", fill:"none", stroke:"url(#bowWoodG)", "stroke-width":11.5, "stroke-linecap":"round"}, bowG);
-  el("path", {d:"M -258 454 Q 0 492 258 446", fill:"none", stroke:"#f0dcb4", "stroke-width":2.6, opacity:".15"}, bowG);
-  el("path", {d:"M -244 452 Q -210 466 -176 470", fill:"none", stroke:"#4a2f1c", "stroke-width":16, "stroke-linecap":"round"}, bowG);
-  el("path", {d:"M -238 449 Q -210 460 -182 464", fill:"none", stroke:"#8a6a4a", "stroke-width":5, opacity:".33"}, bowG);
+  el("path", {d:"M -258 428 Q 0 468 258 422", fill:"none", stroke:"url(#bowWoodG)", "stroke-width":11.5, "stroke-linecap":"round"}, bowG);
+  el("path", {d:"M -258 428 Q 0 468 258 422", fill:"none", stroke:"#f0dcb4", "stroke-width":2.6, opacity:".15"}, bowG);
+  el("path", {d:"M -244 426 Q -210 442 -176 446", fill:"none", stroke:"#4a2f1c", "stroke-width":16, "stroke-linecap":"round"}, bowG);
+  el("path", {d:"M -238 423 Q -210 434 -182 438", fill:"none", stroke:"#8a6a4a", "stroke-width":5, opacity:".33"}, bowG);
   for(var i=0;i<4;i++){
     var o = -2.0 + i * 1.35;
-    el("path", {d:"M -250 " + (447 + o) + " L 250 " + (440 + o),
+    el("path", {d:"M -250 " + (420 + o) + " L 250 " + (413 + o),
                 fill:"none", stroke:"#f6eed8", "stroke-width":1.15, opacity:(0.4 - i * 0.03)}, bowG);
   }
-  el("path", {d:"M -250 447 L 250 440", fill:"none", stroke:"#ffffff", "stroke-width":.8, opacity:".32"}, bowG);
+  el("path", {d:"M -250 420 L 250 413", fill:"none", stroke:"#ffffff", "stroke-width":.8, opacity:".32"}, bowG);
 }
 
 /* ── 연주 오버레이 ── */
@@ -701,7 +704,7 @@ function buildOverlay(){
     var w = GEO.laneOuter - GEO.laneInner;
     var lane = el("rect", {
       x:x1, y:GEO.playTop, width:w, height:GEO.playH, rx:14,
-      fill:"rgba(246,214,160,0.026)", stroke:"rgba(246,214,160,0.07)", "stroke-width":1,
+      fill:"rgba(246,214,160,0.013)", stroke:"none",
       "data-lane":s, class:"lane"
     }, lanesG);
     lane.style.touchAction = "none";
@@ -711,6 +714,15 @@ function buildOverlay(){
     for(var r=0;r<n;r++){
       el("circle", {cx:GEO.strX[s], cy:rowY(r), r:3.4, fill:"url(#dotG)", opacity:".5"}, markG);
     }
+    /* 줄 경계 눈금 */
+    var outer = (s === 0) ? -GEO.laneOuter : GEO.laneOuter;
+    var inner = (s === 0) ? -GEO.laneOuter + 14 : GEO.laneOuter - 14;
+    for(var b=0;b<=n;b++){
+      var by = GEO.playTop + b * h;
+      el("line", {x1:inner, y1:by, x2:outer, y2:by, stroke:"rgba(246,214,160,.16)", "stroke-width":1}, markG);
+    }
+    el("line", {x1:outer, y1:GEO.playTop, x2:outer, y2:GEO.playTop + GEO.playH,
+                stroke:"rgba(246,214,160,.14)", "stroke-width":1}, markG);
 
     for(var r2=0;r2<n;r2++){
       var d = ROWS[s][r2];
@@ -737,18 +749,18 @@ function buildOverlay(){
 
   /* 활 판 (활 긋기 모드) */
   bowPad = el("rect", {
-    x:-262, y:384, width:524, height:96, rx:18,
+    x:-262, y:376, width:524, height:88, rx:18,
     fill:"rgba(246,214,160,0.05)", stroke:"rgba(246,214,160,0.22)", "stroke-width":1.4,
     "stroke-dasharray":"7 6", class:"bowpad", opacity:"0"
   }, overlayG);
   bowPad.style.touchAction = "none";
   bowPad.addEventListener("pointerdown", onBowPadDown, {passive:false});
   bowPadLabel = el("text", {
-    x:-232, y:432, "text-anchor":"middle", "dominant-baseline":"central",
+    x:-236, y:420, "text-anchor":"middle", "dominant-baseline":"central",
     "font-size":17, "font-weight":"700", fill:"rgba(240,205,146,.6)", opacity:"0"
   }, overlayG);
   bowPadLabel.textContent = "활";
-  bowPadLabel.__xy = [-232, 432];
+  bowPadLabel.__xy = [-236, 420];
 
   applyTextAngle();
   updateLabels();
@@ -787,12 +799,12 @@ function updateLabels(){
 var CFG = {
   0: { /* 중현 */
     f1:300, g1:5.0, f2:700, g2:7.0, f3:1250, g3:9.0, f4:2200, g4:-6, lp:6400,
-    attack:0.075, peak:0.34, noise:0.24, nf:1450, nq:0.75,
-    vibRate:4.7, vibBase:7, vibMax:54, pan:-0.16, sub:0.20, shape:1.55
+    attack:0.075, peak:0.30, noise:0.20, nf:1450, nq:0.75,
+    vibRate:4.7, vibBase:7, vibMax:54, pan:-0.16, sub:0.16, shape:1.55
   },
   1: { /* 유현 */
     f1:360, g1:3.4, f2:860, g2:6.0, f3:1760, g3:10.0, f4:2700, g4:-6, lp:8800,
-    attack:0.048, peak:0.30, noise:0.17, nf:2500, nq:0.8,
+    attack:0.048, peak:0.26, noise:0.15, nf:2500, nq:0.8,
     vibRate:5.6, vibBase:6, vibMax:46, pan:0.16, sub:0.10, shape:1.35
   }
 };
@@ -916,10 +928,10 @@ function Voice(ctx, dest, rev, strId, midi, opts){
   var o2 = c.createOscillator(); o2.type = "sawtooth";
   var o3 = c.createOscillator(); o3.type = "sine";
   o1.frequency.value = f;
-  o2.frequency.value = f * 1.0035;
-  o3.frequency.value = f * 0.5;
+  o2.frequency.value = f * 1.0012;
+  o3.frequency.value = f;
   var g1 = c.createGain(); g1.gain.value = 0.5;
-  var g2 = c.createGain(); g2.gain.value = 0.26;
+  var g2 = c.createGain(); g2.gain.value = 0.22;
   var g3 = c.createGain(); g3.gain.value = cfg.sub;
   o1.connect(g1); o2.connect(g2); o3.connect(g3);
   g1.connect(drive); g2.connect(drive); g3.connect(drive);
@@ -927,8 +939,8 @@ function Voice(ctx, dest, rev, strId, midi, opts){
 
   o1.frequency.setValueAtTime(f * 0.982, when);
   o1.frequency.exponentialRampToValueAtTime(f, when + 0.10);
-  o2.frequency.setValueAtTime(f * 1.0035 * 0.982, when);
-  o2.frequency.exponentialRampToValueAtTime(f * 1.0035, when + 0.10);
+  o2.frequency.setValueAtTime(f * 1.0012 * 0.982, when);
+  o2.frequency.exponentialRampToValueAtTime(f * 1.0012, when + 0.10);
 
   var lfo = c.createOscillator(); lfo.type = "sine"; lfo.frequency.value = cfg.vibRate;
   var lg = c.createGain(); lg.gain.value = cfg.vibBase;
@@ -968,8 +980,8 @@ Voice.prototype.setMidi = function(m){
   var a = this.oscs;
   try{ a[0].frequency.cancelScheduledValues(t); a[1].frequency.cancelScheduledValues(t); a[2].frequency.cancelScheduledValues(t); }catch(e){}
   a[0].frequency.setTargetAtTime(f, t, 0.028);
-  a[1].frequency.setTargetAtTime(f * 1.0035, t, 0.028);
-  a[2].frequency.setTargetAtTime(f * 0.5, t, 0.028);
+  a[1].frequency.setTargetAtTime(f * 1.0012, t, 0.028);
+  a[2].frequency.setTargetAtTime(f, t, 0.028);
 };
 
 Voice.prototype.setNong = function(d){
@@ -1466,6 +1478,15 @@ function goertzel(x, sr, f){
   for(var i=0;i<x.length;i++){ s0 = x[i] + 2 * cw * s1 - s2; s2 = s1; s1 = s0; }
   return Math.sqrt(Math.max(0, s1*s1 + s2*s2 - 2*cw*s1*s2)) / x.length;
 }
+function bandE(x, sr, f1, f2, steps){
+  var sum = 0;
+  for(var i=0;i<steps;i++){
+    var f = f1 * Math.pow(f2 / f1, i / (steps - 1));
+    var m = goertzel(x, sr, f);
+    sum += m * m;
+  }
+  return Math.sqrt(sum / steps);
+}
 function analyze(buf){
   var sr = buf.sampleRate, n = buf.length;
   var d = buf.getChannelData(0);
@@ -1474,8 +1495,7 @@ function analyze(buf){
   var rms = Math.sqrt(sum / n);
 
   var t0 = Math.floor(sr * 0.45), len = Math.min(8192, n - t0 - 1);
-  var win = new Float32Array(len);
-  var mean = 0;
+  var win = new Float32Array(len), mean = 0;
   for(var j=0;j<len;j++){ win[j] = d[t0 + j]; mean += win[j]; }
   mean /= len;
   for(var j2=0;j2<len;j2++) win[j2] -= mean;
@@ -1483,24 +1503,36 @@ function analyze(buf){
   var minLag = Math.floor(sr / 1600), maxLag = Math.floor(sr / 60);
   var best = -1, bestLag = 0;
   for(var lag=minLag; lag<=maxLag; lag++){
-    var s = 0;
-    for(var k=0;k<len-lag;k++) s += win[k] * win[k + lag];
-    if(s > best){ best = s; bestLag = lag; }
+    var s2 = 0;
+    for(var k=0;k<len-lag;k++) s2 += win[k] * win[k + lag];
+    if(s2 > best){ best = s2; bestLag = lag; }
   }
   var f0 = bestLag ? sr / bestLag : 0;
 
-  var bands = {};
-  var probes = {h1:f0, h2:f0*2, h3:f0*3, h5:f0*5, f800:800, f1250:1250, f2500:2500, f5000:5000};
-  for(var key in probes) bands[key] = +goertzel(win, sr, probes[key]).toFixed(5);
+  var bands = [
+    bandE(win, sr, 120, 400, 10),
+    bandE(win, sr, 400, 900, 10),
+    bandE(win, sr, 900, 1600, 10),
+    bandE(win, sr, 1600, 2600, 10),
+    bandE(win, sr, 2600, 4200, 10),
+    bandE(win, sr, 4200, 8000, 10)
+  ];
+  var bmax = Math.max.apply(null, bands) || 1;
+  var bandsNorm = bands.map(function(v){ return +(v / bmax).toFixed(3); });
 
-  var blocks = [];
-  var bl = Math.floor(sr * 0.1);
+  var h = [];
+  for(var q=1;q<=6;q++) h.push(+goertzel(win, sr, f0 * q).toFixed(5));
+  var hmax = Math.max.apply(null, h) || 1;
+  var harmNorm = h.map(function(v){ return +(v / hmax).toFixed(3); });
+
+  var blocks = [], bl = Math.floor(sr * 0.1);
   for(var b2=0;b2*bl<n;b2++){
-    var s2 = 0, cnt = 0;
-    for(var m2=0;m2<bl && b2*bl+m2<n;m2++){ s2 += d[b2*bl+m2]*d[b2*bl+m2]; cnt++; }
-    blocks.push(+Math.sqrt(s2 / Math.max(1,cnt)).toFixed(4));
+    var s3 = 0, cnt = 0;
+    for(var m2=0;m2<bl && b2*bl+m2<n;m2++){ s3 += d[b2*bl+m2]*d[b2*bl+m2]; cnt++; }
+    blocks.push(+Math.sqrt(s3 / Math.max(1,cnt)).toFixed(4));
   }
-  return { peak:+peak.toFixed(4), rms:+rms.toFixed(4), f0:+f0.toFixed(1), bands:bands, blocks:blocks };
+  return { peak:+peak.toFixed(4), rms:+rms.toFixed(4), f0:+f0.toFixed(1),
+           bands:bandsNorm, harm:harmNorm, blocks:blocks };
 }
 function renderOffline(list, sec){
   var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;

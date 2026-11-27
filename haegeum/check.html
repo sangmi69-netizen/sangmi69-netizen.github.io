@@ -57,7 +57,7 @@ async function testFrame(f, name){
     var lanes = w.__hg.laneRects();
     r.lanes = lanes;
     r.rows = w.__hg.rowCount();
-    r.rowPx = lanes.length ? +(lanes[0].h / r.rows).toFixed(1) : 0;
+    r.rowPx = lanes.length ? +(Math.max(lanes[0].w, lanes[0].h) / r.rows).toFixed(1) : 0;
     r.notesJung = w.__hg.notes(0).map(function(n){ return n.note + '/' + n.yul + '/' + n.midi; }).join(' ');
     r.notesYu = w.__hg.notes(1).map(function(n){ return n.note + '/' + n.yul + '/' + n.midi; }).join(' ');
     var labels = w.__hg.labels();
@@ -75,7 +75,7 @@ async function testFrame(f, name){
     await sleep(120);
     r.banRows = w.__hg.rowCount();
     r.banLabelCount = w.__hg.labels().length;
-    r.banRowPx = +(w.__hg.laneRects()[0].h / r.banRows).toFixed(1);
+    var lr = w.__hg.laneRects()[0]; r.banRowPx = +(Math.max(lr.w, lr.h) / r.banRows).toFixed(1);
     w.__hg.setOption('scale', 'pyeongjo');
     await sleep(120);
 
@@ -136,13 +136,11 @@ async function audioTest(w){
     var b2 = await w.__hg.renderOffline([{ s:1, midi:m2.midi, at:0.02, dur:1.1 }], 1.9);
     var b3 = await w.__hg.renderOffline([{ s:0, midi:m1.midi + 12, at:0.02, dur:1.1, nong:1 }], 1.9);
     var a1 = w.__hg.analyze(b1), a2 = w.__hg.analyze(b2), a3 = w.__hg.analyze(b3);
-    r.jung = { targetHz:+ (440*Math.pow(2,(m1.midi-69)/12)).toFixed(1), f0:a1.f0, peak:a1.peak, rms:a1.rms,
-               h2vsH1:+(a1.bands.h2/a1.bands.h1).toFixed(2), nasal1250:+(a1.bands.f1250/a1.bands.h1).toFixed(2),
-               bright5000:+(a1.bands.f5000/a1.bands.h1).toFixed(2), env:a1.blocks };
-    r.yu = { targetHz:+ (440*Math.pow(2,(m2.midi-69)/12)).toFixed(1), f0:a2.f0, peak:a2.peak, rms:a2.rms,
-             h2vsH1:+(a2.bands.h2/a2.bands.h1).toFixed(2), nasal2500:+(a2.bands.f2500/a2.bands.h1).toFixed(2),
-             bright5000:+(a2.bands.f5000/a2.bands.h1).toFixed(2), env:a2.blocks };
-    r.nong = { targetHz:+ (440*Math.pow(2,(m1.midi+12-69)/12)).toFixed(1), f0:a3.f0, peak:a3.peak, rms:a3.rms };
+    r.jung = { targetHz:+(440*Math.pow(2,(m1.midi-69)/12)).toFixed(1), f0:a1.f0, peak:a1.peak, rms:a1.rms,
+               bands:a1.bands, harm:a1.harm, env:a1.blocks };
+    r.yu = { targetHz:+(440*Math.pow(2,(m2.midi-69)/12)).toFixed(1), f0:a2.f0, peak:a2.peak, rms:a2.rms,
+             bands:a2.bands, harm:a2.harm, env:a2.blocks };
+    r.nong = { targetHz:+(440*Math.pow(2,(m1.midi+12-69)/12)).toFixed(1), f0:a3.f0, peak:a3.peak, rms:a3.rms, bands:a3.bands };
   }catch(e){ r.error = String(e && e.stack || e); }
   add('audio', r);
 }
