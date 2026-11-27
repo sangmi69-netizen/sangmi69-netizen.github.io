@@ -703,9 +703,9 @@ function drawLabel(parent, note, fs){
     fill:"url(#inkG)", stroke:"#000", "stroke-width":Math.max(1.1, fs*0.05),
     "stroke-linejoin":"round"
   }), parent);
-  var dotUp = el("circle", {cx:0, cy:-(fs*0.68), r:Math.max(4.8, fs*0.155),
+  var dotUp = el("circle", {cx:0, cy:-(fs*0.76), r:Math.max(4.8, fs*0.15),
                             fill:"#fff", stroke:"#000", "stroke-width":1.4}, parent);
-  var dotDn = el("circle", {cx:0, cy: (fs*0.62), r:Math.max(4.8, fs*0.155),
+  var dotDn = el("circle", {cx:0, cy: (fs*0.70), r:Math.max(4.8, fs*0.15),
                             fill:"#fff", stroke:"#000", "stroke-width":1.4}, parent);
   labelEls.push({note:note, txt:txt, out:out, up:dotUp, dn:dotDn, fs:fs});
 }
