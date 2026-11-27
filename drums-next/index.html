@@ -635,7 +635,7 @@ function mkSnare(p){
     var gb2 = oc.createGain(); env(gb2, t, p.amp*.30, .001, .034);
     nb.connect(bpB); bpB.connect(gb2); gb2.connect(oc.destination); nb.start(t);
     /* 스네어 와이어: 좁은 대역 + 핑크 노이즈 → 넓게 지지직대는 고역 잡음 제거 */
-    [[3900, 1.3, .55, 1.15], [5900, 1.6, .32, .95], [8600, 1.9, .12, .70]].forEach(function(w){
+    [[3900, 1.3, .85, 1.15], [5900, 1.6, .50, .95], [8600, 1.9, .20, .70]].forEach(function(w){
       var n = oc.createBufferSource(); n.buffer = pinkBuf(oc, dur);
       var bp = filt(oc, "bandpass", w[0], w[1]);
       var lp = filt(oc, "lowpass", 10500, .7);
@@ -645,7 +645,7 @@ function mkSnare(p){
     /* 와이어가 살랑이며 남는 옅은 꼬리 */
     var nt = oc.createBufferSource(); nt.buffer = pinkBuf(oc, dur);
     var bpT = filt(oc, "bandpass", 4600, .9);
-    var gT = oc.createGain(); env(gT, t, p.amp*.10*(p.wire||1), .006, p.decay*1.4);
+    var gT = oc.createGain(); env(gT, t, p.amp*.15*(p.wire||1), .006, p.decay*1.4);
     nt.connect(bpT); bpT.connect(gT); gT.connect(oc.destination); nt.start(t);
   });
 }
