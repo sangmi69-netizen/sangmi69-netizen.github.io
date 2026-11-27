@@ -14,7 +14,8 @@
 <body>
 <h1>tongue-drum 자체 점검 (음정 · 레벨 · 클리핑 · 오류)</h1>
 <pre id="out">running…</pre>
-<iframe id="fr" src="./index.html"></iframe>
+<iframe id="fr"></iframe>
+<script>document.getElementById('fr').src = './index.html?v=' + Date.now();</script>
 <script>
 const out = document.getElementById('out');
 const lines = [];
