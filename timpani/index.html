@@ -868,7 +868,7 @@ function layout(){
   var avail = 1500;
   var gap = Math.max(18, Math.min(58, 1500 / 130 * 4.4));
   var k = (avail - gap * (n - 1)) / sizes.reduce(function(a, b){ return a + b; }, 0);
-  var arch = Math.max(36, Math.min(140, 26 * n));
+  var arch = Math.max(36, Math.min(190, 30 * n));
   var maxSize = Math.max.apply(null, sizes);
   k = Math.min(k, 20);
   var D = sizes.map(function(s){ return s * k; });
