@@ -198,19 +198,20 @@
         <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
       </radialGradient>
       <linearGradient id="ipjukG" x1="-46" y1="0" x2="46" y2="0" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stop-color="#1c1409"/>
-        <stop offset="10%" stop-color="#5a4526"/>
-        <stop offset="30%" stop-color="#8d6d3f"/>
-        <stop offset="46%" stop-color="#a07f4d"/>
-        <stop offset="66%" stop-color="#6a5030"/>
-        <stop offset="88%" stop-color="#3a2b17"/>
-        <stop offset="100%" stop-color="#150f07"/>
+        <stop offset="0%" stop-color="#0d0803"/>
+        <stop offset="9%" stop-color="#2e2110"/>
+        <stop offset="26%" stop-color="#5c4423"/>
+        <stop offset="42%" stop-color="#7a5c2f"/>
+        <stop offset="58%" stop-color="#4c3820"/>
+        <stop offset="80%" stop-color="#231809"/>
+        <stop offset="100%" stop-color="#0b0702"/>
       </linearGradient>
       <linearGradient id="neckSheen" x1="-46" y1="0" x2="46" y2="0" gradientUnits="userSpaceOnUse">
         <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
-        <stop offset="34%" stop-color="#ffffff" stop-opacity=".16"/>
-        <stop offset="44%" stop-color="#ffffff" stop-opacity=".03"/>
-        <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        <stop offset="30%" stop-color="#ffe9bd" stop-opacity=".22"/>
+        <stop offset="42%" stop-color="#ffffff" stop-opacity=".04"/>
+        <stop offset="70%" stop-color="#000000" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity=".42"/>
       </linearGradient>
       <linearGradient id="woodG" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#a9834f"/>
@@ -239,9 +240,9 @@
       </linearGradient>
       <linearGradient id="laneFade" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#f6d6a0" stop-opacity="0"/>
-        <stop offset="10%" stop-color="#f6d6a0" stop-opacity=".05"/>
-        <stop offset="50%" stop-color="#f6d6a0" stop-opacity=".075"/>
-        <stop offset="90%" stop-color="#f6d6a0" stop-opacity=".05"/>
+        <stop offset="10%" stop-color="#f6d6a0" stop-opacity=".038"/>
+        <stop offset="50%" stop-color="#f6d6a0" stop-opacity=".055"/>
+        <stop offset="90%" stop-color="#f6d6a0" stop-opacity=".038"/>
         <stop offset="100%" stop-color="#f6d6a0" stop-opacity="0"/>
       </linearGradient>
       <radialGradient id="laneGlow" cx="50%" cy="50%" r="62%">
@@ -597,7 +598,7 @@ function buildNeck(){
   for(var i=0;i<nodes.length;i++){
     var y = nodes[i];
     el("rect", {x:-GEO.neckHalf, y:y - 4.5, width:GEO.neckHalf * 2, height:8, fill:"#140d06", opacity:".5"}, neckG);
-    el("rect", {x:-GEO.neckHalf, y:y + 3.5, width:GEO.neckHalf * 2, height:2.6, fill:"#e2c187", opacity:".2"}, neckG);
+    el("rect", {x:-GEO.neckHalf, y:y + 3.5, width:GEO.neckHalf * 2, height:2.8, fill:"#e6c48c", opacity:".34"}, neckG);
   }
 
   var seed = 7;
@@ -684,12 +685,12 @@ function buildBow(){
   el("path", {d:"M -258 428 Q 0 468 258 422", fill:"none", stroke:"#f0dcb4", "stroke-width":2.6, opacity:".15"}, bowG);
   el("path", {d:"M -244 426 Q -210 442 -176 446", fill:"none", stroke:"#4a2f1c", "stroke-width":16, "stroke-linecap":"round"}, bowG);
   el("path", {d:"M -238 423 Q -210 434 -182 438", fill:"none", stroke:"#8a6a4a", "stroke-width":5, opacity:".33"}, bowG);
-  for(var i=0;i<4;i++){
-    var o = -2.0 + i * 1.35;
+  for(var i=0;i<5;i++){
+    var o = -2.4 + i * 1.2;
     el("path", {d:"M -250 " + (420 + o) + " L 250 " + (413 + o),
-                fill:"none", stroke:"#f6eed8", "stroke-width":1.15, opacity:(0.4 - i * 0.03)}, bowG);
+                fill:"none", stroke:"#fff6e2", "stroke-width":1.5, opacity:(0.52 - i * 0.05)}, bowG);
   }
-  el("path", {d:"M -250 420 L 250 413", fill:"none", stroke:"#ffffff", "stroke-width":.8, opacity:".32"}, bowG);
+  el("path", {d:"M -250 420 L 250 413", fill:"none", stroke:"#ffffff", "stroke-width":.9, opacity:".45"}, bowG);
 }
 
 /* ── 연주 오버레이 ── */
