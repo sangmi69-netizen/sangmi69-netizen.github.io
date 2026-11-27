@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>tongue-drum 화면 크기 확인</title>
+<style>
+  html,body{margin:0;background:#222;height:100%;overflow:hidden}
+  #wrap{position:absolute;left:0;top:0}
+  iframe{border:0;display:block;background:#000}
+  #tag{position:fixed;right:8px;bottom:6px;color:#888;font:12px monospace}
+</style>
+</head>
+<body>
+<div id="wrap"><iframe id="fr"></iframe></div>
+<div id="tag"></div>
+<script>
+  // #land / #port : 아이폰 크기로 악기를 띄운다
+  var h = location.hash.replace('#','');
+  var sizes = { land:[844,390], port:[390,844], land2:[926,428] };
+  var s = sizes[h] || sizes.land;
+  var fr = document.getElementById('fr');
+  fr.width = s[0]; fr.height = s[1];
+  fr.src = './index.html?v=' + Date.now();
+  document.getElementById('tag').textContent = s[0] + ' × ' + s[1];
+  window.__size = s;
+</script>
+</body>
+</html>
