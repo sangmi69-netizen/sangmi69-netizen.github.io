@@ -100,8 +100,8 @@
   }
   #hint{
     position:absolute;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%);
-    z-index:8;font-size:11px;color:rgba(240,222,190,.60);text-align:center;
-    pointer-events:none;transition:opacity .9s ease;padding:0 12px;max-width:92vw;line-height:1.5;
+    z-index:8;font-size:10.8px;color:rgba(240,222,190,.62);text-align:center;
+    pointer-events:none;transition:opacity .9s ease;padding:0 14px;max-width:96vw;line-height:1.55;
   }
   #hint.gone{opacity:0}
 
@@ -1193,7 +1193,7 @@ var stage = document.getElementById("stage");
 function layout(){
   var vw = window.innerWidth, vh = window.innerHeight;
   var portrait = vh > vw * 1.02;
-  var topPad = 54, botPad = portrait ? 66 : 46;
+  var topPad = 54, botPad = portrait ? 84 : 48;
   var availW = Math.max(120, vw - 14);
   var availH = Math.max(120, vh - topPad - botPad);
 
