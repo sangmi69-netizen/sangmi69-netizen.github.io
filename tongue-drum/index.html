@@ -140,12 +140,12 @@
           <stop offset="84%"  stop-color="#412a80"/>
           <stop offset="100%" stop-color="#33206a"/>
         </radialGradient>
-        <!-- 혀(살짝 밝은 강판) -->
+        <!-- 혀(같은 강판, 아주 조금 밝게) -->
         <radialGradient id="tongueG" cx="40%" cy="32%" r="82%">
-          <stop offset="0%"   stop-color="#9d82ea"/>
-          <stop offset="34%"  stop-color="#8265d6"/>
-          <stop offset="70%"  stop-color="#6446b6"/>
-          <stop offset="100%" stop-color="#4e329b"/>
+          <stop offset="0%"   stop-color="#9377e2"/>
+          <stop offset="32%"  stop-color="#7759cd"/>
+          <stop offset="64%"  stop-color="#5b3fa9"/>
+          <stop offset="100%" stop-color="#472d87"/>
         </radialGradient>
         <linearGradient id="bodyG" x1="0" y1="0" x2="0.3" y2="1">
           <stop offset="0%"   stop-color="#3a2570"/>
@@ -288,20 +288,30 @@ function el(tag, attrs, parent){
 
 var FACE_R  = 430;    /* 상판 */
 var RIM_IN  = 430;
-var RIM_OUT = 500;    /* 땋은 링 */
-var OUTER   = 528;    /* 강철 몸통 */
-var ARM_R   = 474;    /* 혀의 갈래 끝(링 밑으로 들어감) */
+var RIM_OUT = 494;    /* 땋은 링 */
+var OUTER   = 526;    /* 강철 몸통 */
+var ARM_R   = 470;    /* 혀의 갈래 끝(링 밑으로 들어감) */
 
-/* 긴 혀 / 짧은 혀: tip = 둥근 끝의 중심 반지름, hw = 반폭 */
-var LONG  = { tip:186, hw:57, fs:50, label:232 };
-var SHORT = { tip:300, hw:44, fs:42, label:322 };
-var CORE_G = { hw:88, arm:-146, tip:104, fs:62, label:-78 };
+/* 둘레 혀: tip = 둥근 끝 중심의 반지름, hw = 반폭, 안쪽 끝 = tip - hw */
+var LONG  = { tip:300, hw:57, fs:50, label:272 };
+var SHORT = { tip:352, hw:44, fs:42, label:330 };
+var CORE_G = { hw:105, armY:-152, capY:44, fs:62, label:-84 };
 
-function tonguePath(tip, hw, arm){
-  return "M " + (-hw) + " " + arm +
-         " L " + (-hw) + " " + tip +
-         " A " + hw + " " + hw + " 0 0 0 " + hw + " " + tip +
-         " L " + hw + " " + arm + " Z";
+/* 둘레 혀 모양: 국부좌표에서 -y 가 바깥(테두리), 둥근 끝은 안쪽으로 볼록 */
+function tonguePath(tipR, hw, armR){
+  var yArm = -armR, yTip = -tipR;
+  return "M " + (-hw) + " " + yArm +
+         " L " + (-hw) + " " + yTip +
+         " A " + hw + " " + hw + " 0 0 0 " + hw + " " + yTip +
+         " L " + hw + " " + yArm + " Z";
+}
+
+/* 가운데 혀: 화면 기준 세로 (갈래가 위로, 둥근 끝이 아래로) */
+function corePath(hw, armY, capY){
+  return "M " + (-hw) + " " + armY +
+         " L " + (-hw) + " " + capY +
+         " A " + hw + " " + hw + " 0 0 0 " + hw + " " + capY +
+         " L " + hw + " " + armY + " Z";
 }
 
 var shell = document.getElementById("shell");
@@ -331,36 +341,38 @@ function drawKey(note){
   var path, fs, labelY, hw;
 
   if(note.core){
-    path = tonguePath(CORE_G.tip, CORE_G.hw, CORE_G.arm);
+    path = corePath(CORE_G.hw, CORE_G.armY, CORE_G.capY);
     fs = CORE_G.fs; labelY = CORE_G.label; hw = CORE_G.hw;
   }else{
     var c = note.kind === "long" ? LONG : SHORT;
-    path = tonguePath(c.tip, c.hw, -ARM_R);
+    path = tonguePath(c.tip, c.hw, ARM_R);
     fs = c.fs; labelY = c.label; hw = c.hw;
   }
 
-  /* 컷(틈) — 얇은 한 줄 + 살짝 번진 그림자 */
-  el("path", {d:path, fill:"none", stroke:"#0b0420", "stroke-width":9, opacity:".55",
+  /* 컷(틈) — 얇은 선 + 은은한 그늘 */
+  el("path", {d:path, fill:"none", stroke:"#0a0418", "stroke-width":7, opacity:".30",
               "stroke-linejoin":"round", filter:"url(#innerBlur)"}, g);
-  el("path", {d:path, fill:"none", stroke:"#0a0418", "stroke-width":3.4,
-              "stroke-linejoin":"round", opacity:".95"}, g);
+  el("path", {d:path, fill:"none", stroke:"#0a0418", "stroke-width":2.8,
+              "stroke-linejoin":"round", opacity:".92"}, g);
 
   /* 혀 판 */
   var plate = el("path", {d:path, fill:"url(#tongueG)", "data-i":note.idx, class:"plate"}, g);
   /* 판 위 미세 결 */
-  el("path", {d:path, fill:"url(#brushed)", opacity:".5", "pointer-events":"none"}, g);
+  el("path", {d:path, fill:"url(#brushed)", opacity:".35", "pointer-events":"none"}, g);
   /* 컷 가장자리의 밝은 선 */
-  el("path", {d:path, fill:"none", stroke:"#ffffff", "stroke-opacity":".22", "stroke-width":1.6,
-              "stroke-linejoin":"round", opacity:".55", "pointer-events":"none"}, g);
-  /* 둥근 끝의 그늘 */
-  el("path", {d:path, fill:"url(#capShade)", opacity:".5", "pointer-events":"none"}, g);
+  el("path", {d:path, fill:"none", stroke:"#e9dcff", "stroke-opacity":".18", "stroke-width":1.2,
+              "stroke-linejoin":"round", opacity:".8", "pointer-events":"none"}, g);
+  /* 안쪽 끝의 옅은 그늘 */
+  el("path", {d:path, fill:"url(#capShade)", opacity:".35", "pointer-events":"none"}, g);
 
   /* 빛남 */
   var glow = el("path", {d:path, fill:"#ffe8b4", filter:"url(#glowF)", opacity:"0",
                           "pointer-events":"none"}, g);
 
-  /* 이름표 */
-  var lab = el("g", {transform:"translate(0," + labelY + ") rotate(180)", "pointer-events":"none"}, g);
+  /* 이름표 — 둘레 혀는 방사형, 가운데 혀는 똑바로 */
+  var labTr = note.core ? ("translate(0," + labelY + ")")
+                        : ("translate(0," + labelY + ") rotate(180)");
+  var lab = el("g", {transform:labTr, "pointer-events":"none"}, g);
   drawLabel(lab, note, fs);
 
   plate.addEventListener("pointerdown", onPointerDown, {passive:false});
@@ -370,15 +382,15 @@ function drawKey(note){
 }
 
 function drawSeal(g){
-  var seal = el("g", {transform:"translate(0,34)", "pointer-events":"none"}, g);
-  el("rect", {x:-43, y:-62, width:86, height:124, rx:8, fill:"#2a1a58", opacity:".45"}, seal);
-  el("rect", {x:-43, y:-62, width:86, height:124, rx:8, fill:"none",
-              stroke:"url(#goldG)", "stroke-width":2.2, opacity:".92"}, seal);
-  el("rect", {x:-37, y:-56, width:74, height:112, rx:5, fill:"none",
-              stroke:"url(#goldG)", "stroke-width":.9, opacity:".55"}, seal);
+  var seal = el("g", {transform:"translate(0,38)", "pointer-events":"none"}, g);
+  el("rect", {x:-40, y:-58, width:80, height:116, rx:7, fill:"#2a1a58", opacity:".40"}, seal);
+  el("rect", {x:-40, y:-58, width:80, height:116, rx:7, fill:"none",
+              stroke:"url(#goldG)", "stroke-width":2, opacity:".9"}, seal);
+  el("rect", {x:-34, y:-52, width:68, height:104, rx:4, fill:"none",
+              stroke:"url(#goldG)", "stroke-width":.8, opacity:".5"}, seal);
   ["텅","드","럼"].forEach(function(ch,i){
-    el("text", {x:0, y:-28 + i*40, "text-anchor":"middle", "dominant-baseline":"middle",
-                "font-family":"Georgia,'Times New Roman',serif", "font-size":29,
+    el("text", {x:0, y:-26 + i*37, "text-anchor":"middle", "dominant-baseline":"middle",
+                "font-family":"Georgia,'Times New Roman',serif", "font-size":27,
                 fill:"url(#goldG)", "letter-spacing":"1"}, seal).textContent = ch;
   });
 }
