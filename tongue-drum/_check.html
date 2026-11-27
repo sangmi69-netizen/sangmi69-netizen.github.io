@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>tongue-drum 자체 점검</title>
+<style>
+  body{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#111;color:#ddd;padding:14px;margin:0}
+  h1{font-size:15px;margin:0 0 10px}
+  pre{white-space:pre-wrap;margin:0}
+  .ok{color:#7ee787}.bad{color:#ff7b72}
+  iframe{width:900px;height:900px;border:0;position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<h1>tongue-drum 자체 점검 (음정 · 레벨 · 클리핑 · 오류)</h1>
+<pre id="out">running…</pre>
+<iframe id="fr" src="./index.html"></iframe>
+<script>
+const out = document.getElementById('out');
+const lines = [];
+function p(s, cls){ lines.push(cls ? '<span class="'+cls+'">'+s+'</span>' : s); out.innerHTML = lines.join('\n'); }
+
+function goertzel(buf, rate, freq){
+  const N = Math.min(buf.length, Math.floor(rate*0.6));
+  const k = 2*Math.PI*freq/rate, c = 2*Math.cos(k);
+  let s0=0,s1=0,s2=0;
+  for(let i=0;i<N;i++){ s0 = buf[i] + c*s1 - s2; s2=s1; s1=s0; }
+  return Math.sqrt(s1*s1 + s2*s2 - c*s1*s2)/N;
+}
+function peakFreq(buf, rate, lo, hi, step){
+  let best=lo, bestv=-1;
+  for(let f=lo; f<=hi; f+=step){ const v=goertzel(buf, rate, f); if(v>bestv){bestv=v; best=f;} }
+  return {freq:best, mag:bestv};
+}
+function cents(a,b){ return 1200*Math.log2(a/b); }
+
+window.addEventListener('load', function(){
+  const fr = document.getElementById('fr');
+  const t0 = Date.now();
+  const wait = setInterval(function(){
+    const w = fr.contentWindow;
+    if(!w || !w.__td){ if(Date.now()-t0>8000){ clearInterval(wait); p('FAIL: __td 없음 (스크립트 실행 실패)', 'bad'); } return; }
+    clearInterval(wait);
+    try { run(w); } catch(e){ p('EXCEPTION: '+e.message, 'bad'); }
+  }, 120);
+});
+
+async function run(w){
+  const td = w.__td;
+  p('오류 수집: ' + JSON.stringify(w.__errs || null), (w.__errs && w.__errs.length) ? 'bad' : 'ok');
+  p('악기 초기화: ' + (td.ready() ? 'audio ready' : 'audio not started') );
+  p('혀 개수: ' + td.notes.length + ' / DOM: ' + w.document.querySelectorAll('#keys path.plate').length);
+  p('');
+  p('idx  숫자  음이름   대상Hz     검출Hz    차이(cent)  peak   RMS');
+  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  let bad = 0, clip = 0;
+  for(const n of td.notes){
+    const rate = 44100, sec = 1.2;
+    const oc = new OfflineAudioContext(1, Math.floor(rate*sec), rate);
+    const dest = oc.createGain(); dest.gain.value = 0.86; dest.connect(oc.destination);
+    const conv = oc.createConvolver(); conv.buffer = td.buildIR(oc, 2.0);
+    const wet = oc.createGain(); wet.gain.value = 0.30; conv.connect(wet); wet.connect(dest);
+    const noise = td.makeNoise(oc, 0.06);
+    td.makeVoice(oc, dest, conv, n.freq, 0, 1, noise);
+    const rendered = await oc.startRendering();
+    const buf = rendered.getChannelData(0);
+    let peak = 0, sum = 0;
+    for(let i=0;i<buf.length;i++){ const a=Math.abs(buf[i]); if(a>peak) peak=a; sum += buf[i]*buf[i]; }
+    const rms = Math.sqrt(sum/buf.length);
+    const det = peakFreq(buf, rate, n.freq*0.90, n.freq*1.10, n.freq/900);
+    const ct = cents(det.freq, n.freq);
+    const okPitch = Math.abs(ct) < 6;
+    if(!okPitch) bad++;
+    if(peak >= 0.999) clip++;
+    p(String(n.idx).padStart(3) + '   ' + n.deg + '      ' + (n.name+n.oct).padEnd(4) + '  ' +
+      n.freq.toFixed(2).padStart(8) + '  ' + det.freq.toFixed(2).padStart(9) + '  ' +
+      (ct>=0?'+':'') + ct.toFixed(1).padStart(8) + '   ' + peak.toFixed(3) + '  ' + rms.toFixed(4),
+      (okPitch && peak < 0.999) ? 'ok' : 'bad');
+  }
+  p('');
+  p('음정 오차 6cent 초과: ' + bad + '건,  클리핑(peak>=1.0): ' + clip + '건', (bad||clip)?'bad':'ok');
+
+  /* 15음 동시 화음 — 마스터 리미터 포함 전체 체인으로 클리핑 확인 */
+  {
+    const rate = 44100, sec = 3.0;
+    const oc = new OfflineAudioContext(2, Math.floor(rate*sec), rate);
+    const master = oc.createGain(); master.gain.value = 0.86;
+    const comp = oc.createDynamicsCompressor();
+    comp.threshold.value = -15; comp.knee.value = 20; comp.ratio.value = 3.4;
+    comp.attack.value = 0.004; comp.release.value = 0.26;
+    const lim = oc.createDynamicsCompressor();
+    lim.threshold.value = -2.2; lim.knee.value = 0; lim.ratio.value = 20;
+    lim.attack.value = 0.001; lim.release.value = 0.11;
+    master.connect(comp); comp.connect(lim); lim.connect(oc.destination);
+    const conv = oc.createConvolver(); conv.buffer = td.buildIR(oc, 2.0);
+    const wetG = oc.createGain(); wetG.gain.value = 0.30; conv.connect(wetG); wetG.connect(master);
+    const noise = td.makeNoise(oc, 0.06);
+    td.notes.forEach(function(n, i){ td.makeVoice(oc, master, conv, n.freq, 0.001*i, 1, noise); });
+    const r = await oc.startRendering();
+    let peak = 0;
+    for(let ch=0; ch<r.numberOfChannels; ch++){
+      const b = r.getChannelData(ch);
+      for(let i=0;i<b.length;i++){ const a=Math.abs(b[i]); if(a>peak) peak=a; }
+    }
+    p('15음 동시 타격 peak = ' + peak.toFixed(3) + (peak < 0.999 ? '  → 클리핑 없음' : '  → 클리핑!'),
+      peak < 0.999 ? 'ok' : 'bad');
+  }
+
+  /* 3음 화음 + 잔향 */
+  {
+    const rate = 44100, sec = 2.0;
+    const oc = new OfflineAudioContext(2, Math.floor(rate*sec), rate);
+    const dest = oc.createGain(); dest.gain.value = 0.86; dest.connect(oc.destination);
+    const conv = oc.createConvolver(); conv.buffer = td.buildIR(oc, 2.0);
+    const wet = oc.createGain(); wet.gain.value = 0.30; conv.connect(wet); wet.connect(dest);
+    const noise = td.makeNoise(oc, 0.06);
+    [4, 8, 11].forEach(function(i){ td.makeVoice(oc, dest, conv, td.notes[i].freq, 0, 1, noise); });
+    const r = await oc.startRendering();
+    let peak = 0; for(let i=0;i<r.length;i++){ const a=Math.abs(r.getChannelData(0)[i]); if(a>peak) peak=a; }
+    p('3음 화음(도·파·시) peak = ' + peak.toFixed(3) + (peak<0.999?'  → 정상':'  → 클리핑'), peak<0.999?'ok':'bad');
+  }
+
+  p('');
+  /* 실제 클릭 발음 확인은 바깥 브라우저에서 수행 */
+  p('done');
+  window.__done = true;
+}
+</script>
+</body>
+</html>

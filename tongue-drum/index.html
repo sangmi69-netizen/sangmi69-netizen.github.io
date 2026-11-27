@@ -299,9 +299,9 @@ var OUTER   = 526;    /* 강철 몸통 */
 var ARM_R   = 470;    /* 혀의 갈래 끝(링 밑으로 들어감) */
 
 /* 둘레 혀: tip = 둥근 끝 중심의 반지름, hw = 반폭, 안쪽 끝 = tip - hw */
-var LONG  = { tip:300, hw:57, fs:50, label:272 };
-var SHORT = { tip:352, hw:44, fs:42, label:330 };
-var CORE_G = { hw:105, armY:-166, capY:52, fs:62, label:-100 };
+var LONG  = { tip:300, hw:57, fs:54, label:272 };
+var SHORT = { tip:352, hw:44, fs:46, label:330 };
+var CORE_G = { hw:105, armY:-166, capY:52, fs:68, label:-104 };
 
 /* 둘레 혀 모양: 국부좌표에서 -y 가 바깥(테두리), 둥근 끝은 안쪽으로 볼록 */
 function tonguePath(tipR, hw, armR){
@@ -338,6 +338,9 @@ el("ellipse",{cx:-165, cy:-235, rx:340, ry:225, fill:"url(#sheen)", opacity:".40
 el("ellipse",{cx:150, cy:265, rx:250, ry:170, fill:"url(#sheen)", opacity:".10",
               transform:"rotate(-26 150 265)"}, shell);
 el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#edgeShade)"}, shell);
+/* 큰 반사광 띠 */
+el("ellipse", {cx:-190, cy:-60, rx:230, ry:330, fill:"url(#sheen)", opacity:".17",
+               transform:"rotate(28 -190 -60)"}, shell);
 [396, 262].forEach(function(r){
   el("circle",{cx:0, cy:0, r:r, fill:"none", stroke:"#ffffff", "stroke-opacity":".04", "stroke-width":1.2}, shell);
 });
@@ -715,6 +718,9 @@ for(var i=1;i<NOTES.length;i++) drawKey(NOTES[i]);
 var ropeR = (RIM_IN + RIM_OUT) / 2, ropeW = (RIM_OUT - RIM_IN);
 var circ = 2 * Math.PI * ropeR;
 var dash = Math.round(circ / 52);           /* 꼬임 한 칸 */
+/* 테두리 바로 안쪽 그늘(혀 위로 드러우게) */
+el("circle", {cx:0, cy:0, r:FACE_R+2, fill:"none", stroke:"#0a0418", "stroke-width":18, opacity:".22",
+              filter:"url(#innerBlur)"}, rimG);
 el("circle", {cx:0, cy:0, r:ropeR, fill:"none", stroke:"url(#ropeG)",
               "stroke-width":ropeW}, rimG);
 /* 두 가닥이 서로 엇갈리는 꼬임 */
