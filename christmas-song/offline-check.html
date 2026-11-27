@@ -332,10 +332,9 @@ noscript{display:block;padding:20px;color:var(--gold-l)}
 
 /* print: full score */
 @media print{
-  body{background:#fff;overflow:visible}
-  body::after,#snow,.topbar,.player,.tabs,.pane,.present{display:none !important}
-  .app{height:auto;display:block}
-  main{display:block;padding:0;height:auto}
+  html{height:auto;overflow:visible}
+  body{background:#fff;overflow:visible;height:auto;min-height:0}
+  body::after,#snow,.topbar,.player,.tabs,.pane,.present,.app{display:none !important}
   .printall{display:block !important}
   .printall img{display:block;width:100%;page-break-after:always;break-after:page}
   .printall img:last-child{page-break-after:auto;break-after:auto}
