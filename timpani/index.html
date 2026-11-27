@@ -356,8 +356,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 #tuneTable tr.cur td{color:#ffe0b6;font-weight:700}
 input[type=range]{accent-color:#d69a5c;height:24px;width:150px}
 
-/* 아주 좁은 화면 */
-@media (max-width:520px){
+/* 아주 좁은 화면 (세로로 돌려 쓰는 화면은 앱 폭이 844라 해당 없음) */
+@media (max-width:520px) and (orientation:landscape){
   #brand span.small{display:none}
   #countSeg .lbl{display:none}
   .tb.txt{padding:0 8px;font-size:11px}
