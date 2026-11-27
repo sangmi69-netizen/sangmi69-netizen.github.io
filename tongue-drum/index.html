@@ -133,12 +133,12 @@
     <svg id="drum" viewBox="-560 -560 1120 1120" aria-label="보라색 C key 15음 텅드럼">
       <defs>
         <!-- 상판 -->
-        <radialGradient id="faceG" cx="38%" cy="30%" r="86%">
-          <stop offset="0%"   stop-color="#a184ee"/>
-          <stop offset="26%"  stop-color="#8a68e0"/>
-          <stop offset="56%"  stop-color="#6d4cc6"/>
-          <stop offset="80%"  stop-color="#52379e"/>
-          <stop offset="100%" stop-color="#3d2a7d"/>
+        <radialGradient id="faceG" gradientUnits="userSpaceOnUse" cx="-120" cy="-190" r="720">
+          <stop offset="0%"   stop-color="#a98cf0"/>
+          <stop offset="24%"  stop-color="#8f6ce4"/>
+          <stop offset="52%"  stop-color="#7250c9"/>
+          <stop offset="76%"  stop-color="#5539a3"/>
+          <stop offset="100%" stop-color="#3c2879"/>
         </radialGradient>
         <!-- 혀(같은 강판, 아주 조금 밝게) — 드럼 전체 좌표로 조명이 일정하게 -->
         <radialGradient id="tongueG" gradientUnits="userSpaceOnUse" cx="-60" cy="-170" r="560">
@@ -312,12 +312,16 @@ function tonguePath(tipR, hw, armR){
          " L " + hw + " " + yArm + " Z";
 }
 
-/* 가운데 혀: 화면 기준 세로 (갈래가 위로, 둥근 끝이 아래로) */
+/* 가운데 혀: 화면 기준 세로 (갈래가 위로, 둥근 끝이 아래로) — 위 모서리는 살짝 둥글게 */
 function corePath(hw, armY, capY){
-  return "M " + (-hw) + " " + armY +
-         " L " + (-hw) + " " + capY +
-         " A " + hw + " " + hw + " 0 0 0 " + hw + " " + capY +
-         " L " + hw + " " + armY + " Z";
+  var r = 26;
+  return "M " + (-hw) + " " + (armY + r) +
+         " Q " + (-hw) + " " + armY + " " + (-hw + r) + " " + armY +
+         " L " + (hw - r) + " " + armY +
+         " Q " + hw + " " + armY + " " + hw + " " + (armY + r) +
+         " L " + hw + " " + capY +
+         " A " + hw + " " + hw + " 0 0 0 " + (-hw) + " " + capY +
+         " Z";
 }
 
 var shell = document.getElementById("shell");
@@ -361,7 +365,7 @@ function drawKey(note){
        " A " + hw + " " + hw + " 0 0 0 " + hw + " " + CORE_G.capY +
        " L " + hw + " " + CORE_G.armY)
     : path;
-  el("path", {d:strokePath, fill:"none", stroke:"#0a0418", "stroke-width":6, opacity:".28",
+  el("path", {d:strokePath, fill:"none", stroke:"#0a0418", "stroke-width":5, opacity:".18",
               "stroke-linejoin":"round", filter:"url(#innerBlur)"}, g);
   el("path", {d:strokePath, fill:"none", stroke:"#0a0418", "stroke-width":2.6,
               "stroke-linejoin":"round", opacity:".9", "stroke-linecap":"round"}, g);
@@ -708,10 +712,18 @@ drawKey(NOTES[0]);
 for(var i=1;i<NOTES.length;i++) drawKey(NOTES[i]);
 
 /* 땋은 테두리 — 혀 위에 덮어 혀 끝이 링 밑으로 들어가 보이게 */
-el("circle", {cx:0, cy:0, r:(RIM_IN+RIM_OUT)/2, fill:"none", stroke:"url(#ropeG)",
-              "stroke-width":(RIM_OUT-RIM_IN)}, rimG);
-el("circle", {cx:0, cy:0, r:(RIM_IN+RIM_OUT)/2, fill:"none", stroke:"url(#braid)",
-              "stroke-width":(RIM_OUT-RIM_IN-4)}, rimG);
+var ropeR = (RIM_IN + RIM_OUT) / 2, ropeW = (RIM_OUT - RIM_IN);
+var circ = 2 * Math.PI * ropeR;
+var dash = Math.round(circ / 52);           /* 꼬임 한 칸 */
+el("circle", {cx:0, cy:0, r:ropeR, fill:"none", stroke:"url(#ropeG)",
+              "stroke-width":ropeW}, rimG);
+/* 두 가닥이 서로 엇갈리는 꼬임 */
+el("circle", {cx:0, cy:0, r:ropeR, fill:"none", stroke:"#f4eeff", "stroke-opacity":".62",
+              "stroke-width":ropeW*0.42, "stroke-dasharray":dash + " " + dash, "stroke-linecap":"round",
+              transform:"rotate(-8)"}, rimG);
+el("circle", {cx:0, cy:0, r:ropeR, fill:"none", stroke:"#6a5b8f", "stroke-opacity":".45",
+              "stroke-width":ropeW*0.40, "stroke-dasharray":dash + " " + dash,
+              "stroke-dashoffset":dash, "stroke-linecap":"round", transform:"rotate(-8)"}, rimG);
 el("circle", {cx:0, cy:0, r:RIM_IN+1.5, fill:"none", stroke:"#2a1a55", "stroke-width":4.5, opacity:".9"}, rimG);
 el("circle", {cx:0, cy:0, r:RIM_OUT-1.5, fill:"none", stroke:"#0d0620", "stroke-width":5, opacity:".85"}, rimG);
 el("circle", {cx:0, cy:0, r:RIM_IN+8, fill:"none", stroke:"#0a0418", "stroke-width":7, opacity:".28"}, rimG);
