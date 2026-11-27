@@ -552,8 +552,8 @@ var ARM_R   = 470;
 
 var LONG  = { tip:300, hw:57, fs:62, label:320 };
 var SHORT = { tip:352, hw:44, fs:56, label:356 };
-var CORE_G = { hw:105, armY:-166, capY:52, fs:82, label:-30 };
-var FONT_SERIF = "Georgia,'Times New Roman','Apple SD Gothic Neo',serif";
+var CORE_G = { hw:110, armY:142, capY:-46, fs:82, label:-6 };
+var FONT_SERIF = "'Times New Roman',Georgia,'Apple SD Gothic Neo',serif";
 
 /* 광원: 화면 좌상단 → 그림자는 우하단(+1,+1) */
 var LX = 0.7071, LY = 0.7071;
@@ -565,15 +565,18 @@ function tonguePath(tipR, hw, armR){
          " A " + hw + " " + hw + " 0 0 0 " + hw + " " + yTip +
          " L " + hw + " " + yArm + " Z";
 }
+/* 가운데 혀 — 위가 둥근 아치(∩), 아래는 본체에 붙어 열린 정방향 */
 function corePath(hw, armY, capY){
-  var r = 30;
-  return "M " + (-hw) + " " + (armY + 14) +
-         " Q " + (-hw) + " " + armY + " " + (-hw + r) + " " + (armY - 6) +
-         " L " + (hw - r) + " " + (armY - 6) +
-         " Q " + hw + " " + armY + " " + hw + " " + (armY + 14) +
-         " L " + hw + " " + capY +
-         " A " + hw + " " + hw + " 0 0 1 " + (-hw) + " " + capY +
-         " Z";
+  return "M " + (-hw) + " " + armY +
+         " L " + (-hw) + " " + capY +
+         " A " + hw + " " + hw + " 0 0 1 " + hw + " " + capY +
+         " L " + hw + " " + armY + " Z";
+}
+function coreCut(hw, armY, capY){
+  return "M " + (-hw) + " " + armY +
+         " L " + (-hw) + " " + capY +
+         " A " + hw + " " + hw + " 0 0 1 " + hw + " " + capY +
+         " L " + hw + " " + armY;
 }
 function annulus(r1, r2){
   return "M " + r1 + " 0 A " + r1 + " " + r1 + " 0 1 1 " + (-r1) + " 0 A " + r1 + " " + r1 + " 0 1 1 " + r1 + " 0 Z " +
@@ -620,39 +623,38 @@ el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#grainPat)", opacity:".78",
 function drawKey(note){
   var a = note.angle;
   var g = el("g", {transform:"rotate(" + a + ")", class:"keygrp"}, keysG);
-  var path, fs, labelY, hw;
+  var path, fs, labelY, hw, cut, bevelD;
 
   if(note.core){
     path = corePath(CORE_G.hw, CORE_G.armY, CORE_G.capY);
+    cut  = coreCut(CORE_G.hw, CORE_G.armY, CORE_G.capY);
     fs = CORE_G.fs; labelY = CORE_G.label; hw = CORE_G.hw;
   }else{
     var c = note.kind === "long" ? LONG : SHORT;
     path = tonguePath(c.tip, c.hw, ARM_R);
+    cut  = path;
     fs = c.fs; labelY = -c.label; hw = c.hw;
   }
+  /* 베벨은 갈래 끝(열린 쪽)에 선이 생기지 않도록 열린 경로로 긋는다 */
+  bevelD = note.core ? cut : path;
 
   var L = lightLocal(a);
   var dx = L.x, dy = L.y;               /* 국부 좌표에서 그림자가 지는 방향 */
 
-  /* 컷 라인 — 가운데 혀는 갈래 끝의 가로선 없이 */
-  var cut = note.core
-    ? ("M " + (-hw) + " " + CORE_G.armY + " L " + (-hw) + " " + CORE_G.capY +
-       " A " + hw + " " + hw + " 0 0 0 " + hw + " " + CORE_G.capY +
-       " L " + hw + " " + CORE_G.armY)
-    : path;
-
   /* ① 틈새의 깊은 그림자 */
   el("path", {d:cut, fill:"none", stroke:"#04010b", "stroke-width":11.5, "stroke-linejoin":"round",
-              opacity:".62", filter:"url(#slotBlur)"}, g);
+              "stroke-linecap":"round", opacity:".62", filter:"url(#slotBlur)"}, g);
   /* ② 컷 틈새(검은 홈) */
   el("path", {d:cut, fill:"none", stroke:"#0a0518", "stroke-width":7.4,
-              "stroke-linejoin":"round", opacity:".96"}, g);
+              "stroke-linejoin":"round", "stroke-linecap":"round", opacity:".96"}, g);
   /* ③ 빛을 받는 컷 벽면 */
   el("path", {d:cut, fill:"none", stroke:"#ffffff", "stroke-opacity":".30", "stroke-width":1.5,
-              "stroke-linejoin":"round", transform:"translate(" + (-dx*1.15) + "," + (-dy*1.15) + ")"}, g);
+              "stroke-linejoin":"round", "stroke-linecap":"round",
+              transform:"translate(" + (-dx*1.15) + "," + (-dy*1.15) + ")"}, g);
   /* ④ 반대쪽 컷 벽면의 그늘 */
   el("path", {d:cut, fill:"none", stroke:"#000000", "stroke-opacity":".45", "stroke-width":1.6,
-              "stroke-linejoin":"round", transform:"translate(" + (dx*1.1) + "," + (dy*1.1) + ")"}, g);
+              "stroke-linejoin":"round", "stroke-linecap":"round",
+              transform:"translate(" + (dx*1.1) + "," + (dy*1.1) + ")"}, g);
 
   /* ⑤ 혀 판 */
   var plate = el("path", {d:path, fill:"url(#faceG)", "data-i":note.idx, class:"plate"}, g);
@@ -663,11 +665,11 @@ function drawKey(note){
   /* ⑦ 베벨 — 빛 쪽 밝은 모서리, 그늘 쪽 어두운 모서리 (판 안쪽에만) */
   var clipId = "clipK" + note.idx;
   el("clipPath", {id:clipId}, defsEl).appendChild(el("path", {d:path}));
-  el("path", {d:path, fill:"none", stroke:"#ffffff", "stroke-opacity":".40", "stroke-width":1.9,
-              "stroke-linejoin":"round", "clip-path":"url(#" + clipId + ")",
+  el("path", {d:bevelD, fill:"none", stroke:"#ffffff", "stroke-opacity":".40", "stroke-width":1.9,
+              "stroke-linejoin":"round", "stroke-linecap":"round", "clip-path":"url(#" + clipId + ")",
               transform:"translate(" + (-dx*1.7) + "," + (-dy*1.7) + ")"}, g);
-  el("path", {d:path, fill:"none", stroke:"#000000", "stroke-opacity":".34", "stroke-width":2.4,
-              "stroke-linejoin":"round", "clip-path":"url(#" + clipId + ")",
+  el("path", {d:bevelD, fill:"none", stroke:"#000000", "stroke-opacity":".34", "stroke-width":2.4,
+              "stroke-linejoin":"round", "stroke-linecap":"round", "clip-path":"url(#" + clipId + ")",
               transform:"translate(" + (dx*1.9) + "," + (dy*1.9) + ")"}, g);
   /* ⑧ 안쪽 끝의 옅은 그늘 */
   if(!note.core){
@@ -691,8 +693,9 @@ function drawKey(note){
 
 function drawLabel(parent, note, fs){
   var common = {
-    x:0, y:0, "text-anchor":"middle", "dominant-baseline":"central",
+    x:0, y:0, "text-anchor":"middle", "dominant-baseline":"alphabetic",
     "font-family":FONT_SERIF, "font-size":fs, "font-weight":"700",
+    "font-variant-numeric":"lining-nums", "font-feature-settings":"'lnum' 1",
     "paint-order":"stroke"
   };
   var out = el("text", Object.assign({}, common, {
@@ -703,11 +706,26 @@ function drawLabel(parent, note, fs){
     fill:"url(#inkG)", stroke:"#000", "stroke-width":Math.max(1.1, fs*0.05),
     "stroke-linejoin":"round"
   }), parent);
-  var dotUp = el("circle", {cx:0, cy:-(fs*0.76), r:Math.max(4.8, fs*0.15),
+  var dotUp = el("circle", {cx:0, cy:-(fs*0.76), r:Math.max(4.8, fs*0.14),
                             fill:"#fff", stroke:"#000", "stroke-width":1.4}, parent);
-  var dotDn = el("circle", {cx:0, cy: (fs*0.70), r:Math.max(4.8, fs*0.15),
+  var dotDn = el("circle", {cx:0, cy: (fs*0.70), r:Math.max(4.8, fs*0.14),
                             fill:"#fff", stroke:"#000", "stroke-width":1.4}, parent);
   labelEls.push({note:note, txt:txt, out:out, up:dotUp, dn:dotDn, fs:fs});
+}
+
+/* 글자 잉크 경계를 재서 숫자와 옥타브 점 사이에 같은 여백을 두고, 덩어리째 혀 가운데에 놓는다 */
+var MEAS_CTX = document.createElement("canvas").getContext("2d");
+function inkMetrics(str, sz){
+  var asc, dsc;
+  try{
+    MEAS_CTX.font = "700 " + sz + "px " + FONT_SERIF;
+    var m = MEAS_CTX.measureText(str);
+    asc = m.actualBoundingBoxAscent;
+    dsc = m.actualBoundingBoxDescent;
+  }catch(e){}
+  if(!(asc >= 0)) asc = sz * 0.70;
+  if(!(dsc >= 0)) dsc = sz * 0.06;
+  return {asc:asc, dsc:dsc};
 }
 
 var LABEL_MODE = "num";
@@ -738,6 +756,20 @@ function applyLabels(){
     L.dn.setAttribute("fill", CUR_INK.dot);
     L.up.setAttribute("stroke", CUR_INK.halo);
     L.dn.setAttribute("stroke", CUR_INK.halo);
+
+    /* 숫자 잉크 경계 → 점은 그 바깥에 고정 간격(gap)을 두고 붙인다 */
+    var mt = inkMetrics(s, sz);
+    var r   = Math.max(5, sz * 0.14);
+    var gap = Math.max(6, sz * 0.20);
+    var top = -mt.asc  - (up ? (gap + 2*r) : 0);   /* 기준선 대비 덩어리 위·아래 */
+    var bot =  mt.dsc  + (dn ? (gap + 2*r) : 0);
+    var baseY = -(top + bot) / 2;                  /* 덩어리를 가운데로 옮긴 기준선 */
+    L.txt.setAttribute("y", baseY.toFixed(2));
+    L.out.setAttribute("y", baseY.toFixed(2));
+    L.up.setAttribute("cy", (baseY - mt.asc - gap - r).toFixed(2));
+    L.up.setAttribute("r", r.toFixed(2));
+    L.dn.setAttribute("cy", (baseY + mt.dsc + gap + r).toFixed(2));
+    L.dn.setAttribute("r", r.toFixed(2));
   });
 }
 
