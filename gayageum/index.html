@@ -614,13 +614,13 @@ function buildModel(W, H){
     [82, "#ad7440"], [93, "#9b6634"], [100, "#8d5b2c"]
   ]);
   lg("woodTop", "0", "0", "0", "1", [
-    [0, "#fff4de", ".20"], [30, "#ffffff", ".04"], [64, "#4a2410", ".04"], [100, "#3a1b08", ".24"]
+    [0, "#fff4de", ".13"], [16, "#ffffff", ".03"], [70, "#4a2410", ".05"], [100, "#3a1b08", ".26"]
   ]);
   lg("sideG", "0", "0", "0", "1", [[0, "#7d5330"], [45, "#57371d"], [100, "#33200f"]]);
-  lg("capG", "0", "0", "0.28", "1", [[0, "#77502e"], [26, "#5f3d21"], [62, "#46290f"], [100, "#301c0b"]]);
-  lg("headG", "0", "0", "0.25", "1", [[0, "#8a5c33"], [26, "#6f4524"], [64, "#4e2f16"], [100, "#341f0c"]]);
-  lg("nutG", "0", "0", "0.2", "1", [[0, "#f8efd9"], [38, "#e8d5ad"], [72, "#c8aa7b"], [100, "#9c7d4c"]]);
-  lg("brgG", "0", "0", "0.1", "1", [[0, "#f7ebd0"], [34, "#e9d6ac"], [70, "#c9ab77"], [100, "#96743f"]]);
+  lg("capG", "0", "0", "0", "1", [[0, "#805530"], [18, "#66421f"], [52, "#4a2d14"], [82, "#35200e"], [100, "#2a1a0b"]]);
+  lg("headG", "0", "0", "0", "1", [[0, "#8d5f36"], [18, "#714826"], [52, "#523218"], [82, "#3b230f"], [100, "#2e1c0c"]]);
+  lg("nutG", "0", "0", "1", "0", [[0, "#dcc59a"], [30, "#efe0bb"], [62, "#e2cda4"], [100, "#a98a5c"]]);
+  lg("brgG", "0", "0", "0", "1", [[0, "#f2e3c0"], [30, "#e4cfa5"], [68, "#c4a473"], [100, "#8e6d3c"]]);
   lg("brassG", "0", "0", "0.2", "1", [[0, "#ffeec2"], [45, "#e2bd78"], [100, "#8f6a34"]]);
   lg("cordG", "0", "0", "0.3", "1", [[0, "#4d5f99"], [42, "#2f3f74"], [100, "#1a2450"]]);
   rg("flashG", "50%", "50%", "50%", [[0, "#fff6d8", ".9"], [42, "#ffd88e", ".4"], [100, "#ffb85c", "0"]]);
@@ -635,8 +635,8 @@ function buildModel(W, H){
     fill: "url(#floorGlow)", "pointer-events": "none"
   }, root);
   el("ellipse", {
-    cx: W * 0.5, cy: bot + H * 0.06, rx: W * 0.46, ry: bh * 0.20,
-    fill: "url(#shadeG)", opacity: ".9", "pointer-events": "none"
+    cx: W * 0.5, cy: bot + H * 0.055, rx: W * 0.44, ry: bh * 0.17,
+    fill: "url(#shadeG)", opacity: ".72", "pointer-events": "none"
   }, root);
 
   /* ── 몸통(밤나무 옆판 + 오동나무 앞판) ── */
@@ -703,8 +703,19 @@ function buildModel(W, H){
        " " + (tX1 - s * 0.30).toFixed(1) + " " + (ty2 - s * 0.55).toFixed(1),
     fill: "none", stroke: "rgba(255,226,184,.16)", "stroke-width": Math.max(0.7, s * 0.055)
   }, gTail);
+  /* 봉미 나뭇결 */
+  for(var tgi = 0; tgi < 5; tgi++){
+    var tyy = ty1 + (ty2 - ty1) * (0.18 + tgi * 0.16);
+    el("path", {
+      d: "M " + (tX0 + s * 0.12).toFixed(1) + " " + tyy.toFixed(1) +
+         " Q " + ((tX0 + tX1) / 2).toFixed(1) + " " + (tyy + s * 0.10).toFixed(1) +
+         " " + (tX1 - s * 0.10).toFixed(1) + " " + tyy.toFixed(1),
+      fill: "none", stroke: (tgi % 2 ? "#170c04" : "#ffd9a6"),
+      "stroke-opacity": (tgi % 2 ? ".20" : ".10"), "stroke-width": Math.max(0.6, s * 0.035)
+    }, gTail);
+  }
 
-  var cordX0 = tX1 - s * 0.10, cordX1 = tX1 + s * 1.85;
+  var cordX0 = tX1 - s * 0.10, cordX1 = tX1 + s * 3.30;
   for(var ci = 0; ci < 12; ci++){
     var yy = yOf(ci);
     var cyOff = (yy - H / 2) * 0.035;
@@ -749,9 +760,19 @@ function buildModel(W, H){
   /* 목재 경계의 그늘 */
   el("rect", { x: hx - s * 0.14, y: hy1, width: s * 0.20, height: hy2 - hy1,
                fill: "rgba(0,0,0,.34)" }, gHead);
+  for(var hgi = 0; hgi < 6; hgi++){
+    var hyy = hy1 + (hy2 - hy1) * (0.14 + hgi * 0.15);
+    el("path", {
+      d: "M " + (hx + s * 0.20).toFixed(1) + " " + hyy.toFixed(1) +
+         " Q " + ((hx + W) / 2).toFixed(1) + " " + (hyy + s * 0.14).toFixed(1) +
+         " " + (W - s * 0.20).toFixed(1) + " " + hyy.toFixed(1),
+      fill: "none", stroke: (hgi % 2 ? "#170c04" : "#ffd9a6"),
+      "stroke-opacity": (hgi % 2 ? ".18" : ".09"), "stroke-width": Math.max(0.6, s * 0.035)
+    }, gHead);
+  }
 
   var nutX = hx + headW * 0.30;
-  var nutW = Math.max(3, s * 0.30);
+  var nutW = Math.max(2.6, s * 0.24);
   var nutT = Math.max(hy1 + s * 0.16, yTop - s * 0.62);
   var nutB = Math.min(hy2 - s * 0.16, yTop + span + s * 0.62);
   el("rect", {
@@ -809,7 +830,7 @@ function buildModel(W, H){
     el("path", { d:dBr, transform:tr, fill:"url(#brgG)", stroke:"#5f4520",
                  "stroke-width": Math.max(0.45, s * 0.035), "stroke-linejoin":"round" }, gBridge);
     el("path", { d:dBr, transform:tr, fill:"none", stroke:"rgba(255,255,255,.55)",
-                 "stroke-width": Math.max(0.3, s * 0.02), opacity: ".55", "stroke-linejoin":"round" }, gBridge);
+                 "stroke-width": Math.max(0.3, s * 0.02), opacity: ".28", "stroke-linejoin":"round" }, gBridge);
     /* 홈에 걸린 줄 자리 */
     el("path", { d: "M " + (-bw * 0.19) + " " + (-bhh * 0.015) + " Q 0 " + (bhh * 0.21) + " " + (bw * 0.19) + " " + (-bhh * 0.015),
                  transform:tr, fill:"none", stroke:"rgba(60,34,10,.45)",
@@ -827,7 +848,7 @@ function buildModel(W, H){
     var g1 = el("g", { "data-i": si }, gStr);
     var dd = "M " + xS0 + " " + sv + " L " + xS1 + " " + sv;
     el("path", { d:dd, fill:"none", stroke:"#3a1c07", "stroke-opacity":".52",
-                 "stroke-width": w + Math.max(1.6, s * 0.10), "stroke-linecap":"round",
+                 "stroke-width": w * 1.35 + Math.max(0.9, s * 0.055), "stroke-linecap":"round",
                  transform:"translate(0," + Math.max(1, s * 0.07).toFixed(2) + ")" }, g1);
     var main = el("path", { d:dd, fill:"none", stroke: (si < 4 ? "#f6e8cc" : "#fbf3df"),
                             "stroke-width": w, "stroke-linecap":"round", opacity: ".99" }, g1);
@@ -1198,11 +1219,11 @@ function layout(){
 
   var modelW, modelH, boxW, boxH, rot = 0;
   if(!portrait){
-    modelW = availW;
+    modelW = availW - 8;
     modelH = clamp(availH * 0.96, 150, 470);
     boxW = modelW; boxH = modelH;
   } else {
-    modelW = availH;
+    modelW = availH - 8;
     modelH = clamp(availW * 0.96, 150, 470);
     boxW = modelH; boxH = modelW;
     rot = -90;
