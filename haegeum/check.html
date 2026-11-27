@@ -118,6 +118,28 @@ async function testFrame(f, name){
     doc.dispatchEvent(pev(w, 'pointerup', q0.x, q0.y, 72));
     await sleep(150);
 
+    // 활 긋기 모드
+    w.__hg.setOption('mode', 'bow');
+    await sleep(120);
+    var b0 = w.__hg.screen(-100, w.__hg.rowY(1));
+    doc.querySelector('rect.lane[data-lane="0"]').dispatchEvent(pev(w, 'pointerdown', b0.x, b0.y, 81));
+    await sleep(100);
+    r.bowSelected = w.__hg.active();
+    var pad = w.__hg.screen(-150, 420);
+    var pad2 = w.__hg.screen(120, 420);
+    var padEl = doc.querySelector('rect.bowpad');
+    padEl.dispatchEvent(pev(w, 'pointerdown', pad.x, pad.y, 82));
+    await sleep(60);
+    doc.dispatchEvent(pev(w, 'pointermove', pad2.x, pad2.y, 82));
+    await sleep(180);
+    r.bowPlaying = w.__hg.active();
+    doc.dispatchEvent(pev(w, 'pointerup', pad2.x, pad2.y, 82));
+    doc.dispatchEvent(pev(w, 'pointerup', b0.x, b0.y, 81));
+    await sleep(150);
+    r.bowAfterUp = w.__hg.active();
+    w.__hg.setOption('mode', 'touch');
+    await sleep(100);
+
     r.errs = w.__errs.slice();
   }catch(e){
     r.ok = false;

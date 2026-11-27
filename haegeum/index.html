@@ -240,9 +240,9 @@
       </linearGradient>
       <linearGradient id="laneFade" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#f6d6a0" stop-opacity="0"/>
-        <stop offset="10%" stop-color="#f6d6a0" stop-opacity=".038"/>
-        <stop offset="50%" stop-color="#f6d6a0" stop-opacity=".055"/>
-        <stop offset="90%" stop-color="#f6d6a0" stop-opacity=".038"/>
+        <stop offset="10%" stop-color="#f6d6a0" stop-opacity=".028"/>
+        <stop offset="50%" stop-color="#f6d6a0" stop-opacity=".042"/>
+        <stop offset="90%" stop-color="#f6d6a0" stop-opacity=".028"/>
         <stop offset="100%" stop-color="#f6d6a0" stop-opacity="0"/>
       </linearGradient>
       <radialGradient id="laneGlow" cx="50%" cy="50%" r="62%">
@@ -474,7 +474,7 @@ var L = { W:0, H:0, k:1, rot:0, cx:0, cy:0, land:false };
 function layout(){
   var W = Math.max(300, window.innerWidth);
   var H = Math.max(300, window.innerHeight);
-  var land = W > H * 1.06;
+  var land = W > H * 1.72;
   var rot = land ? -90 : 0;
   var artW = 545, artH = (GEO.botY - GEO.topY) + 22;
 
@@ -594,6 +594,10 @@ function buildNeck(){
   el("path", {d:"M 0 545 L 0 -424 Q 0 -492 24 -508", fill:"none", stroke:"url(#neckSheen)",
               "stroke-width":GEO.neckHalf * 2, "stroke-linecap":"butt"}, neckG);
 
+  el("circle", {cx:24, cy:-506, r:GEO.neckHalf, fill:"url(#ipjukG)"}, neckG);
+  el("circle", {cx:24, cy:-506, r:GEO.neckHalf, fill:"none", stroke:"#0b0702", "stroke-width":1.6, opacity:".8"}, neckG);
+  el("circle", {cx:18, cy:-512, r:14, fill:"#ffe9bd", opacity:".12"}, neckG);
+
   var nodes = [402, 292, 182, 72, -38, -148, -258, -368];
   for(var i=0;i<nodes.length;i++){
     var y = nodes[i];
@@ -681,16 +685,16 @@ function drawString(s){
 }
 
 function buildBow(){
-  el("path", {d:"M -258 428 Q 0 468 258 422", fill:"none", stroke:"url(#bowWoodG)", "stroke-width":11.5, "stroke-linecap":"round"}, bowG);
-  el("path", {d:"M -258 428 Q 0 468 258 422", fill:"none", stroke:"#f0dcb4", "stroke-width":2.6, opacity:".15"}, bowG);
-  el("path", {d:"M -244 426 Q -210 442 -176 446", fill:"none", stroke:"#4a2f1c", "stroke-width":16, "stroke-linecap":"round"}, bowG);
-  el("path", {d:"M -238 423 Q -210 434 -182 438", fill:"none", stroke:"#8a6a4a", "stroke-width":5, opacity:".33"}, bowG);
+  el("path", {d:"M -206 426 Q 0 458 206 421", fill:"none", stroke:"url(#bowWoodG)", "stroke-width":9.5, "stroke-linecap":"round"}, bowG);
+  el("path", {d:"M -206 426 Q 0 458 206 421", fill:"none", stroke:"#f0dcb4", "stroke-width":2.2, opacity:".16"}, bowG);
+  el("path", {d:"M -196 425 Q -168 438 -140 441", fill:"none", stroke:"#4a2f1c", "stroke-width":13, "stroke-linecap":"round"}, bowG);
+  el("path", {d:"M -190 422 Q -168 432 -146 435", fill:"none", stroke:"#8a6a4a", "stroke-width":4, opacity:".34"}, bowG);
   for(var i=0;i<5;i++){
     var o = -2.4 + i * 1.2;
-    el("path", {d:"M -250 " + (420 + o) + " L 250 " + (413 + o),
-                fill:"none", stroke:"#fff6e2", "stroke-width":1.5, opacity:(0.52 - i * 0.05)}, bowG);
+    el("path", {d:"M -198 " + (419 + o) + " L 198 " + (413 + o),
+                fill:"none", stroke:"#fff6e2", "stroke-width":1.4, opacity:(0.5 - i * 0.05)}, bowG);
   }
-  el("path", {d:"M -250 420 L 250 413", fill:"none", stroke:"#ffffff", "stroke-width":.9, opacity:".45"}, bowG);
+  el("path", {d:"M -198 419 L 198 413", fill:"none", stroke:"#ffffff", "stroke-width":.9, opacity:".45"}, bowG);
 }
 
 /* ── 연주 오버레이 ── */
@@ -759,18 +763,18 @@ function buildOverlay(){
 
   /* 활 판 (활 긋기 모드) */
   bowPad = el("rect", {
-    x:-262, y:376, width:524, height:88, rx:18,
+    x:-212, y:374, width:424, height:86, rx:16,
     fill:"rgba(246,214,160,0.05)", stroke:"rgba(246,214,160,0.22)", "stroke-width":1.4,
     "stroke-dasharray":"7 6", class:"bowpad", opacity:"0"
   }, overlayG);
   bowPad.style.touchAction = "none";
   bowPad.addEventListener("pointerdown", onBowPadDown, {passive:false});
   bowPadLabel = el("text", {
-    x:-236, y:420, "text-anchor":"middle", "dominant-baseline":"central",
+    x:-192, y:417, "text-anchor":"middle", "dominant-baseline":"central",
     "font-size":17, "font-weight":"700", fill:"rgba(240,205,146,.6)", opacity:"0"
   }, overlayG);
   bowPadLabel.textContent = "활";
-  bowPadLabel.__xy = [-236, 420];
+  bowPadLabel.__xy = [-192, 417];
 
   applyTextAngle();
   updateLabels();
