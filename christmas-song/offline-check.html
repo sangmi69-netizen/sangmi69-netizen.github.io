@@ -879,8 +879,9 @@ function render(){
     const act = lyr.querySelector('.line.active .prog i');
     if(act && e>o.t){ act.style.width = Math.max(0,Math.min(1,((t+state.sync)-o.t)/(e-o.t)))*100+'%'; }
   }
-  if(state.loopLine && state.loopB!==null){
-    if(t > state.loopB-0.04 || t < state.loopA-0.8) seekTo(state.loopA);
+  if(state.loopLine){
+    if(state.loopB===null && k>=0) setLoopTo(k);
+    if(state.loopB!==null && (t > state.loopB-0.04 || t < state.loopA-0.8)) seekTo(state.loopA);
   }
   if(document.body.classList.contains('presenting')) updatePresent(k);
 }
