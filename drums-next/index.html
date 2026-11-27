@@ -750,7 +750,7 @@ function mkRide(p){
   return offline(dur, function(oc){
     var t = 0;
     /* 스틱 팁이 심벌을 때리는 '핑' — 높은 대역의 좁고 단단한 음 */
-    [[2480, .26, 1.0], [3360, .20, .74], [4680, .11, .52]].forEach(function(v){
+    [[2480, .26, .62], [3360, .20, .50], [4680, .11, .36]].forEach(function(v){
       var o = oc.createOscillator(); o.type = "sine";
       o.frequency.value = v[0]*(p.tune||1);
       var g = oc.createGain(); env(g, t, p.amp*v[1], .0009, p.decay*v[2]);
