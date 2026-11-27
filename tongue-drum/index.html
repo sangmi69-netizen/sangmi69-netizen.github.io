@@ -401,7 +401,7 @@ function drawKey(note){
   drawLabel(lab, note, fs);
 
   plate.addEventListener("pointerdown", onPointerDown, {passive:false});
-  keyEls.push({note:note, plate:plate, glow:glow, fs:fs});
+  keyEls.push({note:note, plate:plate, glow:glow, fs:fs, e:0, lit:false});
 
   if(note.core) drawSeal(g);
 }
@@ -445,7 +445,7 @@ function applyLabels(){
       s = n.name + n.oct;
     }
     L.txt.textContent = s;
-    L.txt.setAttribute("font-size", LABEL_MODE === "nam" ? L.fs*0.76 : L.fs);
+    L.txt.setAttribute("font-size", LABEL_MODE === "nam" ? L.fs*0.70 : (LABEL_MODE === "sol" ? L.fs*0.82 : L.fs));
     L.up.setAttribute("display", up ? "inline" : "none");
     L.dn.setAttribute("display", dn ? "inline" : "none");
   });
@@ -614,14 +614,30 @@ function hit(note, cx, cy){
   if(cx !== undefined && lastHit){ lastHit.x = cx; lastHit.y = cy; }
   var k = keyEls[note.idx];
   if(k){
-    try{
-      k.glow.animate([{opacity:".9"},{opacity:"0"}], {duration:820, easing:"cubic-bezier(.16,.7,.3,1)"});
-      k.plate.animate([{filter:"brightness(1.4) saturate(1.12)"},{filter:"brightness(1)"}],
-                      {duration:320, easing:"cubic-bezier(.2,.8,.3,1)"});
-    }catch(e){}
+    k.e = 1;
+    if(!k.lit){ k.lit = true; litList.push(k); }
   }
   hideHintSoon();
 }
+
+/* 타격한 혀가 부드럽게 빛나며 울리는 효과 — requestAnimationFrame */
+var litList = [];
+function glowLoop(ts){
+  for(var i=litList.length-1; i>=0; i--){
+    var k = litList[i];
+    k.e *= 0.905;
+    if(k.e < 0.012){
+      k.e = 0; k.lit = false;
+      k.glow.setAttribute("opacity", "0");
+      litList.splice(i,1);
+      continue;
+    }
+    var shimmer = 0.74 + 0.26*Math.sin(ts/42 + k.note.idx*1.7);
+    k.glow.setAttribute("opacity", (k.e * shimmer).toFixed(3));
+  }
+  requestAnimationFrame(glowLoop);
+}
+requestAnimationFrame(glowLoop);
 
 var lastTouchEnd = 0;
 document.addEventListener("touchstart", function(e){
