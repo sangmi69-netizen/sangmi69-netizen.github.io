@@ -566,15 +566,15 @@ function buildBody(){
   /* 원산 */
   var wy = GEO.wonsanY;
   el("ellipse", {cx:0, cy:wy + 16, rx:56, ry:9, fill:"#1a1006", opacity:".55"}, bodyG);
-  el("path", {d:"M -52 " + (wy + 13) + " L -44 " + (wy - 9) + " Q -40 " + (wy - 13) + " -32 " + (wy - 12) +
-                 " L 32 " + (wy - 12) + " Q 40 " + (wy - 13) + " 44 " + (wy - 9) + " L 52 " + (wy + 13) + " Z",
-              fill:"#e6d3a6", stroke:"#4a3111", "stroke-width":1.4}, bodyG);
-  el("path", {d:"M -44 " + (wy + 9) + " L -38 " + (wy - 8) + " L 38 " + (wy - 8) + " L 44 " + (wy + 9) + " Z",
-              fill:"#8f7141", opacity:".35"}, bodyG);
+  el("path", {d:"M -38 " + (wy + 11) + " L -31 " + (wy - 8) + " Q -28 " + (wy - 12) + " -22 " + (wy - 11) +
+                 " L 22 " + (wy - 11) + " Q 28 " + (wy - 12) + " 31 " + (wy - 8) + " L 38 " + (wy + 11) + " Z",
+              fill:"#d9c193", stroke:"#4a3111", "stroke-width":1.3}, bodyG);
+  el("path", {d:"M -32 " + (wy + 7) + " L -27 " + (wy - 7) + " L 27 " + (wy - 7) + " L 32 " + (wy + 7) + " Z",
+              fill:"#9c7f4e", opacity:".4"}, bodyG);
   el("path", {d:"M -46 " + (wy + 6) + " L -40 " + (wy - 7) + " L 40 " + (wy - 7) + " L 46 " + (wy + 6) + " Z",
               fill:"#f8eed4", opacity:".26"}, bodyG);
-  el("rect", {x:-37, y:wy - 15, width:9, height:5, rx:2, fill:"#1a1106", opacity:".85"}, bodyG);
-  el("rect", {x:28, y:wy - 15, width:9, height:5, rx:2, fill:"#1a1106", opacity:".85"}, bodyG);
+  el("rect", {x:-36, y:wy - 14, width:8, height:4, rx:2, fill:"#1a1106", opacity:".8"}, bodyG);
+  el("rect", {x:28, y:wy - 14, width:8, height:4, rx:2, fill:"#1a1106", opacity:".8"}, bodyG);
 
   /* 감잡이 */
   var gy = GEO.gamY;
@@ -636,8 +636,8 @@ function buildNeck(){
 
 function drawPeg(y){
   var p = el("g", {transform:"translate(0," + y + ")"}, neckG);
-  el("rect", {x:-54, y:-13, width:198, height:26, rx:13, fill:"url(#woodG)", stroke:"#1f1408", "stroke-width":1.3}, p);
-  el("rect", {x:-54, y:-13, width:198, height:8, rx:4, fill:"#ffffff", opacity:".10"}, p);
+  el("rect", {x:-56, y:-17, width:200, height:34, rx:16, fill:"url(#woodG)", stroke:"#1f1408", "stroke-width":1.4}, p);
+  el("rect", {x:-56, y:-17, width:200, height:10, rx:5, fill:"#ffffff", opacity:".12"}, p);
   el("circle", {cx:148, cy:0, r:27, fill:"url(#woodG2)", stroke:"#1f1408", "stroke-width":1.5}, p);
   el("circle", {cx:141, cy:-8, r:11, fill:"#ffffff", opacity:".12"}, p);
   el("circle", {cx:148, cy:0, r:27, fill:"none", stroke:"#f4dcae", "stroke-width":.9, opacity:".22"}, p);
