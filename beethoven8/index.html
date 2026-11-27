@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23141414'/%3E%3Cellipse cx='16' cy='11' rx='9' ry='3.2' fill='%23e0392c'/%3E%3Cpath d='M7 11v9.2c0 1.8 4 3.2 9 3.2s9-1.4 9-3.2V11' fill='none' stroke='%23e0392c' stroke-width='2.2' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>팀파니 모먼트 — 베토벤 교향곡 8번</title>
+<style>
+  :root{
+    --ink:#141414;
+    --red:#e0392c;
+    --serif:"Iowan Old Style",Palatino,"Palatino Linotype",Georgia,"Times New Roman",serif;
+    --hand:"Bradley Hand","Chalkboard SE","Segoe Print","Comic Sans MS","Marker Felt",cursive;
+    --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0;background:#fff;overflow:hidden}
+  html{
+    touch-action:none;
+    -webkit-text-size-adjust:100%;text-size-adjust:100%;
+  }
+  body{
+    font-family:var(--ui);color:var(--ink);
+    overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    touch-action:none;
+  }
+  #app{position:fixed;inset:0;background:#fff;touch-action:none}
+  #canvas{position:absolute;background:#fff;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+
+  /* ── score ── */
+  #scoreSvg{position:absolute;left:0;top:0;display:block;overflow:hidden;touch-action:none}
+  /* 악보 그룹은 매 프레임 이동한다. CSS transform 이 실제로 먹는 브라우저에서는
+     이 값을 GPU 합성 레이어로 올려 벡터 재래스터 없이 이동시킨다(JS에서 판별해 켠다). */
+  #layer{backface-visibility:hidden}
+
+  /* ── drums ── */
+  #drumArea{position:absolute;pointer-events:none;aspect-ratio:1142.6/589.3;height:auto;touch-action:none}
+  #drumArea img{position:absolute;display:block;transform-origin:50% 88%;will-change:transform;touch-action:none;pointer-events:none}
+  #drumL{left:0;top:0;width:51.05%}
+  #drumR{left:51.81%;top:2.04%;width:48.19%}
+  .drum-hit{animation:dip .16s ease-out}
+  @keyframes dip{
+    0%{transform:translateY(0) scaleY(1)}
+    35%{transform:translateY(1.1%) scaleY(.985)}
+    100%{transform:translateY(0) scaleY(1)}
+  }
+
+  /* ── touch zones ── */
+  .zone{position:absolute;bottom:0;height:56%;z-index:4;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+  #zoneF{left:0;width:50%}
+  #zoneC{right:0;width:50%}
+  .zone.on{background:rgba(224,57,44,.045)}
+
+  /* ── hud ── */
+  #hud{position:absolute;top:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding:8px 12px;pointer-events:none}
+  #hudScore{font-size:11px;letter-spacing:.08em;color:#b8b8b8;font-variant-numeric:tabular-nums;font-family:var(--ui)}
+  #pauseBtn{pointer-events:auto;appearance:none;background:none;border:0;padding:4px 2px;font-size:11px;letter-spacing:.12em;color:#c2c2c2;font-family:var(--ui)}
+  /* 연주 화면 싱크 보정 — 악보·팀파니를 가리지 않도록 상단 HUD 안에 아주 작고 연하게.
+     #hud 자체는 pointer-events:none 이라 이 상자만 터치를 받는다. */
+  #hudSync{display:flex;align-items:center;gap:0;pointer-events:auto;white-space:nowrap;margin-right:-4px}
+  #hudSync .slabel{font-size:10px;letter-spacing:.04em;color:#d2d2d2;font-family:var(--ui);padding-left:2px}
+  #hudSync .hsbtn{appearance:none;border:0;background:none;color:#c4c4c4;font-size:12px;line-height:1;
+    padding:10px 11px;margin:-6px -2px;font-family:var(--ui);pointer-events:auto;touch-action:none;cursor:pointer;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  #hudSync .hsbtn:active{color:#7d7d7d}
+  /* 값의 폭을 고정해 연타할 때 버튼이 좌우로 흔들리지 않게 한다. */
+  #hudSync b{width:40px;text-align:center;font-size:11px;font-weight:500;color:#b4b4b4;
+    letter-spacing:0;font-variant-numeric:tabular-nums}
+
+  /* ── overlays ── */
+  .ov{
+    position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:26px 22px;background:#fff;
+    transition:opacity .3s ease, visibility .3s;
+  }
+  .ov.hide{opacity:0;visibility:hidden;pointer-events:none}
+  .ov h1{font-size:clamp(20px,5.4vw,30px);font-weight:600;letter-spacing:.01em;margin:0 0 8px}
+  .ov h1 em{font-style:normal;color:var(--red)}
+  .ov .sub{font-size:clamp(11.5px,3.1vw,13.5px);color:#6c6c6c;line-height:1.7;margin:0 0 18px}
+  .rule{width:36px;height:2px;background:var(--red);border-radius:2px;margin:0 auto 15px}
+  .legend{display:flex;gap:28px;margin:0 0 20px;font-size:11.5px;color:#777}
+  .legend div{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .legend b{font-size:15px;color:#222;font-weight:600}
+  .legend b.red{color:var(--red)}
+  .btn{
+    appearance:none;border:0;cursor:pointer;font-family:var(--ui);
+    font-size:15px;font-weight:600;letter-spacing:.02em;color:#fff;background:#111;
+    padding:13px 32px;border-radius:999px;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn[disabled]{opacity:.4}
+  .btn.ghost{background:#fff;color:#222;box-shadow:inset 0 0 0 1.4px rgba(0,0,0,.16)}
+  .hint{margin-top:13px;font-size:11px;color:#9a9a9a;line-height:1.7}
+  .syncbox{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px;
+    margin:15px 0 0;font-size:10px;color:#b0b0b0;letter-spacing:.01em}
+  .syncbox b{min-width:42px;text-align:center;font-weight:500;color:#8f8f8f;font-size:10px;
+    font-variant-numeric:tabular-nums}
+  .sbtn{appearance:none;border:0;background:none;color:#bdbdbd;font-size:13px;line-height:1;
+    padding:3px 7px;font-family:var(--ui);cursor:pointer}
+  .sbtn:active{color:#5a5a5a}
+  .credit{position:absolute;left:0;right:0;bottom:8px;font-size:9.5px;color:#a9a9a9;text-align:center;line-height:1.6;padding:0 16px}
+  .credit a{color:#8d8d8d}
+  #result .rank{font-size:clamp(44px,13vw,70px);line-height:.95;color:var(--red);margin:0 0 4px}
+  #result .big{font-size:clamp(21px,5.8vw,29px);font-variant-numeric:tabular-nums;margin:2px 0}
+  #result .acc{font-size:12px;color:#7a7a7a;margin-bottom:16px}
+  .stats{display:flex;gap:18px;margin-bottom:20px}
+  .stats div{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .stats b{font-size:16px;font-variant-numeric:tabular-nums}
+  .stats span{font-size:9px;letter-spacing:.1em;color:#9a9a9a;text-transform:uppercase}
+  .row{display:flex;gap:10px}
+  #judge{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font-size:clamp(14px,3.6vw,20px);letter-spacing:.18em;color:var(--red);opacity:0;pointer-events:none;z-index:7;font-weight:600}
+  #judge.show{animation:jp .5s ease forwards}
+  @keyframes jp{0%{opacity:0;transform:translate(-50%,-40%)}30%{opacity:.9}100%{opacity:0;transform:translate(-50%,-60%)}}
+  #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#2b1b1b;color:#ffd9d3;font-size:11px;padding:8px 10px;border-radius:8px;display:none;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="canvas">
+    <svg id="scoreSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 432" preserveAspectRatio="xMidYMid meet">
+      <defs><path id="qrest" d="M 5.6 3.8 L 6.3 4.9 L 6.9 6.0 L 7.4 7.0 L 7.9 8.0 L 8.2 8.9 L 8.5 9.8 L 8.6 10.7 L 8.7 11.6 L 8.7 12.4 L 8.7 13.2 L 8.6 14.0 L 8.4 14.7 L 8.2 15.5 L 7.9 16.2 L 7.6 16.9 L 7.3 17.6 L 6.9 18.3 L 6.4 19.0 L 6.0 19.6 L 5.5 20.2 L 5.1 20.8 L 4.6 21.4 L 4.1 22.0 L 3.5 22.6 L 3.0 23.1 L 2.5 23.6 L 2.1 24.1 L 1.8 24.6 L 1.5 25.0 L 1.3 25.3 L 1.2 25.7 L 1.1 26.0 L 1.1 26.3 L 1.1 26.5 L 1.2 26.8 L 1.3 27.2 L 1.4 27.5 L 1.6 27.9 L 1.8 28.2 L 2.0 28.6 L 2.3 29.0 L 2.6 29.4 L 2.9 29.7 L 3.1 30.0 L 3.4 30.2 L 3.7 30.3 L 3.9 30.4 L 4.2 30.5 L 4.5 30.5 L 4.7 30.5 L 5.0 30.5 L 5.2 30.6 L 5.4 30.6 L 5.6 30.7 L 5.8 30.8 L 5.9 30.9 L 6.1 31.1 L 6.2 31.3 L 6.3 31.7 L 6.4 32.1 L 6.4 32.6 L 6.5 33.3 L 6.5 34.0 L 6.5 34.9 L 6.5 35.8 L 6.4 36.7 L 6.3 37.6 L 6.0 38.4 L 5.7 39.1 L 5.3 39.8 L 4.7 40.5 L 4.1 41.1 L 3.5 41.6 L 2.9 42.2 L 2.3 42.9 L 1.8 43.6 L 1.4 44.3 L 1.1 45.1 L 0.8 46.0 L 0.6 46.9 L 0.5 47.8 L 0.4 48.7 L 0.3 49.4 L 0.3 50.1 L 0.3 50.6 L 0.3 51.0 L 0.4 51.4 L 0.5 51.6 L 0.6 51.8 L 0.7 51.9 L 0.8 52.1 L 0.9 52.3 L 1.0 52.5 L 1.0 52.7 L 1.1 52.9 L 1.1 53.2 L 1.1 53.5 L 1.2 53.8 L 1.3 54.2 L 1.6 54.6 L 1.9 55.1 L 2.4 55.6 L 2.9 56.2 L 3.5 56.8 L 4.1 57.5 L 4.8 58.1 L 5.5 58.7 L 6.1 59.2 L 6.7 59.7 L 7.3 60.1 L 7.9 60.5 L 8.4 60.8 L 9.0 61.1 L 9.4 61.2 L 9.7 61.3 L 9.9 61.2 L 10.0 61.0 L 9.9 60.6 L 9.7 60.2 L 9.5 59.6 L 9.0 59.0 L 8.7 58.3 L 8.4 57.6 L 8.1 56.8 L 7.9 56.1 L 7.8 55.3 L 7.7 54.5 L 7.6 53.7 L 7.6 52.9 L 7.7 52.2 L 7.7 51.5 L 7.8 50.9 L 8.0 50.3 L 8.1 49.9 L 8.3 49.4 L 8.6 49.1 L 8.8 48.8 L 9.1 48.5 L 9.3 48.2 L 9.5 47.9 L 9.6 47.6 L 9.7 47.2 L 9.8 46.8 L 9.8 46.4 L 9.8 46.0 L 9.8 45.7 L 9.8 45.3 L 9.9 45.0 L 10.0 44.7 L 10.0 44.5 L 10.2 44.3 L 10.3 44.1 L 10.4 44.0 L 10.6 43.9 L 10.9 43.8 L 11.3 43.7 L 11.8 43.6 L 12.4 43.6 L 13.0 43.5 L 13.7 43.5 L 14.6 43.5 L 15.2 43.4 L 15.6 43.2 L 15.9 42.9 L 15.9 42.5 L 15.8 42.0 L 15.5 41.4 L 15.0 40.7 L 14.3 39.9 L 13.8 39.0 L 13.2 38.1 L 12.8 37.2 L 12.5 36.2 L 12.2 35.3 L 12.1 34.2 L 12.0 33.2 L 12.0 32.1 L 12.1 31.0 L 12.3 29.9 L 12.6 28.7 L 13.0 27.6 L 13.5 26.4 L 14.1 25.2 L 14.8 24.0 L 15.6 22.8 L 16.3 21.7 L 16.9 20.6 L 17.3 19.7 L 17.5 18.9 L 17.7 18.2 L 17.7 17.6 L 17.5 17.1 L 17.3 16.7 L 17.0 16.3 L 16.6 15.8 L 16.3 15.4 L 15.8 15.0 L 15.4 14.6 L 14.9 14.2 L 14.4 13.8 L 13.9 13.4 L 13.4 13.0 L 13.0 12.6 L 12.6 12.3 L 12.4 11.9 L 12.2 11.6 L 12.0 11.3 L 12.0 11.0 L 12.0 10.7 L 11.9 10.4 L 11.8 10.0 L 11.6 9.5 L 11.3 9.0 L 10.9 8.4 L 10.5 7.7 L 10.1 6.9 L 9.5 6.1 L 9.0 5.4 L 8.4 4.6 L 7.9 4.0 L 7.3 3.4 L 6.8 2.8 L 6.3 2.3 L 5.7 1.8 L 5.2 1.4 L 4.8 1.2 L 4.5 1.2 L 4.5 1.3 L 4.5 1.7 L 4.7 2.2 L 5.1 2.9 Z" fill="#141414"></path></defs>
+      <g id="layer"></g>
+      <line id="playhead" x1="854.5" y1="174" x2="854.5" y2="411" stroke="#d9463a" stroke-width="2.4"></line>
+    </svg>
+    <div id="drumArea">
+      <img id="drumL" src="assets/drum_left.png" alt="" draggable="false">
+      <img id="drumR" src="assets/drum_right.png" alt="" draggable="false">
+    </div>
+    <div class="zone" id="zoneF"></div>
+    <div class="zone" id="zoneC"></div>
+    <div id="judge"></div>
+    <div id="hud">
+      <div id="hudSync" role="group" aria-label="싱크 보정">
+        <span class="slabel">싱크</span>
+        <button class="hsbtn" id="hSyncMinus" aria-label="싱크 보정 줄이기">−</button>
+        <b id="hSyncVal">0ms</b>
+        <button class="hsbtn" id="hSyncPlus" aria-label="싱크 보정 늘리기">＋</button>
+      </div>
+      <div id="hudScore">0</div>
+      <button id="pauseBtn" aria-label="일시정지">❚❚</button>
+    </div>
+  </div>
+
+  <div class="ov" id="startScreen">
+    <h1>팀파니 <em>모먼트</em></h1>
+    <div class="rule"></div>
+    <p class="sub">베토벤 교향곡 8번 1악장 · 알레그로 비바체 에 콘 브리오<br>오케스트라가 연주하는 동안 두 대의 팀파니를 두드려 보세요.</p>
+    <div class="legend">
+      <div><b>파</b><span>왼쪽 팀파니 · L</span></div>
+      <div><b class="red">도</b><span>오른쪽 팀파니 · R</span></div>
+    </div>
+    <button class="btn" id="startBtn">연주 시작</button>
+    <div class="hint">왼쪽·오른쪽 팀파니를 직접 터치하거나<br>← → / A L 키로 연주할 수 있어요</div>
+    <div class="syncbox">
+      <span>싱크 보정</span>
+      <button class="sbtn" id="syncMinus" aria-label="싱크 보정 줄이기">−</button>
+      <b id="syncVal">0ms</b>
+      <button class="sbtn" id="syncPlus" aria-label="싱크 보정 늘리기">＋</button>
+      <span>빨간 선이 음악보다 앞서면 ＋</span>
+    </div>
+    <div class="credit">반주: London Philharmonic Orchestra “Timpani Moments – Beethoven 8” · 작곡 L. v. Beethoven<br>
+      <a href="https://youtu.be/cU-1WOYfpAM" target="_blank" rel="noopener">youtu.be/cU-1WOYfpAM</a></div>
+  </div>
+
+  <div class="ov hide" id="result">
+    <div class="rank" id="rRank">A</div>
+    <div class="big" id="rScore">0</div>
+    <div class="acc" id="rAcc">정확도 100%</div>
+    <div class="stats">
+      <div><b id="rPerfect">0</b><span>Perfect</span></div>
+      <div><b id="rGood">0</b><span>Good</span></div>
+      <div><b id="rMiss">0</b><span>Miss</span></div>
+      <div><b id="rCombo">0</b><span>Max Combo</span></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="againBtn">다시 연주</button>
+      <button class="btn ghost" id="homeBtn">처음으로</button>
+    </div>
+  </div>
+</div>
+<div id="err"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ══════════════════════════════════════════════════════════════
+   영상(youtu.be/cU-1WOYfpAM)에서 프레임 단위로 필사한 악보 데이터.
+   좌표계는 영상의 1920×1080 픽셀 좌표.
+   ══════════════════════════════════════════════════════════════ */
+var D = {"playhead_x":854.5,"staff_top":223.3,"staff_gap":20.9,"yC":273.8,"yF":315.6,"barlines":[92.2,303.3,515.1,786.0,997.8,1208.9,1420.0,1631.1,1902.0,2175.0,2386.9,2597.9,2868.8,3079.9,3291.7,3502.8,3713.9,3987.7,4261.5,4532.4,4802.5,5072.7,5284.5,5605.8,5899.8,6196.6,6408.4,6619.5,6830.6,7042.4,7253.5,7464.6,7676.4,7997.7,8291.7,8588.5,8800.3,9010.7,9222.5,9434.3,9646.1,9857.9,10069.7,10281.5,10493.3,10705.1,10916.9,11128.7,11340.5,11552.3,11764.1,11975.9,12187.7,12399.5,12611.3],"notes":[{"x":557.6,"p":"C","r":"q","a":0,"s":null},{"x":719.0,"p":"C","r":"q","a":0,"s":null},{"x":1672.9,"p":"C","r":"q","a":0,"s":null},{"x":1835.7,"p":"C","r":"q","a":0,"s":null},{"x":1943.8,"p":"C","r":"q","a":0,"s":null},{"x":2639.7,"p":"C","r":"q","a":0,"s":null},{"x":2801.1,"p":"C","r":"q","a":0,"s":null},{"x":3756.4,"p":"C","r":"q","a":0,"s":null},{"x":4028.8,"p":"F","r":"q","a":1,"s":null},{"x":4302.5,"p":"F","r":"q","a":1,"s":null},{"x":4463.9,"p":"F","r":"q","a":1,"s":null},{"x":4573.4,"p":"C","r":"q","a":1,"s":null},{"x":4736.2,"p":"C","r":"q","a":1,"s":null},{"x":4844.3,"p":"F","r":"q","a":1,"s":null},{"x":5005.7,"p":"F","r":"q","a":1,"s":null},{"x":5327.0,"p":"C","r":"d8","a":0,"s":"L"},{"x":5390.4,"p":"C","r":"16","a":0,"s":"R"},{"x":5430.8,"p":"F","r":"q","a":0,"s":"L"},{"x":5511.4,"p":"F","r":"d8","a":0,"s":"R"},{"x":5574.8,"p":"F","r":"16","a":0,"s":"L"},{"x":5648.3,"p":"C","r":"q","a":0,"s":"R"},{"x":5727.6,"p":"F","r":"d8","a":0,"s":"R"},{"x":5791.0,"p":"F","r":"16","a":0,"s":"L"},{"x":5832.8,"p":"C","r":"q","a":0,"s":"R"},{"x":5942.3,"p":"F","r":"d8","a":0,"s":"R"},{"x":6005.7,"p":"F","r":"16","a":0,"s":"L"},{"x":6047.5,"p":"C","r":"q","a":0,"s":"R"},{"x":7718.9,"p":"C","r":"d8","a":0,"s":"L"},{"x":7783.7,"p":"C","r":"16","a":0,"s":"R"},{"x":7824.1,"p":"F","r":"q","a":0,"s":"L"},{"x":7903.3,"p":"F","r":"d8","a":0,"s":"R"},{"x":7968.2,"p":"F","r":"16","a":0,"s":"L"},{"x":8040.2,"p":"C","r":"q","a":0,"s":"R"},{"x":8119.5,"p":"F","r":"d8","a":0,"s":"R"},{"x":8182.9,"p":"F","r":"16","a":0,"s":"L"},{"x":8224.7,"p":"C","r":"q","a":0,"s":"R"},{"x":8334.2,"p":"F","r":"d8","a":0,"s":"R"},{"x":8397.6,"p":"F","r":"16","a":0,"s":"L"},{"x":8439.4,"p":"C","r":"q","a":0,"s":"R"}],"qrests":[638.3,1753.6,2024.5,2106.6,2720.4,3837.1,3919.2,4110.9,4191.6,4383.2,4925.0,6128.1,8520.0],"wrests":[197.8,409.2,891.9,1103.3,1314.5,1525.5,2280.9,2492.4,2974.4,3185.8,3397.2,3608.4,5178.6,6302.5,6513.9,6725.1,6936.5,7147.9,7359.1,7570.5,8694.4,8905.5,9116.6,9328.4,9540.2],"dyns":[{"x":1200.3,"t":"ritard. a tempo.","fs":44},{"x":1642.6,"t":"pp","fs":62},{"x":3734.8,"t":"sf","fs":58},{"x":4008.6,"t":"sf","fs":58},{"x":4266.5,"t":"ff","fs":64},{"x":7682.9,"t":"ff","fs":64}],"timemap":[[854.5,0],[1430.8,2],[1642.6,3],[2280.9,6],[2899.1,9],[3439.4,12],[4064.8,15],[4752.1,18],[5389.0,21],[6129.6,24],[6678.6,27],[7239.1,30],[7808.2,33],[8547.4,36]],"letter_y":157.0,"letter_fs":64};
+
+var SVGNS = "http://www.w3.org/2000/svg";
+var PH = D.playhead_x, ST = D.staff_top, SP = D.staff_gap;
+var Y_C = D.yC, Y_F = D.yF;
+var BAR_BOT = ST + 4*SP;
+
+/* ── 영상 재생선 ↔ 악보 위치 매핑 (프레임에서 측정) ── */
+var TM = D.timemap;
+function xToTime(x){
+  var n=TM.length, i;
+  if(x<=TM[0][0]){ return TM[0][1]+(x-TM[0][0])*(TM[1][1]-TM[0][1])/(TM[1][0]-TM[0][0]); }
+  for(i=0;i<n-1;i++){
+    var a=TM[i], b=TM[i+1];
+    if(x>=a[0] && x<=b[0]) return a[1]+(x-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+  }
+  var p=TM[n-2], q=TM[n-1];
+  return q[1]+(x-q[0])*(q[1]-p[1])/(q[0]-p[0]);
+}
+function timeToX(t){
+  var n=TM.length, i;
+  if(t<=TM[0][1]){ return TM[0][0]+(t-TM[0][1])*(TM[1][0]-TM[0][0])/(TM[1][1]-TM[0][1]); }
+  for(i=0;i<n-1;i++){
+    var a=TM[i], b=TM[i+1];
+    if(t>=a[1] && t<=b[1]) return a[0]+(t-a[1])*(b[0]-a[0])/(b[1]-a[1]);
+  }
+  var p=TM[n-2], q=TM[n-1];
+  return q[0]+(t-q[1])*(q[0]-p[0])/(q[1]-p[1]);
+}
+
+/* ══════════════════ error surface ══════════════════ */
+var errBox=document.getElementById("err");
+function fail(m){ errBox.style.display="block"; errBox.textContent=String(m); }
+
+/* ══════════════════ audio ══════════════════ */
+/* ── 음량 밸런스(사용자 요청: “팀파니 소리는 조금만 줄이고 음악이 더 크게”) ──
+   orchestra.mp3 실측: peak −4.9dBFS(0.567) / RMS −25dB. 팀파니 합성 버퍼는
+   peak 0.92로 정규화돼 있어 예전에는 팀파니 쪽이 반주보다 훨씬 컸고,
+   master의 컴프레서(-6dB, ratio 6)가 반주까지 눌러 묻혔다.
+   → 팀파니 버스 0.62/0.26 → 0.30/0.12 (약 46%), 반주 게인 0.85 → 1.25(+3.9dB).
+      컴프레서 대신 0지연 소프트클립(0.85 이하 통과)으로 반주가 눌리지 않게 한다.
+      실측(브라우저 디코드): 반주 버퍼 peak 0.752 → 출력 peak 0.94, RMS 0.081.
+      팀파니 타격 peak 0.275 → 반주가 기본, 팀파니가 그 위에 얹힌다. */
+var MASTER_GAIN=1.0, MUSIC_GAIN=1.25, DRUM_DRY=0.30, DRUM_WET=0.12, DRUM_HIT_GAIN=0.95;
+var AC=null, master=null, musicGain=null, drumDry=null, drumWet=null, conv=null, softLim=null;
+var HITS=0, lastHitWall=0, lastHitCtx=0;   /* 지연 확인용 계측 */
+var drumSets={F:[],C:[]}, musicBuf=null, musicAb=null, musicFetch=null, musicSrc=null;
+var startAt=0, songT=0, phase="title", starting=false;
+/* ── 출력 지연(outputLatency) 보정 ───────────────────────────────
+   AC.outputLatency = 버퍼에 들어간 소리가 스피커로 나오기까지 걸리는 시간.
+   아이폰은 몇 ms지만 윈도우 노트북(WASAPI 드라이버·블루투스)은 30~200ms라서,
+   currentTime 만으로 그리면 빨간 재생선이 귀에 들리는 음악보다 그만큼 앞서간다.
+   → 악보 스크롤과 타격 판정 모두
+        heardT = (currentTime - startAt) - outLat - syncOffsetSec
+     를 쓴다. 그러면 "빨간 선이 음표를 지나는 순간"과 "그 음이 귀에 들리는 순간"이 같아진다.
+   ※ 블루투스처럼 OS가 지연을 정확히 보고하지 않는 경우를 위해 싱크 보정(−/0/+)도 둔다. */
+var outLat=0, syncOffsetSec=0, SYNC_KEY="timpani.syncMs.v1";
+function measuredOutLat(){
+  if(!AC) return 0;
+  var v=AC.outputLatency;
+  return (typeof v==="number" && v>0 && v<0.6) ? v : 0;
+}
+function readSyncOffset(){
+  var ms=0;
+  try{ ms=parseFloat(localStorage.getItem(SYNC_KEY)); }catch(e){ ms=0; }
+  if(!isFinite(ms)) ms=0;
+  ms=Math.max(-200,Math.min(200,Math.round(ms/10)*10));
+  syncOffsetSec=ms/1000;
+  return ms;
+}
+function setSyncOffset(ms){
+  ms=Math.max(-200,Math.min(200,Math.round(ms/10)*10));
+  syncOffsetSec=ms/1000;
+  try{ localStorage.setItem(SYNC_KEY,String(ms)); }catch(e){}
+  /* 시작 화면과 연주 화면(HUD)이 같은 값을 함께 보여준다. */
+  var txt=(ms>0?"+":ms<0?"−":"")+Math.abs(ms)+"ms";
+  var ids=["syncVal","hSyncVal"], i;
+  for(i=0;i<ids.length;i++){
+    var v=document.getElementById(ids[i]);
+    if(v) v.textContent=txt;
+  }
+  return ms;
+}
+/* ── 기준 음높이 ──────────────────────────────────────────────
+   orchestra.mp3(LPO 연주)를 numpy/scipy로 정밀 측정한 값.
+   · 오케스트라 조율 기준: 여러 대역(180~2500Hz)의 지속 배음 피크를
+     가중 원형평균 → A4 = 442.3Hz (A4=440 대비 +9.0센트, 오차 ±1.5센트)
+     (예전 값 A4=440 대비 F2 87.307Hz/C3 130.813Hz는 음원보다 9센트 낮아
+      연주할 때 천천히 맥동(beating)이 생겼다)
+   · F2 = 442.3 × 2^(-28/12) = 87.763Hz
+     C3 = 442.3 × 2^(-21/12) = 131.497Hz
+   ※ 저역 확인: 80~140Hz의 저역 피크는 비브라토로 86.5/89.1Hz(F), 129.1/133.5Hz(C)에
+     쌍둥이 봉우리로 퍼져 있고, 그 기하평균(87.79 / 131.29Hz)이 위 값과 0.5 / -2.7센트로 맞는다.
+   ※ 저역 80~140Hz는 더블베이스·첼로의 비브라토(±10~30센트)가 겹쳐
+     실제 팀파니 기본음을 따로 떼어 재기 어려우므로, 배음이 깨끗하게
+     분리되는 중·고역(F3 175.2Hz, C4 263.3Hz, F4 351.6Hz 등) 피크로
+     조율 기준을 잡고 그 기준으로 두 북의 12평균율 음높이를 계산했다. */
+var A4_REF=442.3;
+var F0={F:87.763, C:131.497};
+
+/* 첫 사용자 제스처(연주 시작 버튼·키) 안에서 부른다.
+   윈도우 크롬·엣지는 제스처 밖에서 만든 컨텍스트를 suspended 로 두었다가
+   나중에 resume 하면 출력 버퍼를 큰 쪽으로 다시 잡기도 한다. 제스처 안에서 만들면
+   처음부터 latencyHint:"interactive" 프로파일(가장 짧은 버퍼)로 뜬다. */
+function ensureAudio(){
+  if(AC) return AC;
+  var Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx){ fail("이 브라우저에서는 소리를 재생할 수 없습니다."); return null; }
+  /* latencyHint:'interactive' — 브라우저가 가장 짧은 출력 버퍼를 잡는다(키→소리 지연 최소화). */
+  AC=new Ctx({latencyHint:"interactive"});
+  /* 마스터에 DynamicsCompressor를 두지 않는다: 크롬 컴프레서는 약 6ms의
+     룩어헤드 지연을 더하고, 큰 팀파니 피크마다 반주 전체를 눌러 버린다.
+     지연 0인 WaveShaper 소프트클립으로 넘치는 피크만 부드럽게 다듬는다. */
+  master=AC.createGain(); master.gain.value=MASTER_GAIN;
+  softLim=AC.createWaveShaper(); softLim.curve=softClipCurve(); softLim.oversample="none";
+  master.connect(softLim); softLim.connect(AC.destination);
+  musicGain=AC.createGain(); musicGain.gain.value=MUSIC_GAIN; musicGain.connect(master);
+  drumDry=AC.createGain(); drumDry.gain.value=DRUM_DRY; drumDry.connect(master);
+  conv=AC.createConvolver(); conv.buffer=makeIR(1.15);
+  drumWet=AC.createGain(); drumWet.gain.value=DRUM_WET;
+  drumWet.connect(conv); conv.connect(master);
+  drumSets.F=[makeDrum(F0.F)];
+  drumSets.C=[makeDrum(F0.C)];
+  /* 음색 변형(각 3개)은 첫 타격 전까지(리드 1.2초)의 빈 시간에 채운다.
+     클릭 순간 제스처 안에서 6개를 다 합성하면 시작이 그만큼 늦어진다. */
+  return AC;
+}
+function fillDrumVariants(){
+  if(!AC || drumSets.F.length>=3) return;
+  try{
+    while(drumSets.F.length<3) drumSets.F.push(makeDrum(F0.F));
+    while(drumSets.C.length<3) drumSets.C.push(makeDrum(F0.C));
+  }catch(e){}
+}
+/* 0.85 이하는 그대로, 넘는 부분만 tanh로 눌러 ±1.0에 점근하는 0지연 소프트클립.
+   (반주·팀파니가 동시에 피크일 때만 아주 약하게 다듬는다.) */
+function softClipCurve(){
+  var n=4096, c=new Float32Array(n), a=0.85, i;
+  for(i=0;i<n;i++){
+    var x=i/(n-1)*2-1, ax=Math.abs(x), y;
+    if(ax<=a) y=ax; else y=a+(1-a)*Math.tanh((ax-a)/(1-a));
+    c[i]= x<0 ? -y : y;
+  }
+  return c;
+}
+function makeIR(dur){
+  var sr=AC.sampleRate, n=Math.floor(dur*sr), buf=AC.createBuffer(2,n,sr);
+  for(var ch=0;ch<2;ch++){
+    var d=buf.getChannelData(ch);
+    for(var i=0;i<n;i++){ var tt=i/n; d[i]=(Math.random()*2-1)*Math.pow(1-tt,2.6)*0.9; }
+    var taps = ch?[0.010,0.026,0.045]:[0.013,0.031,0.052];
+    for(var k=0;k<taps.length;k++){ var idx=Math.floor(taps[k]*sr); if(idx<n) d[idx]+=(k%2?-0.5:0.6); }
+    var prev=0;
+    for(var j=0;j<n;j++){ prev=prev*0.62+d[j]*0.38; d[j]=prev; }
+    var fade=Math.floor(0.002*sr);
+    for(var f=0;f<fade;f++) d[f]*=f/fade;
+  }
+  return buf;
+}
+function makeDrum(f0){
+  var sr=AC.sampleRate, dur=2.6, n=Math.floor(dur*sr);
+  var buf=AC.createBuffer(1,n,sr), d=buf.getChannelData(0);
+  /* 모드 비율은 실제 팀파니 진동 모드(1 : 1.504 : 1.742 : 2.0 …).
+     기본음(1.000)의 세기·지속을 조금 올려 음정이 또렷하게 들리도록 했다. */
+  var modes=[[1.000,1.12,2.05],[1.504,0.50,1.05],[1.742,0.38,0.86],[2.000,0.26,0.66],
+             [2.245,0.19,0.53],[2.494,0.14,0.43],[2.800,0.10,0.34],[3.160,0.06,0.27],
+             [3.500,0.045,0.21],[4.060,0.03,0.16]];
+  var i,k,m,ph0=0;
+  for(m=0;m<modes.length;m++){
+    var ratio=modes[m][0], amp=modes[m][1], dec=modes[m][2];
+    var ph=Math.random()*6.283, om=2*Math.PI*f0*ratio/sr, kd=Math.exp(-1/(dec*sr)), e=amp;
+    if(m===0) ph0=ph;
+    for(i=0;i<n;i++){ d[i]+=e*Math.sin(om*i+ph); e*=kd; }
+  }
+  /* ── 타격 트랜지언트: 반드시 0번 샘플(0ms)에서 바로 터진다 ──────────
+     버퍼 앞에는 무음 패딩도, 어택 램프도 없다(원래도 0샘플 시작이지만
+     모드 위상이 매번 랜덤이라 버퍼 3개 중에는 첫 파형이 약한 것이 섞였다).
+     0위상 코사인 저역 타격(12ms 감쇠)으로 첫 샘플을 항상 크게 만들고,
+     말렛이 살에 닿는 부드러운 클릭(저역 통과한 잡음·3ms 감쇠)을 앞에 더했다.
+     마지막에 피크 0.92로 다시 정규화하므로 전체 레벨은 그대로다. */
+  var nt=Math.floor(0.08*sr);
+  for(i=0;i<nt;i++){ d[i]+=0.55*Math.cos(2*Math.PI*f0*i/sr)*Math.exp(-i/(0.012*sr)); }
+  var nc=Math.floor(0.012*sr), ck=0, cf=0.50, cdec=0.004*sr;
+  for(i=0;i<nc;i++){
+    var w0=Math.random()*2-1;
+    ck=ck*cf+w0*(1-cf);          /* 저역 통과: 밝은 “딱” 대신 먹먹한 “툭” */
+    d[i]+=ck*1.6*Math.exp(-i/cdec);
+  }
+  var nb=Math.floor(0.026*sr), lp=0;
+  for(i=0;i<nb;i++){ var w=Math.random()*2-1; lp=lp*0.72+w*0.28; d[i]+=lp*1.25*Math.pow(1-i/nb,2.4); }
+  /* 타격 직후의 짧은 저역 "툭" — 기본음과 같은 위상으로 더해 음정을 보강한다. */
+  for(i=0;i<Math.floor(0.9*sr);i++){ d[i]+=0.14*Math.sin(Math.PI*f0*i/sr*2+ph0)*Math.exp(-i/(0.42*sr)); }
+  var peak=0;
+  for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
+  var g2=0.92/(peak||1);
+  for(i=0;i<n;i++){ var v=d[i]*g2*1.25; d[i]=Math.tanh(v)/Math.tanh(1.25); }
+  var fade=Math.floor(0.15*sr);
+  for(i=0;i<fade;i++){ d[n-1-i]*=i/fade; }
+  return buf;
+}
+function playDrum(which, scale){
+  if(!AC) return;
+  var set=drumSets[which];
+  if(!set||!set.length) return;
+  var src=AC.createBufferSource();
+  src.buffer=set[(Math.random()*set.length)|0];
+  /* 타격마다의 미세한 음높이 흔들림은 ±1.2센트 이내로 제한(예전 ±1%≈±17센트).
+     음정이 흔들려 들리지 않게 하고, 생동감은 세 가지 음색 변형으로 준다. */
+  src.playbackRate.value=0.9993+Math.random()*0.0014;
+  var g=AC.createGain(); g.gain.value=DRUM_HIT_GAIN*(scale||1);
+  if(AC.createStereoPanner){
+    var pan=AC.createStereoPanner(); pan.pan.value = which==="F" ? -0.32 : 0.32;
+    src.connect(g); g.connect(pan); pan.connect(drumDry); pan.connect(drumWet);
+  } else {
+    src.connect(g); g.connect(drumDry); g.connect(drumWet);
+  }
+  src.start(0);
+  HITS++; lastHitWall=(window.performance&&performance.now)?performance.now():Date.now();
+  lastHitCtx=AC.currentTime;
+}
+function dataToBuffer(uri){
+  /* data:...;base64,... 를 fetch 없이 ArrayBuffer로 만든다(한 파일 저장본용). */
+  return new Promise(function(res,rej){
+    try{
+      var i=uri.indexOf(","), head=uri.slice(5,i), body=uri.slice(i+1);
+      if(head.indexOf("base64")<0) throw new Error("not base64");
+      var bin=atob(body), n=bin.length, u8=new Uint8Array(n);
+      for(var k=0;k<n;k++) u8[k]=bin.charCodeAt(k);
+      res(u8.buffer);
+    }catch(e){ rej(e); }
+  });
+}
+var MUSIC_NAMES=["orchestra.mp3?v=4","%EC%83%81%EB%AF%B8%EB%8B%98_%ED%8C%80%ED%8C%8C%EB%8B%88_%EA%B2%8C%EC%9E%84_%EB%B0%98%EC%A3%BC.mp3"];
+/* 사전 로드는 "파일 받아 두기"(fetch → ArrayBuffer)까지만 한다.
+   AudioContext 를 미리 만들면 제스처 밖에서 생겨 윈도우에서 버퍼가 커지므로,
+   디코드(decodeAudioData)는 제스처 안에서 만든 컨텍스트로 시작 순간에 한다. */
+function prefetchMusic(){
+  if(musicAb) return Promise.resolve(musicAb);
+  if(musicFetch) return musicFetch;        /* 진행 중인 요청은 그대로 재사용 */
+  var i=0;
+  function attempt(){
+    var name=MUSIC_NAMES[i], got;
+    if(name.indexOf("data:")===0){
+      got=dataToBuffer(name);
+    } else if(window.fetch){
+      got=fetch(name).then(function(r){
+        if(!r.ok) throw new Error("HTTP "+r.status);
+        return r.arrayBuffer();
+      });
+    } else {
+      got=Promise.reject(new Error("no fetch"));
+    }
+    return got.catch(function(e){
+      i++;
+      if(i<MUSIC_NAMES.length) return attempt();
+      throw e;
+    });
+  }
+  musicFetch=attempt().then(function(ab){ musicAb=ab; musicFetch=null; return ab; },
+                            function(e){ musicFetch=null; throw e; });
+  return musicFetch;
+}
+function decodeMusic(ab){
+  return new Promise(function(res,rej){
+    /* decodeAudioData 는 넘긴 ArrayBuffer 를 비운다(detach). 재시도를 위해 사본을 넘긴다. */
+    var p=AC.decodeAudioData(ab.slice ? ab.slice(0) : ab,res,rej);
+    if(p&&p.then) p.then(res,rej);
+  }).then(function(b){
+    musicBuf=b;
+    if(b && b.duration) SONG_END=Math.max(1,b.duration-0.15);
+    return b;
+  });
+}
+function ensureMusic(){
+  if(musicBuf) return Promise.resolve(musicBuf);
+  return prefetchMusic().then(decodeMusic);
+}
+/* 연주 시작: 제스처 안에서 컨텍스트를 만들고, resume() 이 끝나 state==="running" 이 된
+   뒤에야 startAt 을 잡는다(예전에는 resume 을 기다리지 않아 시작 시각이 어긋났다). */
+function startAudio(){
+  if(!ensureAudio()) return Promise.reject(new Error("no audio"));
+  var resumed=(AC.resume?AC.resume():Promise.resolve())||Promise.resolve();
+  return resumed.then(function(){
+    if(AC.state==="running") return null;
+    return AC.resume().then(function(){
+      if(AC.state!=="running") throw new Error("audio suspended");
+    });
+  }).then(function(){
+    return ensureMusic();
+  }).then(function(){
+    outLat=measuredOutLat();
+    return AC;
+  });
+}
+
+/* ══════════════════ 악보 그리기 ══════════════════ */
+var layer=document.getElementById("layer");
+var fadeEls=[];   /* {el, x} : 재생선이 지나가면 영상처럼 흐려지는 요소 */
+
+function mk(tag, a){
+  var e=document.createElementNS(SVGNS, tag);
+  for(var k in a) e.setAttribute(k, a[k]);
+  return e;
+}
+
+var QR_W=19.6, QR_TOP=232.9;
+var NOTE_RX=14.8, NOTE_RY=9.9, STEM_W=3.1, STEM_LEN=69.0, BEAM_H=10.0;
+
+function noteY(p){ return p==="C" ? Y_C : Y_F; }
+
+function drawScore(){
+  var XL=0, XR=D.barlines[D.barlines.length-1]+60;
+
+  /* 5선 */
+  var g= mk("g",{stroke:"#181818","stroke-width":2.8,"stroke-linecap":"butt"});
+  for(var i=0;i<5;i++) g.appendChild(mk("line",{x1:XL,y1:(ST+i*SP).toFixed(1),x2:XR,y2:(ST+i*SP).toFixed(1)}));
+  layer.appendChild(g);
+
+  /* 마디선 */
+  var bg=mk("g",{stroke:"#181818","stroke-width":3.2});
+  D.barlines.forEach(function(x){
+    bg.appendChild(mk("line",{x1:x,y1:ST.toFixed(1),x2:x,y2:BAR_BOT.toFixed(1)}));
+  });
+  layer.appendChild(bg);
+
+  /* 온쉼표 */
+  D.wrests.forEach(function(x){
+    var e=mk("rect",{x:(x-12.2).toFixed(1), y:(ST+SP+5).toFixed(1), width:24.4, height:7.4, fill:"#141414"});
+    layer.appendChild(e);
+    fadeEls.push({el:e,x:x});
+  });
+
+  /* 4분쉼표 (영상에서 그대로 추출한 글리프) */
+  var qrUse=mk("g",{});
+  D.qrests.forEach(function(x){
+    var u=mk("use",{href:"#qrest", transform:"translate("+(x-QR_W/2).toFixed(1)+","+QR_TOP.toFixed(1)+")"});
+    qrUse.appendChild(u);
+  });
+  layer.appendChild(qrUse);
+
+  /* 보표별 음표 묶음(빔) 계산: 같은 마디 안에서 가까운 음표끼리 */
+  var groups=[], used={};
+  D.notes.forEach(function(n,i){
+    if(used[i]) return;
+    if(n.r==="d8"){
+      for(var j=i+1;j<D.notes.length;j++){
+        var m=D.notes[j];
+        if(m.r==="16" && m.p===n.p && (m.x-n.x)<90){ groups.push([n,m]); used[i]=used[j]=true; break; }
+      }
+    }
+  });
+
+  /* 음표 */
+  D.notes.forEach(function(n){
+    var y=noteY(n.p), x=n.x;
+    var grp=mk("g",{});
+    var head=mk("ellipse",{cx:x.toFixed(1),cy:y.toFixed(1),rx:NOTE_RX,ry:NOTE_RY,fill:"#141414",
+      transform:"rotate(-18 "+x.toFixed(1)+" "+y.toFixed(1)+")"});
+    grp.appendChild(head);
+    var sx=x+11.6, top=y-STEM_LEN;
+    grp.appendChild(mk("line",{x1:sx.toFixed(1),y1:(y-1).toFixed(1),x2:sx.toFixed(1),y2:top.toFixed(1),
+      stroke:"#141414","stroke-width":STEM_W,"stroke-linecap":"butt"}));
+    if(n.r==="d8"){
+      grp.appendChild(mk("circle",{cx:(x+26).toFixed(1),cy:y.toFixed(1),r:4.0,fill:"#141414"}));
+    }
+    if(n.a){
+      var ay=y+(n.p==="C"?36:19);
+      var d="M "+x.toFixed(1)+" "+ay.toFixed(1)+
+        " Q "+(x+4.8).toFixed(1)+" "+(ay+7).toFixed(1)+" "+(x+4.4).toFixed(1)+" "+(ay+14).toFixed(1)+
+        " Q "+x.toFixed(1)+" "+(ay+19).toFixed(1)+" "+(x-4.4).toFixed(1)+" "+(ay+14).toFixed(1)+
+        " Q "+(x-4.8).toFixed(1)+" "+(ay+7).toFixed(1)+" "+x.toFixed(1)+" "+ay.toFixed(1)+" Z";
+      grp.appendChild(mk("path",{d:d,fill:"#141414"}));
+    }
+    layer.appendChild(grp);
+    n._head=head; n._grp=grp; n._sx=sx; n._top=top;
+  });
+
+  /* 빔 */
+  groups.forEach(function(pr){
+    var a=pr[0], b=pr[1];
+    var x1=a.x+12.0, x2=b.x+12.0, ty=Math.min(a.y!==undefined?a.y:noteY(a.p), noteY(b.p))-STEM_LEN;
+    var gb=mk("g",{fill:"#141414"});
+    gb.appendChild(mk("rect",{x:x1.toFixed(1),y:ty.toFixed(1),width:(x2-x1).toFixed(1),height:BEAM_H}));
+    gb.appendChild(mk("rect",{x:Math.max(x1, x2-27).toFixed(1),y:(ty+BEAM_H+5.8).toFixed(1),width:Math.min(27,x2-x1).toFixed(1),height:BEAM_H}));
+    layer.appendChild(gb);
+  });
+
+  /* 다이나믹 */
+  var DY={ "ritard. a tempo.":{fs:48,bl:377,it:1}, "pp":{fs:72,bl:371,it:1}, "sf":{fs:74,bl:416,it:1}, "ff":{fs:74,bl:416,it:1} };
+  D.dyns.forEach(function(d){
+    var st=DY[d.t]||{fs:58,bl:400,it:1};
+    var e=mk("text",{x:d.x.toFixed(1),y:(d.t==="ff"&&d.x>7000?383:st.bl).toFixed(1),
+      "font-family":"'Iowan Old Style',Palatino,Georgia,'Times New Roman',serif",
+      "font-size":st.fs,"font-style":"italic","font-weight":"700",fill:"#141414"});
+    e.textContent=d.t;
+    layer.appendChild(e);
+    fadeEls.push({el:e,x:d.x});
+  });
+
+  /* 빨간 손글씨 스티킹 */
+  D.notes.forEach(function(n){
+    if(!n.s) return;
+    var e=mk("text",{x:(n.x+2).toFixed(1),y:(D.letter_y).toFixed(1),
+      "text-anchor":"middle",
+      "font-family":"'Bradley Hand','Chalkboard SE','Segoe Print','Comic Sans MS','Marker Felt',cursive",
+      "font-size":D.letter_fs,"font-weight":"500",fill:"#e0392c"});
+    e.textContent=n.s;
+    layer.appendChild(e);
+  });
+}
+
+/* ══════════════════ 게임 상태 ══════════════════ */
+var SONG_END=51.0;
+var notes=[], stats=null, missPtr=0;
+var W_PERFECT=0.085, W_GOOD=0.16, W_HIT=0.21;
+
+function buildChart(){
+  notes=[];
+  D.notes.forEach(function(n){
+    var t=xToTime(n.x);
+    if(t < -0.05) return;          /* 영상 시작 전에 이미 지나간 음표 */
+    notes.push({t:t, d:n.p, src:n, done:false, res:null});
+  });
+  missPtr=0;
+}
+/* 놓친 음표 처리 — 음표는 시각 오름차순이므로 포인터 하나로 앞에서부터만 본다
+   (매 프레임 음표 37개를 전부 도는 것보다 가볍다). */
+function scanMisses(t){
+  while(missPtr<notes.length){
+    var n=notes[missPtr];
+    if(!n.done && t-n.t>W_HIT){
+      n.done=true; n.res="miss"; stats.miss++; stats.combo=0;
+      els.score.textContent=stats.score.toLocaleString("en-US");
+    }
+    if(n.done) missPtr++; else break;
+  }
+}
+var els={
+  score:document.getElementById("hudScore"),
+  judge:document.getElementById("judge"),
+  start:document.getElementById("startScreen"),
+  result:document.getElementById("result"),
+  startBtn:document.getElementById("startBtn")
+};
+function resetStats(){
+  stats={score:0,combo:0,maxCombo:0,perfect:0,good:0,miss:0,hits:0};
+  notes.forEach(function(n){ n.done=false; n.res=null; });
+  missPtr=0;
+  els.score.textContent="0";
+}
+function accuracy(){
+  var total=stats.perfect+stats.good+stats.miss;
+  if(!total) return 1;
+  return (stats.perfect+stats.good*0.55)/total;
+}
+/* 판정 글자: 강제 리플로우(offsetWidth)를 없애고 Web Animations 로 바로 띄운다.
+   입력 순간 메인 스레드에서 레이아웃 계산을 돌리지 않으므로 발음·판정이 늦지 않는다. */
+var judgeAnim=null;
+function judgeText(t){
+  var j=els.judge; j.textContent=t;
+  if(j.animate){
+    if(judgeAnim){ try{ judgeAnim.cancel(); }catch(e){} }
+    j.classList.remove("show");
+    judgeAnim=j.animate([
+      {opacity:0, transform:"translate(-50%,-40%)"},
+      {opacity:0.9, offset:0.3},
+      {opacity:0, transform:"translate(-50%,-60%)"}
+    ],{duration:500,easing:"ease"});
+    return;
+  }
+  j.className=""; void j.offsetWidth; j.className="show";   /* 애니메이션 미지원 브라우저용 */
+}
+function startGame(){
+  if(phase==="play" || starting) return;
+  starting=true;
+  els.startBtn.disabled=true; els.startBtn.textContent="음악 준비 중…";
+  var unlock=function(){
+    starting=false;
+    els.startBtn.disabled=false; els.startBtn.textContent="연주 시작";
+  };
+  startAudio().then(function(){
+    /* 여기서는 AC.state==="running" 이고 음원도 디코드됐다 → 지금 시작 시각을 잡는다. */
+    outLat=measuredOutLat();
+    resetStats();
+    els.start.classList.add("hide");
+    els.result.classList.add("hide");
+    var lead=1.2;
+    if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} }
+    musicSrc=AC.createBufferSource();
+    musicSrc.buffer=musicBuf;
+    musicSrc.connect(musicGain);
+    startAt=AC.currentTime+lead;
+    musicSrc.start(startAt);
+    phase="play"; songT=-lead;
+    unlock();
+    /* 남은 팀파니 음색 변형은 연주가 시작된 뒤 빈 시간에 만든다(첫 타격은 1.2초 뒤). */
+    if(window.requestIdleCallback) requestIdleCallback(fillDrumVariants,{timeout:800});
+    else setTimeout(fillDrumVariants,120);
+  }).catch(function(e){
+    unlock();
+    fail("음악을 불러오지 못했습니다: "+e.message+"\n주소 https://sangmi69-netizen.github.io/timpani/ 로 열면 바로 재생됩니다.");
+  });
+}
+function hit(drum){
+  if(phase!=="play"){ playDrum(drum,1); return; }
+  playDrum(drum,1);
+  /* 판정은 입력 순간의 오디오 클럭으로 바로 계산한다. 여기에 outputLatency 와
+     싱크 보정을 빼서 "귀에 들리는 음악" 기준 시각으로 맞춘다. */
+  var t = AC ? (AC.currentTime-startAt-outLat-syncOffsetSec) : songT;
+  var best=null, bestErr=1e9, i, n;
+  for(i=0;i<notes.length;i++){
+    n=notes[i];
+    if(n.done||n.d!==drum) continue;
+    var e=Math.abs(t-n.t);
+    if(e<=W_HIT&&e<bestErr){ best=n; bestErr=e; }
+  }
+  if(best){
+    var ad=Math.abs(t-best.t);
+    var res = ad<=W_PERFECT?"perfect":(ad<=W_GOOD?"good":"miss");
+    best.done=true; best.res=res; paintNote(best.src);
+    if(res==="perfect"){
+      stats.perfect++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(1000*(1+Math.min(stats.combo,50)*0.02));
+      judgeText("PERFECT");
+    } else if(res==="good"){
+      stats.good++; stats.hits++; stats.combo++;
+      stats.score+=Math.round(420*(1+Math.min(stats.combo,50)*0.02));
+      judgeText("GOOD");
+    } else {
+      stats.miss++; stats.combo=0; judgeText("MISS");
+    }
+    stats.maxCombo=Math.max(stats.maxCombo,stats.combo);
+    els.score.textContent=stats.score.toLocaleString("en-US");
+    return;
+  }
+  for(var j=0;j<notes.length;j++){
+    var m=notes[j];
+    if(m.done||m.d===drum) continue;
+    if(Math.abs(t-m.t)<=W_HIT){
+      m.done=true; m.res="miss"; stats.miss++; stats.combo=0;
+      judgeText("MISS"); els.score.textContent=stats.score.toLocaleString("en-US");
+      return;
+    }
+  }
+}
+function finishGame(){
+  phase="done";
+  var acc=accuracy();
+  var rank = acc>=0.95?"S":acc>=0.86?"A":acc>=0.72?"B":acc>=0.55?"C":"D";
+  document.getElementById("rRank").textContent=rank;
+  document.getElementById("rScore").textContent=stats.score.toLocaleString("en-US");
+  document.getElementById("rAcc").textContent="정확도 "+Math.round(acc*100)+"%";
+  document.getElementById("rPerfect").textContent=stats.perfect;
+  document.getElementById("rGood").textContent=stats.good;
+  document.getElementById("rMiss").textContent=stats.miss;
+  document.getElementById("rCombo").textContent=stats.maxCombo;
+  els.result.classList.remove("hide");
+}
+function stopAll(){
+  if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} musicSrc=null; }
+  phase="title";
+}
+
+/* ══════════════════ 드럼 연출 ══════════════════ */
+var imgL=document.getElementById("drumL"), imgR=document.getElementById("drumR");
+/* 음표 머리를 입력 즉시 빨갛게 바뀐다(다음 rAF를 기다리지 않는다).
+   잠시 뒤 검정으로 되돌리는 일까지 Web Animations 가 맡으므로,
+   예전처럼 매 프레임 모든 음표의 DOM 속성을 순회할 필요가 없다. */
+function paintNote(n){
+  if(!n||!n._head) return;
+  var h=n._head;
+  h.style.fill="#e0392c";
+  if(n._anim){ try{ n._anim.cancel(); }catch(e){} n._anim=null; }
+  if(n._ft){ clearTimeout(n._ft); n._ft=0; }
+  if(h.animate){
+    try{
+      var a=h.animate([{fill:"#e0392c"},{fill:"#141414"}],{duration:430,easing:"ease-out",fill:"both"});
+      n._anim=a;
+      a.onfinish=function(){ try{ a.cancel(); }catch(e){} h.style.fill=""; n._anim=null; };
+      return;
+    }catch(e){}
+  }
+  n._ft=setTimeout(function(){ h.style.fill=""; n._ft=0; },430);
+}
+function drumFX(which){
+  var im = which==="F"?imgL:imgR;
+  /* Web Animations로 바로 시작 — classList 재시작용 강제 reflow(offsetWidth) 없음. */
+  if(im.animate){
+    if(drumAnim[which]){ try{ drumAnim[which].cancel(); }catch(e){} }
+    drumAnim[which]=im.animate([
+      {transform:"translateY(0) scaleY(1)"},
+      {transform:"translateY(1.1%) scaleY(.985)", offset:0.35},
+      {transform:"translateY(0) scaleY(1)"}
+    ],{duration:160,easing:"ease-out"});
+    return;
+  }
+  im.classList.remove("drum-hit");
+  void im.offsetWidth;
+  im.classList.add("drum-hit");
+}
+var drumAnim={F:null,C:null};
+
+/* ══════════════════ 레이아웃 ══════════════════ */
+var canvas=document.getElementById("canvas");
+var scoreSvg=document.getElementById("scoreSvg");
+var drumArea=document.getElementById("drumArea");
+var zoneF=document.getElementById("zoneF"), zoneC=document.getElementById("zoneC");
+var hud=document.getElementById("hud");
+var LAYOUT={mode:"land"};
+
+function layout(){ 
+  /* iOS 사파리 가로모드에서 주소창이 접히면 innerHeight가 갑자기 커져
+     화면(북)이 순간적으로 커진다. 폭이 바뀌었거나(회전) 높이가 120px 넘게
+     바뀐 경우에만 다시 그리고, 그 밖의 높이 변화는 무시해 크기를 고정한다. */
+  var w=window.innerWidth, h=window.innerHeight;
+  if(!LOCK_W){ LOCK_W=w; LOCK_H=h; }
+  else if(w!==LOCK_W || Math.abs(h-LOCK_H)>120){ LOCK_W=w; LOCK_H=h; }
+  layoutWith(LOCK_W, LOCK_H);
+}
+var LOCK_W=0, LOCK_H=0;
+function layoutWith(vw, vh){
+  var land = (vw/vh) >= 1.05;
+  LAYOUT.mode = land?"land":"port";
+  if(land){
+    var s=Math.min(vw/1920, vh/1080);
+    var w=1920*s, h=1080*s;
+    canvas.style.width=w+"px"; canvas.style.height=h+"px";
+    canvas.style.left=((vw-w)/2)+"px"; canvas.style.top=((vh-h)/2)+"px";
+    scoreSvg.setAttribute("viewBox","0 0 1920 432");
+    scoreSvg.style.width="100%";
+    scoreSvg.style.height=(432/1080*100)+"%";
+    scoreSvg.style.top="0";
+    drumArea.style.left="19.38%"; drumArea.style.top="45.44%";
+    drumArea.style.bottom="auto"; drumArea.style.width="59.50%";
+    zoneF.style.height="54%"; zoneC.style.height="54%";
+    LAYOUT.drumTop = h*0.4544;
+  } else {
+    canvas.style.width=vw+"px"; canvas.style.height=vh+"px";
+    canvas.style.left="0px"; canvas.style.top="0px";
+    var vbW=Math.min(700, vw*1.55);
+    scoreSvg.setAttribute("viewBox",(PH-vbW/2).toFixed(1)+" 0 "+vbW.toFixed(1)+" 432");
+    scoreSvg.style.width="100%";
+    var sh=vw*432/vbW;
+    scoreSvg.style.height=sh+"px";
+    var dh=vw*(589.3/1142.6);
+    scoreSvg.style.top=Math.max(18,(vh-dh-sh)*0.45)+"px";
+    drumArea.style.left="0"; drumArea.style.width="100%";
+    drumArea.style.top="auto"; drumArea.style.bottom="0";
+    zoneF.style.height=dh+"px"; zoneC.style.height=dh+"px";
+    LAYOUT.drumTop = vh-dh;
+  }
+  hud.style.top = "0px";
+}
+window.addEventListener("resize", function(){ layout(); });
+window.addEventListener("orientationchange", function(){ setTimeout(layout,240); });
+
+/* ══════════════════ 루프 ══════════════════ */
+var lastFrame=0;
+/* 악보 그룹 이동을 SVG 속성 transform 으로 할지 CSS transform(GPU 합성) 으로 할지
+   실제 렌더링으로 판별한다. iOS 구버전 사파리는 SVG 요소의 CSS transform 을
+   그리지 않으므로, 그런 브라우저에서는 예전처럼 속성 transform 을 쓴다. */
+var CSS_LAYER_T=null;
+function detectCssSvgTransform(){
+  try{
+    var s=document.createElementNS(SVGNS,"svg");
+    s.setAttribute("width","120"); s.setAttribute("height","40");
+    s.style.position="absolute"; s.style.left="-2000px"; s.style.top="0";
+    var g=document.createElementNS(SVGNS,"g");
+    var r=document.createElementNS(SVGNS,"rect");
+    r.setAttribute("x","0"); r.setAttribute("y","0"); r.setAttribute("width","10"); r.setAttribute("height","10");
+    g.appendChild(r); s.appendChild(g); document.body.appendChild(s);
+    var base=r.getBoundingClientRect().left;
+    g.style.transform="translateX(50px)";
+    var moved=r.getBoundingClientRect().left;
+    document.body.removeChild(s);
+    return (moved-base)>30;
+  }catch(e){ return false; }
+}
+function renderScore(now){
+  var x = timeToX(Math.max(0,now));
+  var dx = x - PH;
+  /* 이동만 하는 레이어라 translateX 한 번으로 끝낸다(자식 노드 순회 없음). */
+  if(CSS_LAYER_T) layer.style.transform="translateX("+(-dx).toFixed(2)+"px)";
+  else layer.setAttribute("transform","translate("+(-dx).toFixed(1)+",0)");
+}
+var latTick=0;
+function loop(now){
+  var dt=Math.min(0.05,(now-lastFrame)/1000||0); lastFrame=now;
+  if(phase==="play"){
+    /* songT = 귀에 들리는 시각(출력 지연·싱크 보정 차감). */
+    songT = AC ? (AC.currentTime-startAt-outLat-syncOffsetSec) : songT+dt;
+    if((++latTick & 31)===0) outLat=measuredOutLat();   /* 이어폰 교체 등에 대비(0.5초 간격) */
+    if(songT>0) scanMisses(songT);
+    if(songT>SONG_END+0.4) finishGame();
+  }
+  renderScore(phase==="play"||phase==="done" ? Math.max(songT,0) : 0);
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════════ 입력 ══════════════════ */
+function press(which){
+  hit(which);          /* 소리 먼저 — 시각 효과의 강제 레이아웃 계산이 발음보다 앞서지 않게 */
+  drumFX(which);
+  var z=which==="F"?zoneF:zoneC;
+  z.classList.add("on");
+  setTimeout(function(){ z.classList.remove("on"); },90);
+}
+[["F",zoneF],["C",zoneC]].forEach(function(pr){
+  pr[1].addEventListener("pointerdown", function(ev){
+    if(ev.cancelable) ev.preventDefault();
+    if(phase==="title"||phase==="done") return;
+    press(pr[0]);
+  }, {passive:false});
+});
+document.addEventListener("keydown", function(e){
+  var k=e.key;
+  if(e.repeat) return;          /* 키를 누르고 있을 때의 자동 반복은 무시(연타가 깔끔해진다) */
+  if(k==="ArrowLeft"||k==="a"||k==="A"||k==="f"||k==="F"){
+    if(phase==="play"){ e.preventDefault(); press("F"); }
+  } else if(k==="ArrowRight"||k==="l"||k==="L"||k==="j"||k==="J"){
+    if(phase==="play"){ e.preventDefault(); press("C"); }
+  } else if((k===" "||k==="Enter") && phase!=="play"){
+    startGame();
+  }
+});
+els.startBtn.addEventListener("click", startGame);
+document.getElementById("againBtn").addEventListener("click", function(){
+  els.result.classList.add("hide"); startGame();
+});
+document.getElementById("homeBtn").addEventListener("click", function(){
+  stopAll(); els.result.classList.add("hide"); els.start.classList.remove("hide");
+  els.score.textContent="0";
+});
+document.getElementById("pauseBtn").addEventListener("click", function(){
+  if(phase!=="play") return;
+  if(AC.state==="running"){ AC.suspend(); this.textContent="▶"; }
+  else { AC.resume(); this.textContent="❚❚"; }
+});
+/* 싱크 보정 (− / 0 / +) — 시작 화면과 연주 화면(HUD) 두 곳에서 같은 값을 조절한다.
+   연주 중에는 음악·빨간 선이 움직이는 도중에 눌러야 하므로 HUD 쪽은 pointerdown
+   에서 바로 반영한다(클릭 지연·더블탭 취소의 영향을 받지 않는다).
+   팀파니 존은 #canvas 안의 zoneF/zoneC 이고 HUD 가 위(z-index 6)에 있지만,
+   혹시라도 이벤트가 새지 않도록 preventDefault·stopPropagation 으로 막는다. */
+function nudgeSync(delta, ev){
+  if(ev){
+    if(ev.cancelable) ev.preventDefault();
+    ev.stopPropagation();
+  }
+  setSyncOffset(Math.round(syncOffsetSec*1000)+delta);
+}
+var syncMinus=document.getElementById("syncMinus"), syncPlus=document.getElementById("syncPlus");
+if(syncMinus) syncMinus.addEventListener("click", function(){ nudgeSync(-10); });
+if(syncPlus) syncPlus.addEventListener("click", function(){ nudgeSync(10); });
+[["hSyncMinus",-10],["hSyncPlus",10]].forEach(function(pr){
+  var el=document.getElementById(pr[0]);
+  if(!el) return;
+  el.addEventListener("pointerdown", function(ev){ nudgeSync(pr[1], ev); }, {passive:false});
+  el.addEventListener("click", function(ev){ ev.stopPropagation(); });
+});
+document.addEventListener("gesturestart", function(e){ e.preventDefault(); }, {passive:false});
+
+/* ══════════════════ iOS Safari 확대(더블탭·핀치) 차단 ══════════════════
+   ① viewport meta(maximum-scale=1, user-scalable=no) + html/body/{canvas,zone}
+      touch-action:none — 아래는 그래도 발생하는 사파리 더블탭 확대를 막는 장치.
+   ② 두 손가락 터치(핀치)와 사파리 전용 gesture 이벤트 차단
+   ③ 게임 화면에서 320ms 안에 두 번 터치하면 두 번째 touchend를 취소
+      (시작 버튼 등 오버레이 버튼은 #canvas 밖이라 영향 없음)
+   ④ 더블클릭·길게 누르기 메뉴 차단
+   ⑤ 탭은 pointerdown에서 즉시 처리하므로 방어책이 발음 지연을 만들지 않는다. */
+var lastTouchEnd=0;
+function blockGesture(ev){ if(ev.cancelable) ev.preventDefault(); }
+document.addEventListener("touchstart", function(e){
+  if(e.touches && e.touches.length>1 && e.cancelable) e.preventDefault();
+}, {passive:false});
+["gesturestart","gesturechange","gestureend"].forEach(function(t){
+  document.addEventListener(t, blockGesture, {passive:false});
+});
+canvas.addEventListener("touchend", function(e){
+  var now=e.timeStamp||Date.now();
+  if(now-lastTouchEnd<320){
+    if(e.cancelable) e.preventDefault();
+    lastTouchEnd=0;
+  } else {
+    lastTouchEnd=now;
+  }
+}, {passive:false});
+document.addEventListener("dblclick", blockGesture, {passive:false});
+document.addEventListener("contextmenu", blockGesture, {passive:false});
+/* 확인용: 확대 배율(1이어야 정상) */
+function zoomScale(){
+  var vv=window.visualViewport;
+  if(!vv) return 1;
+  return vv.scale;
+}
+
+/* ══════════════════ boot ══════════════════ */
+CSS_LAYER_T=detectCssSvgTransform();
+if(CSS_LAYER_T && layer.style) layer.style.willChange="transform";
+drawScore();
+buildChart();
+layout();
+resetStats();
+setSyncOffset(readSyncOffset());
+/* AudioContext 는 만들지 않고 음원 파일(ArrayBuffer)만 미리 받아 둔다.
+   컨텍스트 생성·decode 는 "연주 시작" 제스처 안에서 한다(startAudio). */
+prefetchMusic().then(function(){ window.__musicReady=true; }).catch(function(){});
+requestAnimationFrame(loop);
+
+window.__game={
+  notes:notes, stats:function(){ return stats; },
+  time:function(){ return songT; }, phase:function(){ return phase; },
+  audio:function(){ return AC?{state:AC.state,dur:musicBuf?musicBuf.duration:0,ready:!!musicBuf}:null; },
+  xToTime:xToTime, timeToX:timeToX, start:startGame, hit:press,
+  counts:function(){ return {F:notes.filter(function(n){return n.d==="F";}).length, C:notes.filter(function(n){return n.d==="C";}).length}; },
+  layoutInfo:function(){ return {mode:LAYOUT.mode, canvas:[canvas.style.width,canvas.style.height]}; },
+  pitch:function(){ return {A4:A4_REF, F:F0.F, C:F0.C}; },
+  zoom:function(){ return zoomScale(); },
+  layoutFor:function(w,h){ layoutWith(w,h); canvas.style.left="0px"; canvas.style.top="0px"; },
+  /* ── 확인용 계측 ── */
+  latency:function(){
+    return {base:AC?AC.baseLatency:null, output:AC?(AC.outputLatency||0):null,
+            used:outLat, syncMs:Math.round(syncOffsetSec*1000), sr:AC?AC.sampleRate:null};
+  },
+  heard:function(){ return AC?(AC.currentTime-startAt-outLat-syncOffsetSec):songT; },
+  sync:function(ms){ if(typeof ms==="number"){ setSyncOffset(ms); return Math.round(syncOffsetSec*1000); }
+    return {ms:Math.round(syncOffsetSec*1000), outLat:outLat, measured:measuredOutLat(), css:!!CSS_LAYER_T}; },
+  startState:function(){ return {starting:starting, resume:AC?AC.state:null, haveBuf:!!musicBuf, haveAb:!!musicAb}; },
+  levels:function(){
+    var m=musicBuf?bufStats(musicBuf):null;
+    var dr=(drumSets.F&&drumSets.F[0])?bufStats(drumSets.F[0]):null;
+    return {
+      gains:{master:MASTER_GAIN, music:MUSIC_GAIN, drumDry:DRUM_DRY, drumWet:DRUM_WET, drumHit:DRUM_HIT_GAIN},
+      music:m?{peak:m.peak, rms:m.rms, outPeak:m.peak*MUSIC_GAIN*MASTER_GAIN, outRms:m.rms*MUSIC_GAIN*MASTER_GAIN}:null,
+      drum:dr?{peak:dr.peak, rms:dr.rms, outPeak:dr.peak*DRUM_HIT_GAIN*DRUM_DRY*MASTER_GAIN, outRms:dr.rms*DRUM_HIT_GAIN*DRUM_DRY*MASTER_GAIN}:null
+    };
+  },
+  attack:function(){
+    function one(b){
+      var d=b.getChannelData(0), p=0, i;
+      for(i=0;i<d.length;i++){ var a=Math.abs(d[i]); if(a>p) p=a; }
+      var first=-1, first10=-1;
+      for(i=0;i<d.length;i++){ if(first<0 && Math.abs(d[i])>p*0.5) first=i; if(first10<0 && Math.abs(d[i])>p*0.05) first10=i; }
+      return {peak:+(p.toFixed(3)), v0:+(d[0].toFixed(3)), firstHalfIdx:first, first5pctIdx:first10,
+              firstHalfMs:+(first/b.sampleRate*1000).toFixed(2), first5pctMs:+(first10/b.sampleRate*1000).toFixed(2)};
+    }
+    return (drumSets.F&&drumSets.F.length)?drumSets.F.map(one):null;
+  },
+  taps:function(){ return {hits:HITS, lastHitWall:lastHitWall, lastHitCtx:lastHitCtx}; },
+  /* 확인용: 특정 시각의 화면을 그대로 보여준다 */
+  preview:function(t){ if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} } musicSrc=null; els.start.classList.add("hide"); els.result.classList.add("hide"); phase="done"; songT=t; }
+};
+function bufStats(buf){
+  var p=0, s=0, cnt=0, c, i, d;
+  for(c=0;c<buf.numberOfChannels;c++){
+    d=buf.getChannelData(c);
+    for(i=0;i<d.length;i++){ var a=Math.abs(d[i]); if(a>p) p=a; s+=d[i]*d[i]; cnt++; }
+  }
+  return {peak:p, rms:cnt?Math.sqrt(s/cnt):0, dur:buf.duration, sr:buf.sampleRate};
+}
+})();
+</script>
+</body>
+</html>
