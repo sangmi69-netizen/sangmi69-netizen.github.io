@@ -717,6 +717,8 @@ function applyTheme(id, save){
   }
   var mt = document.querySelector('meta[name="theme-color"]');
   if(mt) mt.setAttribute("content", t.bg[1]);
+  var h1 = document.querySelector("#cover h1");
+  if(h1) h1.textContent = t.name + " 텅드럼";
   Array.prototype.forEach.call(document.querySelectorAll("#bodySw .sw"), function(b){
     b.classList.toggle("on", b.getAttribute("data-theme") === t.id);
   });
