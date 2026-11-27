@@ -624,10 +624,9 @@ function hit(note, cx, cy){
 var litList = [];
 var lastFrameT = 0;
 function glowLoop(ts){
-  window.__frames = (window.__frames||0) + 1;
   var dt = lastFrameT ? Math.min(0.1, (ts - lastFrameT)/1000) : 0.016;
   lastFrameT = ts;
-  var decay = Math.exp(-dt / 1.15);          /* 화면 주사율과 무관한 시간 기반 감쇠 */
+  var decay = Math.exp(-dt / 2.2);          /* 화면 주사율과 무관한 시간 기반 감쇠 */
   for(var i=litList.length-1; i>=0; i--){
     var k = litList[i];
     k.e *= decay;
@@ -791,8 +790,6 @@ window.__td = {
   ready: function(){ return AC.ready; },
   last: function(){ return lastHit; },
   history: function(){ return hitLog; },
-  _keys: function(){ return keyEls; },
-  _lit: function(){ return litList; },
   unlock: unlock
 };
 })();
