@@ -133,12 +133,12 @@
     <svg id="drum" viewBox="-560 -560 1120 1120" aria-label="보라색 C key 15음 텅드럼">
       <defs>
         <!-- 상판 -->
-        <radialGradient id="faceG" cx="40%" cy="32%" r="82%">
-          <stop offset="0%"   stop-color="#8b6fdc"/>
-          <stop offset="30%"  stop-color="#6f53c6"/>
-          <stop offset="62%"  stop-color="#543a9f"/>
-          <stop offset="84%"  stop-color="#412a80"/>
-          <stop offset="100%" stop-color="#33206a"/>
+        <radialGradient id="faceG" cx="38%" cy="30%" r="86%">
+          <stop offset="0%"   stop-color="#a184ee"/>
+          <stop offset="26%"  stop-color="#8a68e0"/>
+          <stop offset="56%"  stop-color="#6d4cc6"/>
+          <stop offset="80%"  stop-color="#52379e"/>
+          <stop offset="100%" stop-color="#3d2a7d"/>
         </radialGradient>
         <!-- 혀(같은 강판, 아주 조금 밝게) — 드럼 전체 좌표로 조명이 일정하게 -->
         <radialGradient id="tongueG" gradientUnits="userSpaceOnUse" cx="-60" cy="-170" r="560">
@@ -163,6 +163,12 @@
           <stop offset="44%"  stop-color="#f2d59f"/>
           <stop offset="74%"  stop-color="#cda265"/>
           <stop offset="100%" stop-color="#ab8147"/>
+        </linearGradient>
+        <linearGradient id="plateSheen" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#ffffff" stop-opacity=".10"/>
+          <stop offset="42%"  stop-color="#ffffff" stop-opacity=".02"/>
+          <stop offset="70%"  stop-color="#1a0b33" stop-opacity=".06"/>
+          <stop offset="100%" stop-color="#1a0b33" stop-opacity=".14"/>
         </linearGradient>
         <radialGradient id="sheen" cx="50%" cy="50%" r="50%">
           <stop offset="0%"   stop-color="#ffffff" stop-opacity=".42"/>
@@ -194,10 +200,10 @@
           <line x1="2.5" y1="0" x2="2.5" y2="5" stroke="#000000" stroke-opacity=".045" stroke-width="1"/>
         </pattern>
         <!-- 땋은 로프: 비스듬한 마름모 꼬임 -->
-        <pattern id="braid" width="26" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(41)">
-          <rect width="26" height="20" fill="#b9abd4" fill-opacity="0"/>
-          <path d="M0 5 q6.5 5 13 0 q6.5 5 13 0" fill="none" stroke="#ffffff" stroke-opacity=".50" stroke-width="5" stroke-linecap="round"/>
-          <path d="M0 15 q6.5 5 13 0 q6.5 5 13 0" fill="none" stroke="#5b4d7d" stroke-opacity=".45" stroke-width="4.4" stroke-linecap="round"/>
+        <pattern id="braid" width="18" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(41)">
+          <rect width="18" height="14" fill="#b9abd4" fill-opacity="0"/>
+          <path d="M0 3.5 q4.5 3.6 9 0 q4.5 3.6 9 0" fill="none" stroke="#efe8ff" stroke-opacity=".34" stroke-width="3.4" stroke-linecap="round"/>
+          <path d="M0 10.5 q4.5 3.6 9 0 q4.5 3.6 9 0" fill="none" stroke="#4a3d68" stroke-opacity=".38" stroke-width="3" stroke-linecap="round"/>
         </pattern>
       </defs>
       <g id="shell"></g>
@@ -295,7 +301,7 @@ var ARM_R   = 470;    /* 혀의 갈래 끝(링 밑으로 들어감) */
 /* 둘레 혀: tip = 둥근 끝 중심의 반지름, hw = 반폭, 안쪽 끝 = tip - hw */
 var LONG  = { tip:300, hw:57, fs:50, label:272 };
 var SHORT = { tip:352, hw:44, fs:42, label:330 };
-var CORE_G = { hw:105, armY:-152, capY:44, fs:62, label:-84 };
+var CORE_G = { hw:105, armY:-166, capY:52, fs:62, label:-100 };
 
 /* 둘레 혀 모양: 국부좌표에서 -y 가 바깥(테두리), 둥근 끝은 안쪽으로 볼록 */
 function tonguePath(tipR, hw, armR){
@@ -360,8 +366,9 @@ function drawKey(note){
   el("path", {d:strokePath, fill:"none", stroke:"#0a0418", "stroke-width":2.6,
               "stroke-linejoin":"round", opacity:".9", "stroke-linecap":"round"}, g);
 
-  /* 혀 판 */
-  var plate = el("path", {d:path, fill:"url(#tongueG)", "data-i":note.idx, class:"plate"}, g);
+  /* 혀 판 — 상판과 같은 강판(빛만 살짝 다르게) */
+  var plate = el("path", {d:path, fill:"url(#faceG)", "data-i":note.idx, class:"plate"}, g);
+  el("path", {d:path, fill:"url(#plateSheen)", opacity:".55", "pointer-events":"none"}, g);
   /* 판 위 미세 결 */
   el("path", {d:path, fill:"url(#brushed)", opacity:".35", "pointer-events":"none"}, g);
   /* 컷 가장자리의 밝은 선 */
@@ -387,15 +394,15 @@ function drawKey(note){
 }
 
 function drawSeal(g){
-  var seal = el("g", {transform:"translate(0,38)", "pointer-events":"none"}, g);
-  el("rect", {x:-40, y:-58, width:80, height:116, rx:7, fill:"#2a1a58", opacity:".40"}, seal);
-  el("rect", {x:-40, y:-58, width:80, height:116, rx:7, fill:"none",
-              stroke:"url(#goldG)", "stroke-width":2, opacity:".9"}, seal);
-  el("rect", {x:-34, y:-52, width:68, height:104, rx:4, fill:"none",
-              stroke:"url(#goldG)", "stroke-width":.8, opacity:".5"}, seal);
+  var seal = el("g", {transform:"translate(0,46)", "pointer-events":"none"}, g);
+  el("rect", {x:-45, y:-64, width:90, height:128, rx:8, fill:"#2a1a58", opacity:".38"}, seal);
+  el("rect", {x:-45, y:-64, width:90, height:128, rx:8, fill:"none",
+              stroke:"url(#goldG)", "stroke-width":2.2, opacity:".9"}, seal);
+  el("rect", {x:-38, y:-57, width:76, height:114, rx:5, fill:"none",
+              stroke:"url(#goldG)", "stroke-width":.9, opacity=".45"}, seal);
   ["텅","드","럼"].forEach(function(ch,i){
-    el("text", {x:0, y:-26 + i*37, "text-anchor":"middle", "dominant-baseline":"middle",
-                "font-family":"Georgia,'Times New Roman',serif", "font-size":27,
+    el("text", {x:0, y:-29 + i*41, "text-anchor":"middle", "dominant-baseline":"middle",
+                "font-family":"Georgia,'Times New Roman',serif", "font-size":30,
                 fill:"url(#goldG)", "letter-spacing":"1"}, seal).textContent = ch;
   });
 }
