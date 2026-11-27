@@ -873,11 +873,11 @@ function mulberry(seed){
 
 var CFG = {
   0: { /* 중현 — 조금 어둡고 따뜻함 */
-    tilt:-0.8, peak:0.48, attack:0.062, noise:2.2, nf:1200, nq:0.70, nlf:2800, lowTrim:0,
+    tilt:-0.8, peak:0.48, attack:0.062, noise:1.1, nf:1200, nq:0.75, nlf:2400, lowTrim:0,
     vibRate:4.8, vibBase:35, vibMax:80, pan:-0.16, hp:150, lp:7200, send:0.52, body:1.00
   },
   1: { /* 유현 — 조금 밝고 얇음 */
-    tilt: 0.8, peak:0.45, attack:0.055, noise:2.0, nf:1500, nq:0.80, nlf:2800, lowTrim:-8,
+    tilt: 0.8, peak:0.45, attack:0.055, noise:1.0, nf:1500, nq:0.85, nlf:2400, lowTrim:-8,
     vibRate:5.0, vibBase:32, vibMax:72, pan: 0.16, hp:170, lp:8200, send:0.48, body:1.00
   }
 };
@@ -1047,7 +1047,7 @@ function Voice(ctx, dest, rev, strId, midi, opts){
   nsrc.buffer = getNoise(c);
   nsrc.loop = true;
   var nbp = bq(c, "bandpass", cfg.nf, cfg.nq, 0);
-  var nhp = bq(c, "highpass", 520, 0.7, 0);
+  var nhp = bq(c, "highpass", 640, 0.7, 0);
   var nlp = bq(c, "lowpass", cfg.nlf, 0.7, 0);
   var ng = c.createGain(); ng.gain.value = 0.0001;
   nsrc.connect(nbp); nbp.connect(nhp); nhp.connect(nlp); nlp.connect(ng); ng.connect(hp);
