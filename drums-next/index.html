@@ -610,7 +610,7 @@ function mkSnare(p){
     body.frequency.setValueAtTime(p.f1*1.28, t);
     body.frequency.exponentialRampToValueAtTime(p.f1, t + .022);
     body.frequency.exponentialRampToValueAtTime(p.f1*0.86, t + p.decay*0.9);
-    var gb = oc.createGain(); env(gb, t, p.amp*.78, .0012, p.decay*.62);
+    var gb = oc.createGain(); env(gb, t, p.amp*.70, .0012, p.decay*.62);
     var ws = oc.createWaveShaper(); ws.curve = softClip(1.12); ws.oversample = "2x";
     var bodyLp = filt(oc, "lowpass", 2600, .7);
     body.connect(gb); gb.connect(ws); ws.connect(bodyLp); bodyLp.connect(oc.destination);
@@ -619,7 +619,7 @@ function mkSnare(p){
     var tone = oc.createOscillator(); tone.type = "triangle";
     tone.frequency.setValueAtTime(p.f2*1.10, t);
     tone.frequency.exponentialRampToValueAtTime(p.f2, t + .03);
-    var gt = oc.createGain(); env(gt, t, p.amp*.30, .0015, p.decay*.42);
+    var gt = oc.createGain(); env(gt, t, p.amp*.26, .0015, p.decay*.42);
     var toneLp = filt(oc, "lowpass", 1400, .7);
     tone.connect(gt); gt.connect(toneLp); toneLp.connect(oc.destination);
     tone.start(t); tone.stop(dur);
@@ -627,15 +627,15 @@ function mkSnare(p){
     var na = oc.createBufferSource(); na.buffer = noiseBuf(oc,.05);
     var bpA = filt(oc, "bandpass", 2050, 1.1);
     var lpA = filt(oc, "lowpass", 5200, .7);
-    var ga = oc.createGain(); env(ga, t, p.amp*.44, .0008, .020);
+    var ga = oc.createGain(); env(ga, t, p.amp*.48, .0008, .020);
     na.connect(bpA); bpA.connect(lpA); lpA.connect(ga); ga.connect(oc.destination); na.start(t);
     /* 헤드 자체의 낮은 '툭' — 바디감 */
     var nb = oc.createBufferSource(); nb.buffer = pinkBuf(oc,.06);
     var bpB = filt(oc, "bandpass", 620, 1.4);
-    var gb2 = oc.createGain(); env(gb2, t, p.amp*.28, .001, .034);
+    var gb2 = oc.createGain(); env(gb2, t, p.amp*.30, .001, .034);
     nb.connect(bpB); bpB.connect(gb2); gb2.connect(oc.destination); nb.start(t);
     /* 스네어 와이어: 좁은 대역 + 핑크 노이즈 → 넓게 지지직대는 고역 잡음 제거 */
-    [[3900, 1.8, .30, 1.0], [5900, 2.2, .17, .76], [8600, 2.6, .07, .52]].forEach(function(w){
+    [[3900, 1.3, .55, 1.15], [5900, 1.6, .32, .95], [8600, 1.9, .12, .70]].forEach(function(w){
       var n = oc.createBufferSource(); n.buffer = pinkBuf(oc, dur);
       var bp = filt(oc, "bandpass", w[0], w[1]);
       var lp = filt(oc, "lowpass", 10500, .7);
@@ -645,7 +645,7 @@ function mkSnare(p){
     /* 와이어가 살랑이며 남는 옅은 꼬리 */
     var nt = oc.createBufferSource(); nt.buffer = pinkBuf(oc, dur);
     var bpT = filt(oc, "bandpass", 4600, .9);
-    var gT = oc.createGain(); env(gT, t, p.amp*.06*(p.wire||1), .006, p.decay*1.1);
+    var gT = oc.createGain(); env(gT, t, p.amp*.10*(p.wire||1), .006, p.decay*1.4);
     nt.connect(bpT); bpT.connect(gT); gT.connect(oc.destination); nt.start(t);
   });
 }
