@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1520">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>The Christmas Song · 성시경 | 창일중학교 이상미 수업자료</title>
+<meta name="description" content="성시경 「The Christmas Song」 노래 배우기 수업 자료 — 가사·한글 발음·뜻·피아노 악보·음원 동기 재생">
+<style>
+:root{
+  --ink:#070b12; --navy:#0b1520; --navy2:#0e1b28;
+  --wine:#5a1626; --wine-d:#2a0d15;
+  --emerald:#0f3a33;
+  --gold:#d7b878; --gold-l:#f4e2b8; --gold-d:#a4874c;
+  --cream:#f6efe3; --cream-d:#cdc2ae;
+  --line:rgba(215,184,120,.20);
+  --serif:'Cormorant Garamond','Playfair Display',Georgia,'Nanum Myeongjo','Noto Serif KR','Apple SD Gothic Neo',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Malgun Gothic','Noto Sans KR',sans-serif;
+  --r:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+*{-webkit-tap-highlight-color:transparent}
+body{
+  min-height:100vh; min-height:100dvh;
+  font-family:var(--sans); color:var(--cream);
+  background:
+    radial-gradient(1100px 720px at 8% -12%, rgba(215,184,120,.16), transparent 62%),
+    radial-gradient(900px 700px at 104% -4%, rgba(15,58,51,.55), transparent 58%),
+    radial-gradient(1000px 900px at 88% 112%, rgba(90,22,38,.52), transparent 62%),
+    linear-gradient(158deg,#080d16 0%,#0a1421 42%,#08111a 100%);
+  background-attachment:fixed;
+  overflow:hidden;
+}
+body::after{ /* fine grain + vignette */
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(0,0,0,.45) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.5'/></svg>");
+  background-size:cover, 140px 140px;
+  opacity:.30; mix-blend-mode:overlay;
+}
+#snow{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .8s ease}
+body.snow-on #snow{opacity:.85}
+.app{position:relative;z-index:2;height:100vh;height:100dvh;display:flex;flex-direction:column}
+
+/* ── header ─────────────────────────────── */
+.topbar{
+  flex:0 0 auto; display:flex; align-items:center; gap:18px;
+  padding:12px clamp(14px,2.4vw,30px) 11px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(9,15,24,.86), rgba(9,15,24,.30));
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.crest{width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;border-radius:50%;
+  border:1px solid var(--line); background:radial-gradient(circle at 30% 25%, rgba(244,226,184,.20), rgba(244,226,184,0) 70%)}
+.crest svg{width:22px;height:22px;display:block}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11.5px; letter-spacing:.16em; color:var(--gold-l);
+  border:1px solid rgba(215,184,120,.34); border-radius:999px; padding:3px 11px 3px 9px;
+  background:linear-gradient(180deg,rgba(215,184,120,.14),rgba(215,184,120,.04));
+  white-space:nowrap;
+}
+.badge i{width:5px;height:5px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);display:block}
+h1{
+  margin:5px 0 0; font-family:var(--serif); font-weight:500;
+  font-size:clamp(1.18rem,2.1vw,1.72rem); line-height:1.05; letter-spacing:.035em;
+  background:linear-gradient(96deg,#fff8ea 8%,var(--gold-l) 46%,#c9a86a 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  white-space:nowrap;
+}
+.sub{font-size:11.5px;letter-spacing:.13em;color:var(--cream-d);margin-top:3px;text-transform:uppercase}
+.tools{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+
+/* ── buttons ────────────────────────────── */
+button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12.5px;letter-spacing:.04em;color:var(--cream);
+  padding:8px 13px;border-radius:11px;border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.02));
+  transition:.22s ease; white-space:nowrap;
+}
+.btn:hover{border-color:rgba(215,184,120,.5);background:linear-gradient(180deg,rgba(215,184,120,.16),rgba(215,184,120,.05));transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.on{border-color:rgba(215,184,120,.62);background:linear-gradient(180deg,rgba(215,184,120,.26),rgba(215,184,120,.08));color:#fff6e4;box-shadow:0 0 0 1px rgba(215,184,120,.18) inset,0 6px 18px -10px rgba(215,184,120,.8)}
+.btn svg{width:14px;height:14px}
+.btn.icon{padding:8px 10px}
+
+/* ── player ─────────────────────────────── */
+.player{
+  flex:0 0 auto; position:relative;
+  display:grid; grid-template-columns:auto 1fr auto; gap:clamp(10px,1.6vw,22px); align-items:center;
+  padding:11px clamp(14px,2.4vw,30px);
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(13,22,33,.92), rgba(11,19,29,.72));
+  backdrop-filter:blur(16px) saturate(120%); -webkit-backdrop-filter:blur(16px) saturate(120%);
+  z-index:5;
+}
+.playwrap{display:flex;align-items:center;gap:12px}
+.play{
+  width:52px;height:52px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
+  background:radial-gradient(circle at 32% 26%,#f8e9c8,#d7b878 46%,#a4874c 100%);
+  color:#241a08; box-shadow:0 10px 26px -12px rgba(215,184,120,.9), inset 0 1px 0 rgba(255,255,255,.6);
+  transition:.18s ease;
+}
+.play:hover{transform:scale(1.045)}
+.play:active{transform:scale(.98)}
+.play svg{width:21px;height:21px;margin-left:1px}
+.play .p-ic{display:block}
+.play .p-ic.hide{display:none}
+.times{font-variant-numeric:tabular-nums;font-size:12.5px;letter-spacing:.06em;color:var(--cream-d);white-space:nowrap}
+.times b{color:var(--cream);font-weight:600}
+.mid{min-width:0}
+.seekwrap{position:relative;padding:9px 0 5px}
+.seek{
+  position:relative;height:6px;border-radius:99px;cursor:pointer;
+  background:linear-gradient(90deg,rgba(255,255,255,.10),rgba(255,255,255,.06));
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.5);
+  touch-action:none;
+}
+.seek::before{content:"";position:absolute;inset:-11px 0;border-radius:99px}
+.fill{position:absolute;inset:0 auto 0 0;width:0%;border-radius:99px;
+  background:linear-gradient(90deg,#8f6f34,var(--gold) 55%,var(--gold-l));
+  box-shadow:0 0 14px rgba(215,184,120,.45)}
+.knob{position:absolute;top:50%;left:0%;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 34% 30%,#fff8e8,#e3c78c 60%,#b3944f);
+  box-shadow:0 0 0 3px rgba(215,184,120,.14),0 3px 10px rgba(0,0,0,.55);opacity:.92;transition:opacity .2s}
+.abzone{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,rgba(15,58,51,.75),rgba(15,58,51,.45));
+  border-left:1px solid rgba(215,184,120,.55);border-right:1px solid rgba(215,184,120,.55);border-radius:4px;display:none}
+body.has-ab .abzone{display:block}
+.seekmeta{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.14em;color:rgba(205,194,174,.62);margin-top:2px}
+.seekmeta span.now{color:var(--gold-l)}
+.right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.chips{display:flex;align-items:center;gap:5px;padding:3px;border-radius:12px;border:1px solid rgba(215,184,120,.14);background:rgba(255,255,255,.028)}
+.chip{font-size:11.5px;letter-spacing:.03em;padding:6px 9px;border-radius:9px;color:var(--cream-d);transition:.18s}
+.chip:hover{color:var(--cream);background:rgba(255,255,255,.06)}
+.chip.on{color:#241a08;background:linear-gradient(180deg,#f0dbab,var(--gold));font-weight:600;box-shadow:0 3px 10px -6px rgba(215,184,120,.9)}
+.chip.gold.on{background:linear-gradient(180deg,#f6e6bf,#d7b878)}
+.synclab{font-size:10.5px;letter-spacing:.12em;color:rgba(205,194,174,.65);margin-right:2px}
+
+/* ── layout ─────────────────────────────── */
+.tabs{display:none}
+main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,44fr) minmax(0,56fr);gap:clamp(10px,1.4vw,18px);padding:clamp(10px,1.5vw,18px)}
+.pane{min-height:0;display:flex;flex-direction:column;border-radius:var(--r);border:1px solid var(--line);
+  background:linear-gradient(168deg,rgba(255,255,255,.055),rgba(255,255,255,.014));
+  box-shadow:0 30px 70px -46px #000, inset 0 1px 0 rgba(255,255,255,.06);
+  overflow:hidden;position:relative}
+.pane-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid rgba(215,184,120,.13)}
+.pane-head h2{margin:0;font-family:var(--serif);font-weight:500;font-size:15.5px;letter-spacing:.04em;display:flex;align-items:baseline;gap:8px;color:var(--cream)}
+.pane-head h2 em{font-family:var(--sans);font-style:normal;font-size:10px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.pane-head .sp{margin-left:auto;display:flex;align-items:center;gap:6px}
+.mini{font-size:11px;padding:5px 9px;border-radius:9px;border:1px solid rgba(215,184,120,.16);color:var(--cream-d);transition:.18s}
+.mini:hover{color:var(--cream);border-color:rgba(215,184,120,.45);background:rgba(255,255,255,.05)}
+.mini.on{color:#1e1508;background:linear-gradient(180deg,#f0dbab,var(--gold));border-color:transparent}
+
+/* score */
+.score-body{flex:1 1 auto;min-height:0;padding:clamp(8px,1.2vw,16px);overflow:auto;background:
+  radial-gradient(80% 60% at 50% 0%,rgba(215,184,120,.06),transparent 70%), #0a1018}
+.paperwrap{display:flex;justify-content:center;align-items:flex-start;min-height:100%}
+.paper{
+  position:relative;background:#fffdf6;border-radius:4px;overflow:hidden;
+  box-shadow:0 26px 60px -30px #000,0 0 0 1px rgba(215,184,120,.35),0 0 0 6px rgba(255,255,255,.03);
+  transform-origin:top center;transition:transform .22s ease;will-change:transform;
+}
+.paper img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+.paper::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 100% at 50% 0%,rgba(255,255,255,0) 60%,rgba(86,62,24,.10))}
+.score-foot{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid rgba(215,184,120,.13);background:rgba(8,14,22,.5)}
+.pager{display:flex;align-items:center;gap:2px;border:1px solid rgba(215,184,120,.16);border-radius:10px;overflow:hidden}
+.pager button{padding:5px 10px;font-size:13px;color:var(--cream-d);transition:.18s}
+.pager button:hover{background:rgba(215,184,120,.14);color:var(--cream)}
+.pager span{padding:0 8px;font-size:11.5px;letter-spacing:.08em;color:var(--cream-d);font-variant-numeric:tabular-nums}
+.thumbs{margin-left:auto;display:flex;gap:6px;overflow:auto}
+.thumbs button{width:30px;height:40px;border-radius:5px;border:1px solid rgba(215,184,120,.18);background:#fffdf6;padding:0;overflow:hidden;opacity:.55;transition:.2s;flex:0 0 auto}
+.thumbs button img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.thumbs button.on{opacity:1;border-color:rgba(215,184,120,.75);box-shadow:0 0 0 2px rgba(215,184,120,.18)}
+.thumbs button:hover{opacity:.9}
+
+/* lyrics */
+.lyr-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.switch{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--cream-d);cursor:pointer;user-select:none;padding:4px 8px;border-radius:9px;border:1px solid transparent;transition:.18s}
+.switch:hover{background:rgba(255,255,255,.05)}
+.switch i{width:26px;height:15px;border-radius:99px;background:rgba(255,255,255,.14);position:relative;transition:.2s;flex:0 0 auto}
+.switch i::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#b9b0a0;transition:.2s}
+.switch.on{color:var(--gold-l)}
+.switch.on i{background:linear-gradient(90deg,#8f6f34,var(--gold))}
+.switch.on i::after{left:13px;background:#fff9ec}
+
+.lyrics{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:6px clamp(10px,1.4vw,18px) 40vh;scroll-behavior:smooth;overscroll-behavior:contain}
+.sect{display:flex;align-items:center;gap:10px;margin:18px 2px 8px;position:sticky;top:0;z-index:3;padding:6px 0;
+  background:linear-gradient(180deg,rgba(10,17,26,.94),rgba(10,17,26,.72));backdrop-filter:blur(6px)}
+.sect:first-child{margin-top:6px}
+.sect .n{font-family:var(--serif);font-size:12px;letter-spacing:.2em;color:var(--gold);border:1px solid rgba(215,184,120,.3);border-radius:50%;width:22px;height:22px;display:grid;place-items:center;flex:0 0 auto}
+.sect .t{font-family:var(--serif);font-size:15px;letter-spacing:.05em;color:var(--cream)}
+.sect .e{font-size:9.5px;letter-spacing:.2em;color:rgba(205,194,174,.55);text-transform:uppercase}
+.sect .rule{flex:1 1 auto;height:1px;background:linear-gradient(90deg,rgba(215,184,120,.34),rgba(215,184,120,0))}
+.sect .tm{font-size:10.5px;color:rgba(205,194,174,.6);font-variant-numeric:tabular-nums}
+
+.line{position:relative;display:grid;grid-template-columns:26px 1fr 18px;gap:8px;align-items:start;
+  padding:11px 12px 12px;border-radius:13px;border:1px solid transparent;border-left:2px solid transparent;
+  cursor:pointer;transition:background .35s ease,border-color .35s ease,transform .35s ease,opacity .35s}
+.line + .line{margin-top:2px}
+.line:hover{background:rgba(255,255,255,.045)}
+.line .idx{font-family:var(--serif);font-size:11.5px;color:rgba(205,194,174,.5);padding-top:3px;letter-spacing:.08em;text-align:right}
+.line .en{font-family:var(--serif);font-size:clamp(15px,1.32vw,18.5px);line-height:1.35;letter-spacing:.012em;color:#f3ecdf;margin:0}
+.line .pr{font-size:12.5px;letter-spacing:.02em;color:var(--gold-l);margin:5px 0 0;opacity:.92}
+.line .ko{font-family:var(--serif);font-size:13px;line-height:1.5;color:rgba(230,222,208,.72);margin:4px 0 0}
+.line .tip{font-size:11.5px;line-height:1.55;color:rgba(178,214,201,.9);margin:7px 0 0;padding-left:11px;border-left:1px solid rgba(15,120,100,.5)}
+.line .tip b{color:#bde6d8;font-weight:600}
+.line .jump{opacity:0;transition:.2s;color:var(--gold);display:grid;place-items:center;padding-top:4px}
+.line:hover .jump{opacity:.85}
+.line .prog{position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:2px;overflow:hidden;opacity:0}
+.line .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-d),var(--gold-l))}
+.line.active{
+  background:linear-gradient(90deg,rgba(215,184,120,.16),rgba(215,184,120,.03) 60%,transparent);
+  border-left-color:var(--gold); border-color:rgba(215,184,120,.22);
+  box-shadow:0 10px 30px -22px rgba(215,184,120,.9), inset 0 1px 0 rgba(255,255,255,.05);
+  transform:translateX(2px);
+}
+.line.active .en{color:#fffaf0}
+.line.active .idx{color:var(--gold)}
+.line.active .prog{opacity:1}
+.line.past{opacity:.62}
+.line.past .en{color:rgba(243,236,223,.82)}
+body.hide-pr .line .pr{display:none}
+body.hide-ko .line .ko{display:none}
+body.hide-tip .line .tip{display:none}
+
+.interlude{display:flex;align-items:center;gap:10px;margin:10px 2px;padding:13px 14px;border-radius:13px;
+  border:1px dashed rgba(215,184,120,.28);background:linear-gradient(90deg,rgba(15,58,51,.30),rgba(15,58,51,.06));cursor:pointer}
+.interlude:hover{background:linear-gradient(90deg,rgba(15,58,51,.45),rgba(15,58,51,.12))}
+.interlude .wave{display:flex;gap:2px;align-items:flex-end;height:16px}
+.interlude .wave i{width:2px;background:var(--gold);opacity:.7;border-radius:2px;animation:wv 1.6s ease-in-out infinite}
+.interlude .wave i:nth-child(2){animation-delay:.15s}.interlude .wave i:nth-child(3){animation-delay:.3s}
+.interlude .wave i:nth-child(4){animation-delay:.45s}.interlude .wave i:nth-child(5){animation-delay:.6s}
+@keyframes wv{0%,100%{height:5px}50%{height:16px}}
+.interlude p{margin:0;font-size:12px;color:var(--cream-d)}
+.interlude p b{color:var(--cream);font-weight:600;letter-spacing:.03em}
+.interlude .len{margin-left:auto;font-size:11px;color:rgba(205,194,174,.6);font-variant-numeric:tabular-nums}
+
+/* info card */
+.info{margin:16px 2px 6px;padding:14px 15px;border-radius:14px;border:1px solid rgba(215,184,120,.16);
+  background:linear-gradient(150deg,rgba(90,22,38,.24),rgba(15,58,51,.16))}
+.info h3{margin:0 0 9px;font-family:var(--serif);font-size:14px;font-weight:500;letter-spacing:.05em;color:var(--gold-l)}
+.info dl{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin:0;font-size:11.5px}
+.info dt{color:rgba(205,194,174,.62);letter-spacing:.04em;white-space:nowrap}
+.info dd{margin:0;color:rgba(246,239,227,.9)}
+
+/* presentation overlay */
+.present{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;
+  background:radial-gradient(90% 70% at 50% -10%,rgba(90,22,38,.55),transparent 60%),radial-gradient(80% 70% at 90% 110%,rgba(15,58,51,.5),transparent 60%),#05080e}
+body.presenting .present{display:flex}
+body.presenting{overflow:hidden}
+.present .pbar{display:flex;align-items:center;gap:12px;padding:16px clamp(16px,3vw,44px);border-bottom:1px solid var(--line)}
+.present .pbar .psec{font-family:var(--serif);font-size:14px;letter-spacing:.14em;color:var(--gold)}
+.present .pbar .sp{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.pbody{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;gap:clamp(10px,1.6vw,20px);padding:clamp(18px,4vw,60px);min-height:0}
+.pbody .pen{font-family:var(--serif);font-size:clamp(2rem,5.6vw,5rem);line-height:1.18;letter-spacing:.005em;color:#fffaf0;margin:0;
+  text-shadow:0 20px 60px rgba(0,0,0,.6)}
+.pbody .ppr{font-size:clamp(1rem,2vw,1.9rem);color:var(--gold-l);margin:0;letter-spacing:.02em}
+.pbody .pko{font-family:var(--serif);font-size:clamp(.95rem,1.7vw,1.6rem);color:rgba(246,239,227,.72);margin:0}
+.pbody .ptip{font-size:clamp(.8rem,1.15vw,1.05rem);color:rgba(178,214,201,.9);margin:4px 0 0;max-width:60ch}
+.pfoot{padding:0 clamp(16px,3vw,44px) 22px}
+.pfoot .pseek{height:3px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}
+.pfoot .pseek i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-d),var(--gold-l))}
+.pfoot .prow{display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap}
+.pfoot .ptime{font-size:12px;color:var(--cream-d);font-variant-numeric:tabular-nums}
+.nextline{margin-top:14px;font-size:clamp(.8rem,1.1vw,1rem);color:rgba(205,194,174,.5);font-family:var(--serif)}
+
+/* misc */
+.hint{font-size:11px;color:rgba(205,194,174,.55);letter-spacing:.02em}
+noscript{display:block;padding:20px;color:var(--gold-l)}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:rgba(215,184,120,.24);border-radius:9px}
+::-webkit-scrollbar-thumb:hover{background:rgba(215,184,120,.4)}
+::-webkit-scrollbar-track{background:transparent}
+:focus-visible{outline:2px solid rgba(215,184,120,.7);outline-offset:2px}
+
+@media (max-width:1000px){
+  html,body{overflow:auto}
+  .app{height:auto;min-height:100dvh}
+  .topbar{padding:10px 14px}
+  .sub{display:none}
+  .tools .btn span.lbl{display:none}
+  .player{position:sticky;top:0;grid-template-columns:auto 1fr;gap:10px 12px;padding:9px 13px}
+  .player .right{grid-column:1/-1;justify-content:space-between}
+  .tabs{display:flex;gap:6px;padding:9px 12px 0;position:relative;z-index:4}
+  .tabs button{flex:1 1 0;padding:9px;border-radius:11px 11px 0 0;font-size:12.5px;letter-spacing:.06em;color:var(--cream-d);border:1px solid var(--line);border-bottom:0;background:rgba(255,255,255,.03)}
+  .tabs button.on{color:#1e1508;background:linear-gradient(180deg,#f0dbab,var(--gold));border-color:transparent;font-weight:600}
+  main{display:block;padding:10px 12px 20px}
+  .pane{height:auto}
+  body[data-tab="lyrics"] .pane.score{display:none}
+  body[data-tab="score"] .pane.lesson{display:none}
+  .lyrics{padding-bottom:60vh}
+  .pane.score .score-body{max-height:none;min-height:60vh}
+  .line{grid-template-columns:22px 1fr 16px;padding:10px 9px}
+  .present .pbody{padding:16px}
+}
+@media (max-width:560px){
+  .times{font-size:11.5px}
+  .play{width:46px;height:46px}
+  .chips{gap:3px}
+  .chip{padding:6px 7px;font-size:11px}
+  .synclab{display:none}
+}
+
+/* print: full score */
+@media print{
+  body{background:#fff;overflow:visible}
+  body::after,#snow,.topbar,.player,.tabs,.pane,.present{display:none !important}
+  .app{height:auto;display:block}
+  main{display:block;padding:0;height:auto}
+  .printall{display:block !important}
+  .printall img{display:block;width:100%;page-break-after:always;break-after:page}
+  .printall img:last-child{page-break-after:auto;break-after:auto}
+  @page{size:A4 portrait;margin:7mm}
+}
+.printall{display:none}
+</style>
+</head>
+<body class="snow-on" data-tab="lyrics">
+<canvas id="snow"></canvas>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="crest" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="url(#gd)" stroke-width="1.2" stroke-linecap="round">
+          <defs><linearGradient id="gd" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f4e2b8"/><stop offset="1" stop-color="#a4874c"/></linearGradient></defs>
+          <path d="M12 2.8 13.7 8.1 19 9.5l-3.6 3 .9 5.3-4.3-2.6-4.3 2.6.9-5.3L5 9.5l5.3-1.4z"/>
+          <path d="M7.5 18.6c1.7 1 3 1.5 4.5 1.5s2.8-.5 4.5-1.5" opacity=".55"/>
+        </svg>
+      </div>
+      <div>
+        <span class="badge"><i></i>창일중학교 · 이상미</span>
+        <h1>The Christmas Song</h1>
+        <div class="sub">Sung Si Kyung · 노래 배우기 수업 자료</div>
+      </div>
+    </div>
+    <div class="tools">
+      <button class="btn" id="btnPresent" title="교실 TV·프로젝터용 큰 화면">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+        <span class="lbl">수업 화면</span>
+      </button>
+      <button class="btn on" id="btnSnow" title="눈 내리는 효과 켜기/끄기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v20M3.5 7l17 10M20.5 7l-17 10"/></svg>
+        <span class="lbl">눈</span>
+      </button>
+      <button class="btn" id="btnPrint" title="악보 인쇄 / PDF 저장">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></svg>
+        <span class="lbl">악보 인쇄</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="player" aria-label="음원 플레이어">
+    <div class="playwrap">
+      <button class="play" id="play" aria-label="재생">
+        <svg class="p-ic" id="icPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+        <svg class="p-ic hide" id="icPause" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5" width="3.6" height="14" rx="1"/><rect x="13.4" y="5" width="3.6" height="14" rx="1"/></svg>
+      </button>
+      <div class="times"><b id="cur">0:00</b><span style="opacity:.45"> / </span><span id="dur">4:10</span></div>
+    </div>
+
+    <div class="mid">
+      <div class="seekwrap">
+        <div class="seek" id="seek" role="slider" tabindex="0" aria-label="재생 위치" aria-valuemin="0" aria-valuemax="250" aria-valuenow="0">
+          <div class="abzone" id="abzone"></div>
+          <div class="fill" id="fill"></div>
+          <div class="knob" id="knob"></div>
+        </div>
+        <div class="seekmeta">
+          <span class="now" id="secNow">1절</span>
+          <span id="nextHint">다음 소절까지 4초</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="chips" role="group" aria-label="재생 속도">
+        <button class="chip" data-rate="0.7">0.7x</button>
+        <button class="chip" data-rate="0.8">0.8x</button>
+        <button class="chip on" data-rate="1">1.0x</button>
+      </div>
+      <div class="chips" role="group" aria-label="반복">
+        <button class="chip gold" id="loopLine" title="지금 소절만 반복 (R)">🔁 소절</button>
+        <button class="chip" id="abA" title="A 지점 설정">A</button>
+        <button class="chip" id="abB" title="B 지점 설정">B</button>
+      </div>
+      <div class="chips" role="group" aria-label="동기 보정">
+        <span class="synclab">동기</span>
+        <button class="chip" data-sync="-">−</button>
+        <button class="chip" id="syncVal" style="cursor:default;min-width:52px;text-align:center">0.00s</button>
+        <button class="chip" data-sync="+">＋</button>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs" aria-label="보기 전환">
+    <button id="tabLyrics" class="on">가사 · 발음</button>
+    <button id="tabScore">피아노 악보</button>
+  </nav>
+
+  <main>
+    <section class="pane score" id="paneScore" aria-label="피아노 악보">
+      <div class="pane-head">
+        <h2><em>Score</em>피아노 악보 <span class="hint" style="margin-left:4px">kno Piano Music 편곡 · 전 57마디</span></h2>
+        <div class="sp">
+          <button class="mini" id="zoomOut" aria-label="축소">−</button>
+          <span class="hint" id="zoomLabel" style="min-width:38px;text-align:center;font-variant-numeric:tabular-nums">맞춤</span>
+          <button class="mini" id="zoomIn" aria-label="확대">＋</button>
+          <button class="mini" id="btnFs" title="전체 화면">⛶</button>
+        </div>
+      </div>
+      <div class="score-body" id="scoreBody">
+        <div class="paperwrap"><div class="paper" id="paper"><img id="scoreImg" src="score/p1.webp" alt="The Christmas Song 피아노 악보 1쪽"></div></div>
+      </div>
+      <div class="score-foot">
+        <div class="pager">
+          <button id="prevPage" aria-label="이전 쪽">‹</button>
+          <span id="pageLabel">1 / 4</span>
+          <button id="nextPage" aria-label="다음 쪽">›</button>
+        </div>
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+    </section>
+
+    <section class="pane lesson" id="paneLesson" aria-label="가사와 발음">
+      <div class="pane-head">
+        <h2><em>Lyrics</em>가사 · 한글 발음 · 뜻</h2>
+        <div class="sp lyr-head">
+          <button class="switch on" data-toggle="pr" aria-pressed="true"><i></i>발음</button>
+          <button class="switch on" data-toggle="ko" aria-pressed="true"><i></i>뜻</button>
+          <button class="switch on" data-toggle="tip" aria-pressed="true"><i></i>팁</button>
+        </div>
+      </div>
+      <div class="lyrics" id="lyrics"></div>
+    </section>
+  </main>
+</div>
+
+<!-- 수업 화면 -->
+<div class="present" id="present" role="dialog" aria-modal="true" aria-label="수업 화면">
+  <div class="pbar">
+    <span class="psec" id="pSec">1절</span>
+    <span class="hint" id="pCount">01 / 36</span>
+    <div class="sp">
+      <button class="btn icon" id="pPrev" aria-label="이전 소절">◀︎</button>
+      <button class="btn icon" id="pPlay" aria-label="재생"><span id="pPlayLbl">▶</span></button>
+      <button class="btn icon" id="pNext" aria-label="다음 소절">▶︎</button>
+      <button class="btn" id="pClose">닫기 (Esc)</button>
+    </div>
+  </div>
+  <div class="pbody">
+    <p class="pen" id="pEn"></p>
+    <p class="ppr" id="pPr"></p>
+    <p class="pko" id="pKo"></p>
+    <p class="ptip" id="pTip"></p>
+    <p class="nextline" id="pNext2"></p>
+  </div>
+  <div class="pfoot">
+    <div class="pseek"><i id="pFill"></i></div>
+    <div class="prow">
+      <span class="ptime"><span id="pCur">0:00</span> / <span id="pDur">4:10</span></span>
+      <span class="hint">스페이스 재생 · ←/→ 5초 · R 소절 반복 · Esc 닫기</span>
+    </div>
+  </div>
+</div>
+
+<audio id="au" preload="metadata" src="audio.mp3"></audio>
+<div class="printall" id="printall"></div>
+
+<script>
+/* ─────────────────────────────────────────────
+   곡 정보 · 타임스탬프
+   성시경 「The Christmas Song」 (Winter Wonderland, 2014) · 4:10
+   타임스탬프는 음원 파형·에너지 분석으로 잡은 소절 시작점.
+   ───────────────────────────────────────────── */
+const SECTIONS = [
+  {label:"1절", en:"Verse 1"},
+  {label:"2절", en:"Verse 2"},
+  {label:"브리지", en:"Bridge"},
+  {label:"후렴", en:"Chorus"},
+  {label:"1절 한 번 더", en:"Verse 1 · 2nd time"},
+  {label:"2절 한 번 더", en:"Verse 2 · 2nd time"},
+  {label:"브리지 한 번 더", en:"Bridge · 2nd time"},
+  {label:"후렴 한 번 더", en:"Chorus · 2nd time"},
+  {label:"마지막 후렴", en:"Final Chorus"},
+];
+
+const L = [
+/* 1절 */
+{t:25.5,s:0,en:"Chestnuts roasting on an open fire",
+ pr:"체스트넛츠 로스팅 온 언 오픈 파이어",
+ ko:"모닥불 위에 군밤이 노릇노릇 익어 가고",
+ tip:"<b>on an open</b>은 ‘오너노픈’처럼 세 단어를 한 덩어리로. ‘fire’는 끝을 살짝 내려 두고 숨을 고릅니다."},
+{t:29.4,s:0,en:"Jack Frost nipping at your nose",
+ pr:"잭 프로스트 니핑 앳 유어 노즈",
+ ko:"매서운 겨울 추위가 코끝을 톡톡 건드리네",
+ tip:"<b>nipping at</b> → ‘니피낫’. 끝의 t는 크게 내지 말고 부드럽게 끊습니다."},
+{t:33.2,s:0,en:"Yuletide carols being sung by a choir",
+ pr:"율타이드 캐럴스 비잉 성 바이 어 콰이어",
+ ko:"성탄의 캐럴은 합창단의 목소리로 흐르고",
+ tip:"<b>being sung by a</b> → ‘비잉 성 바이어’. <b>choir</b>는 ‘콰이어’ 두 음절로 또렷하게."},
+{t:37.1,s:0,en:"And folks dressed up like Eskimos",
+ pr:"앤 폴크스 드레스트 업 라이크 에스키모스",
+ ko:"사람들은 에스키모처럼 두툼하게 옷을 입었네",
+ tip:"<b>dressed up like</b> → ‘드레스럽 라이크’. ‘Eskimos’는 마지막 음을 살짝 올려 다음 절로 넘깁니다."},
+/* 2절 */
+{t:40.9,s:1,en:"Everybody knows a turkey and some mistletoe",
+ pr:"에브리바디 노우즈 어 터키 앤 썸 미슬토우",
+ ko:"칠면조 한 마리와 겨우살이 장식만으로도",
+ tip:"줄이 길어 숨 쉴 틈이 없습니다. <b>turkey</b> 뒤에서 아주 짧게 끊고 ‘and some mistletoe’를 붙이세요."},
+{t:44.8,s:1,en:"Help to make the season's bright",
+ pr:"헬프 투 메이크 더 시즌즈 브라이트",
+ ko:"이 계절이 환하게 빛난다는 걸 모두가 알죠",
+ tip:"<b>season's bright</b> → ‘시즌즈 브라이트’. ‘bright’의 끝 t는 숨으로 가볍게 터뜨립니다."},
+{t:48.7,s:1,en:"Tiny tots with their eyes all aglow",
+ pr:"타이니 탓츠 위드 데어 아이즈 올 어글로우",
+ ko:"눈이 반짝반짝 빛나는 아이들은",
+ tip:"실제 발음은 <b>eyes all aglow</b> → ‘아이자롤 어글로우’. ‘aglow’를 길게 늘여 주세요."},
+{t:52.5,s:1,en:"Will find it hard to sleep tonight",
+ pr:"윌 파인드 잇 하드 투 슬립 투나잇",
+ ko:"오늘 밤엔 좀처럼 잠들지 못하겠죠",
+ tip:"<b>find it</b> → ‘파인딧’. 문장 끝 ‘tonight’는 길게 늘여 여운을 남깁니다."},
+{t:56.4,s:1,en:"They know that Santa is on his way",
+ pr:"데이 노우 댓 산타 이즈 온 히즈 웨이",
+ ko:"산타 할아버지가 오고 계신 걸 아니까요",
+ tip:"<b>that Santa is on his</b> → ‘댓 산타리 존 히즈’. ‘way’는 살짝 올렸다 내립니다."},
+/* 브리지 */
+{t:60.3,s:2,en:"He's loaded lots of toys and goodies on his sleigh",
+ pr:"히즈 로디드 랏츠 오브 토이즈 앤 구디스 온 히즈 슬레이",
+ ko:"썰매에는 장난감과 맛있는 것들이 가득 실려",
+ tip:"<b>toys and goodies</b> → ‘토이즌 구디스’. 가장 긴 줄이니 ‘goodies’ 뒤에서 한 번 크게 숨을 쉬세요."},
+{t:64.1,s:2,en:"And every mother's child is going to spy",
+ pr:"앤 에브리 마더스 차일드 이즈 고잉 투 스파이",
+ ko:"세상 모든 아이가 몰래 지켜볼 거예요",
+ tip:"<b>mother's child is</b> → ‘마더스 차일디즈’. ‘spy’는 ‘스파이’로 길게, 힘을 빼고."},
+{t:68.0,s:2,en:"To see if reindeer really know how to fly",
+ pr:"투 시 이프 레인디어 리얼리 노우 하우 투 플라이",
+ ko:"순록이 정말 하늘을 나는지 말이죠",
+ tip:"<b>how to</b> → ‘하우투’로 붙여서. ‘fly’에서 다음 후렴으로 자연스럽게 이어집니다."},
+/* 후렴 */
+{t:71.9,s:3,en:"And so I'm offering this simple phrase",
+ pr:"앤 소 암 오퍼링 디스 심플 프레이즈",
+ ko:"그래서 이 짧은 한마디를 전합니다",
+ tip:"후렴의 시작. <b>offering</b>은 ‘오퍼링’, <b>this simple phrase</b>는 또박또박. 숨을 넉넉히 들이고 시작하세요."},
+{t:75.7,s:3,en:"To kids from one to ninety-two",
+ pr:"투 키즈 프럼 원 투 나인티투",
+ ko:"한 살부터 아흔두 살까지, 모든 이에게",
+ tip:"<b>one to ninety-two</b> → ‘원투 나인티투’. 숫자 두 개를 붙여서 리듬감 있게."},
+{t:79.6,s:3,en:"Although it's been said many times, many ways",
+ pr:"올도우 잇츠 빈 세드 매니 타임즈 매니 웨이즈",
+ ko:"여러 번, 여러 모습으로 말해 왔지만",
+ tip:"<b>it's been said</b> → ‘잇츠 빈 세드’ (been은 ‘빈’). 쉼표마다 짧게 숨을 나눠 쓰세요."},
+{t:83.5,s:3,en:"Merry Christmas to you",
+ pr:"메리 크리스마스 투 유",
+ ko:"당신에게 메리 크리스마스를",
+ tip:"가장 중요한 한 줄. ‘you’를 길게 늘여 끝을 흔들지 말고, 힘을 빼고 여운으로 마무리합니다."},
+/* 1절 2바퀴 */
+{t:87.4,s:4,en:"Chestnuts roasting on an open fire",
+ pr:"체스트넛츠 로스팅 온 언 오픈 파이어",
+ ko:"모닥불 위에 군밤이 노릇노릇 익어 가고",
+ tip:"두 번째 바퀴는 반주가 풍성해집니다. 반주에 묻히지 않게 첫 음을 조금 더 또렷하게."},
+{t:91.2,s:4,en:"Jack Frost nipping at your nose",
+ pr:"잭 프로스트 니핑 앳 유어 노즈",
+ ko:"매서운 겨울 추위가 코끝을 톡톡 건드리네",
+ tip:"같은 가사라도 숨을 조금 더 길게 써서 한결 여유 있게."},
+{t:95.1,s:4,en:"Yuletide carols being sung by a choir",
+ pr:"율타이드 캐럴스 비잉 성 바이 어 콰이어",
+ ko:"성탄의 캐럴은 합창단의 목소리로 흐르고",
+ tip:"‘choir’의 두 음절을 또렷하게 살리면 가사가 훨씬 잘 들립니다."},
+{t:99.0,s:4,en:"And folks dressed up like Eskimos",
+ pr:"앤 폴크스 드레스트 업 라이크 에스키모스",
+ ko:"사람들은 에스키모처럼 두툼하게 옷을 입었네",
+ tip:"줄 끝에서 다음 줄 첫 음까지 호흡을 아껴 두세요."},
+/* 2절 2바퀴 */
+{t:102.9,s:5,en:"Everybody knows a turkey and some mistletoe",
+ pr:"에브리바디 노우즈 어 터키 앤 썸 미슬토우",
+ ko:"칠면조 한 마리와 겨우살이 장식만으로도",
+ tip:"빠르게 지나가는 느낌이 들면 ‘Everybody’를 조금 천천히 시작하세요."},
+{t:106.8,s:5,en:"Help to make the season's bright",
+ pr:"헬프 투 메이크 더 시즌즈 브라이트",
+ ko:"이 계절이 환하게 빛난다는 걸 모두가 알죠",
+ tip:"‘bright’는 끝을 살짝 열어 두고 다음 줄로."},
+{t:110.6,s:5,en:"Tiny tots with their eyes all aglow",
+ pr:"타이니 탓츠 위드 데어 아이즈 올 어글로우",
+ ko:"눈이 반짝반짝 빛나는 아이들은",
+ tip:"‘aglow’를 길게 부르며 다음 호흡을 미리 준비하세요."},
+{t:114.5,s:5,en:"Will find it hard to sleep tonight",
+ pr:"윌 파인드 잇 하드 투 슬립 투나잇",
+ ko:"오늘 밤엔 좀처럼 잠들지 못하겠죠",
+ tip:"‘sleep tonight’에서 힘을 빼면 고음이 편해집니다."},
+{t:118.4,s:5,en:"They know that Santa is on his way",
+ pr:"데이 노우 댓 산타 이즈 온 히즈 웨이",
+ ko:"산타 할아버지가 오고 계신 걸 아니까요",
+ tip:"이 줄 다음에 브리지가 옵니다. 호흡을 넉넉히 남겨 두세요."},
+/* 브리지 2바퀴 */
+{t:122.2,s:6,en:"He's loaded lots of toys and goodies on his sleigh",
+ pr:"히즈 로디드 랏츠 오브 토이즈 앤 구디스 온 히즈 슬레이",
+ ko:"썰매에는 장난감과 맛있는 것들이 가득 실려",
+ tip:"긴 줄의 핵심은 호흡 배분. ‘loaded lots of’까지 한 번에, 나머지를 두 번째 숨으로."},
+{t:126.1,s:6,en:"And every mother's child is going to spy",
+ pr:"앤 에브리 마더스 차일드 이즈 고잉 투 스파이",
+ ko:"세상 모든 아이가 몰래 지켜볼 거예요",
+ tip:"‘every’를 ‘에브리’로 짧게, 강세는 ‘child’에."},
+{t:130.0,s:6,en:"To see if reindeer really know how to fly",
+ pr:"투 시 이프 레인디어 리얼리 노우 하우 투 플라이",
+ ko:"순록이 정말 하늘을 나는지 말이죠",
+ tip:"‘really’는 ‘리얼리’로 가볍게. 다음 줄이 후렴이라 숨을 크게 준비하세요."},
+/* 후렴 2바퀴 */
+{t:133.8,s:7,en:"And so I'm offering this simple phrase",
+ pr:"앤 소 암 오퍼링 디스 심플 프레이즈",
+ ko:"그래서 이 짧은 한마디를 전합니다",
+ tip:"같은 후렴을 한 번 더. 처음보다 조금 더 크고 따뜻하게."},
+{t:137.7,s:7,en:"To kids from one to ninety-two",
+ pr:"투 키즈 프럼 원 투 나인티투",
+ ko:"한 살부터 아흔두 살까지, 모든 이에게",
+ tip:"숫자는 붙여서, 리듬을 타고 넘어갑니다."},
+{t:141.6,s:7,en:"Although it's been said many times, many ways",
+ pr:"올도우 잇츠 빈 세드 매니 타임즈 매니 웨이즈",
+ ko:"여러 번, 여러 모습으로 말해 왔지만",
+ tip:"‘many times, many ways’ — 같은 말을 두 번, 두 번째를 조금 더 여리게."},
+{t:145.5,s:7,en:"Merry Christmas to you",
+ pr:"메리 크리스마스 투 유",
+ ko:"당신에게 메리 크리스마스를",
+ tip:"여기서 한 번 크게 마무리한 뒤 간주로 넘어갑니다. ‘you’를 끝까지 살려 주세요."},
+/* 마지막 후렴 */
+{t:217.0,s:8,en:"And so I'm offering this simple phrase",
+ pr:"앤 소 암 오퍼링 디스 심플 프레이즈",
+ ko:"그래서 이 짧은 한마디를 전합니다",
+ tip:"마지막 후렴은 훨씬 느긋합니다. 서두르지 말고 한 음 한 음 또렷하게."},
+{t:224.8,s:8,en:"To kids from one to ninety-two",
+ pr:"투 키즈 프럼 원 투 나인티투",
+ ko:"한 살부터 아흔두 살까지, 모든 이에게",
+ tip:"‘one to ninety-two’를 천천히, 박자를 넉넉히 쓰세요."},
+{t:230.3,s:8,en:"Although it's been said many times, many ways",
+ pr:"올도우 잇츠 빈 세드 매니 타임즈 매니 웨이즈",
+ ko:"여러 번, 여러 모습으로 말해 왔지만",
+ tip:"이 줄은 특히 느립니다. ‘many ways’ 뒤에서 크게 숨을 들이세요."},
+{t:235.2,s:8,en:"Merry Christmas to you",
+ pr:"메리 크리스마스 투 유",
+ ko:"당신에게 메리 크리스마스를",
+ tip:"마지막 ‘to you’는 길게 늘여서. 끝음을 흔들지 말고 조용히 사라지듯 마무리합니다."},
+];
+
+const INTERLUDE = {t:149.4, end:216.9, s:7, title:"간주 — 연주 구간", note:"피아노 솔로 · 1분 7초 동안 노래 없이 연주가 이어집니다"};
+const DUR_FALLBACK = 250;
+
+/* ── 상태 ── */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const au = $('#au');
+let lines = L.map((o,i)=>({...o, i}));
+const state = { rate:1, abA:null, abB:null, loopLine:false, sync:0.0, lockScroll:0 };
+
+/* ── 빌드: 가사 DOM ── */
+const lyr = $('#lyrics');
+function fmt(t){
+  t = Math.max(0, t|0);
+  return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');
+}
+function buildLyrics(){
+  let html='', lastSec=-1;
+  lines.forEach((o,i)=>{
+    if(o.s!==lastSec){
+      if(lastSec!==-1 && o.s===8) html += interludeHTML();
+      const sc=SECTIONS[o.s];
+      html += `<div class="sect"><span class="n">${['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ'][o.s]||''}</span>
+        <span class="t">${sc.label}</span><span class="e">${sc.en}</span><span class="rule"></span>
+        <span class="tm" data-sectime="${o.t}">${fmt(o.t)}</span></div>`;
+      lastSec=o.s;
+    }
+    html += `<div class="line" data-i="${i}" tabindex="0" role="button" aria-label="${o.en} — 이 소절로 이동">
+      <span class="idx">${String(i+1).padStart(2,'0')}</span>
+      <div class="txt">
+        <p class="en">${o.en}</p>
+        <p class="pr">${o.pr}</p>
+        <p class="ko">${o.ko}</p>
+        <p class="tip">${o.tip}</p>
+      </div>
+      <span class="jump" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </span>
+      <span class="prog"><i></i></span>
+    </div>`;
+  });
+  html += infoHTML();
+  lyr.innerHTML = html;
+}
+function interludeHTML(){
+  return `<div class="interlude" data-jump="${INTERLUDE.t}" role="button" tabindex="0">
+    <span class="wave"><i></i><i></i><i></i><i></i><i></i></span>
+    <p><b>${INTERLUDE.title}</b><br>${INTERLUDE.note}</p>
+    <span class="len">${fmt(INTERLUDE.t)} – ${fmt(INTERLUDE.end)}</span>
+  </div>`;
+}
+function infoHTML(){
+  return `<div class="info">
+    <h3>이 곡에 대하여</h3>
+    <dl>
+      <dt>원곡</dt><dd>The Christmas Song (Merry Christmas to You) — Mel Tormé · Robert Wells, 1944</dd>
+      <dt>이 버전</dt><dd>성시경 〈Winter Wonderland〉(2014) 수록 · 4분 10초</dd>
+      <dt>박자·템포</dt><dd>4/4박자 · 느린 재즈 발라드 (약 62 BPM)</dd>
+      <dt>악보</dt><dd>kno Piano Music 피아노 독주 편곡 · 전 57마디</dd>
+      <dt>부를 때</dt><dd>한 소절마다 끝에서 숨을 고르고, 후렴은 조금 더 크고 따뜻하게</dd>
+    </dl>
+  </div>`;
+}
+buildLyrics();
+
+/* ── 플레이어 ── */
+const seek=$('#seek'), fill=$('#fill'), knob=$('#knob'), abzone=$('#abzone');
+const curEl=$('#cur'), durEl=$('#dur'), secNow=$('#secNow'), nextHint=$('#nextHint');
+let dur = DUR_FALLBACK;
+
+au.addEventListener('loadedmetadata', ()=>{
+  if(isFinite(au.duration)&&au.duration>1){ dur=au.duration; durEl.textContent=fmt(dur); }
+});
+au.addEventListener('ended', ()=>{ setPlaying(false); });
+
+function setPlaying(p){
+  $('#icPlay').classList.toggle('hide',p);
+  $('#icPause').classList.toggle('hide',!p);
+  $('#play').setAttribute('aria-label',p?'일시정지':'재생');
+  $('#pPlayLbl').textContent = p?'❚❚':'▶';
+}
+async function toggle(){
+  try{
+    if(au.paused){ await au.play(); setPlaying(true); }
+    else { au.pause(); setPlaying(false); }
+  }catch(e){ setPlaying(false); }
+}
+$('#play').onclick=toggle;
+$('#pPlay').onclick=toggle;
+
+$('[data-rate="1"]'); // noop
+$$('.chip[data-rate]').forEach(b=>b.onclick=()=>{
+  state.rate=parseFloat(b.dataset.rate);
+  au.playbackRate=state.rate;
+  $$('.chip[data-rate]').forEach(x=>x.classList.toggle('on',x===b));
+});
+
+/* 속도 한 단계 더 느리게: 0.6x 지원 토글 (더블 탭) */
+$('[data-rate="0.8"]').addEventListener('dblclick',()=>{ au.playbackRate=0.6; });
+
+/* 시크 */
+function seekTo(t){
+  const d = isFinite(au.duration)?au.duration:dur;
+  au.currentTime = Math.min(Math.max(0,t), Math.max(0,d-0.05));
+  render();
+}
+let dragging=false;
+function posFromEvent(e){
+  const r=seek.getBoundingClientRect();
+  const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+  return Math.min(1,Math.max(0,x/r.width));
+}
+seek.addEventListener('pointerdown', e=>{
+  dragging=true; seek.setPointerCapture(e.pointerId);
+  seekTo(posFromEvent(e)*(isFinite(au.duration)?au.duration:dur));
+});
+seek.addEventListener('pointermove', e=>{ if(dragging) seekTo(posFromEvent(e)*(isFinite(au.duration)?au.duration:dur)); });
+seek.addEventListener('pointerup', e=>{ dragging=false; });
+seek.addEventListener('pointercancel', ()=>{ dragging=false; });
+seek.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'){ e.preventDefault(); seekTo(au.currentTime+5); }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); seekTo(au.currentTime-5); }
+  if(e.key==='Home'){ e.preventDefault(); seekTo(0); }
+});
+
+/* A-B */
+$('#abA').onclick=()=>{ state.abA=au.currentTime; if(state.abB!==null&&state.abB<=state.abA) state.abB=null; syncAB(); };
+$('#abB').onclick=()=>{ state.abB=au.currentTime; if(state.abA!==null&&state.abB<=state.abA){state.abA=null;} syncAB(); };
+function syncAB(){
+  const body=document.body;
+  const on = state.abA!==null && state.abB!==null;
+  body.classList.toggle('has-ab',on);
+  $('#abA').classList.toggle('on', state.abA!==null);
+  $('#abB').classList.toggle('on', state.abB!==null);
+  if(on){
+    const d=(isFinite(au.duration)?au.duration:dur);
+    abzone.style.left=(state.abA/d*100)+'%';
+    abzone.style.width=Math.max(0,(state.abB-state.abA)/d*100)+'%';
+  }
+}
+/* 소절 반복 */
+function setLoopTo(i){
+  if(i<0) return;
+  state.loopA = Math.max(0, lines[i].t - 0.18);
+  state.loopB = Math.min(dur, lineEnd(i));
+}
+$('#loopLine').onclick=()=>{
+  state.loopLine=!state.loopLine;
+  $('#loopLine').classList.toggle('on',state.loopLine);
+  if(state.loopLine){
+    setLoopTo(active>=0?active:idxAt(au.currentTime));
+    if(au.paused) toggle();
+  } else { state.loopA=state.loopB=null; }
+};
+/* 동기 보정 */
+$$('[data-sync]').forEach(b=>b.onclick=()=>{
+  state.sync = Math.round((state.sync + (b.dataset.sync==='+'?0.05:-0.05))*100)/100;
+  state.sync = Math.max(-2, Math.min(2, state.sync));
+  $('#syncVal').textContent = (state.sync>0?'+':'')+state.sync.toFixed(2)+'s';
+  localStorage.setItem('xmas.sync', state.sync);
+});
+(()=>{ const s=parseFloat(localStorage.getItem('xmas.sync')||'0'); if(!isNaN(s)){ state.sync=s; $('#syncVal').textContent=(s>0?'+':'')+s.toFixed(2)+'s'; } })();
+
+/* ── 재생 위치 → 소절 ── */
+function idxAt(t){
+  let k=-1;
+  for(let i=0;i<lines.length;i++){ if(t + 0.001 >= lines[i].t) k=i; else break; }
+  return k;
+}
+function lineEnd(i){ return i+1<lines.length ? lines[i+1].t : Math.min(dur+1, lines[i].t+9); }
+
+let active=-1;
+function render(){
+  const t = au.currentTime;
+  const d = isFinite(au.duration)?au.duration:dur;
+  const p = d? Math.min(1,t/d):0;
+  fill.style.width=(p*100)+'%';
+  knob.style.left=(p*100)+'%';
+  curEl.textContent=fmt(t);
+  if(t>d-0.1) durEl.textContent=fmt(d);
+  seek.setAttribute('aria-valuenow', Math.round(t));
+  $('#pFill').style.width=(p*100)+'%';
+  $('#pCur').textContent=fmt(t); $('#pDur').textContent=fmt(d);
+  if(state.abA!==null&&state.abB!==null && (t>state.abB || t<state.abA-0.25)) seekTo(state.abA);
+
+  const k = idxAt(t + state.sync);
+  if(k<0){
+    secNow.textContent='인트로';
+    nextHint.textContent = lines[0] ? `첫 소절까지 ${Math.max(0,Math.ceil(lines[0].t-(t+state.sync)))}초` : '';
+  } else {
+    const o=lines[k];
+    secNow.textContent = (t>INTERLUDE.t && t<INTERLUDE.end) ? '간주' : SECTIONS[o.s].label;
+    const e=lineEnd(k);
+    nextHint.textContent = (e-(t+state.sync))>0.4 ? `다음 소절까지 ${Math.ceil(e-(t+state.sync))}초` : '다음 소절';
+    if(k!==active){ setActive(k); }
+    // 소절 진행 바
+    const act = lyr.querySelector('.line.active .prog i');
+    if(act && e>o.t){ act.style.width = Math.max(0,Math.min(1,((t+state.sync)-o.t)/(e-o.t)))*100+'%'; }
+  }
+  if(state.loopLine && state.loopB!==null){
+    if(t > state.loopB-0.04 || t < state.loopA-0.8) seekTo(state.loopA);
+  }
+  if(document.body.classList.contains('presenting')) updatePresent(k);
+}
+let raf=null;
+function loop(){ render(); raf=requestAnimationFrame(loop); }
+loop();
+
+function setActive(k){
+  active=k;
+  $$('.line',lyr).forEach((el,i)=>{
+    el.classList.toggle('active', i===k);
+    el.classList.toggle('past', i<k);
+  });
+  autoScroll(k);
+  const o=lines[k];
+  if(o) $('#pSec').textContent=SECTIONS[o.s].label+' · '+(k+1)+' / '+lines.length;
+}
+/* 자동 스크롤 */
+let userScrollAt=0;
+lyr.addEventListener('scroll', ()=>{ userScrollAt=Date.now(); }, {passive:true});
+function autoScroll(k){
+  const el = lyr.querySelector(`.line[data-i="${k}"]`);
+  if(!el) return;
+  if(Date.now()-userScrollAt < 4500) return;      // 사용자가 직접 넘긴 직후엔 양보
+  if(document.body.dataset.tab==='score') return;
+  const top = el.offsetTop - lyr.clientHeight*0.34;
+  lyr.scrollTo({top: Math.max(0,top), behavior:'smooth'});
+}
+/* 소절 클릭 이동 */
+lyr.addEventListener('click', e=>{
+  const il=e.target.closest('.interlude');
+  if(il){ seekTo(+il.dataset.jump+0.05); if(au.paused) toggle(); return; }
+  const sm=e.target.closest('[data-sectime]');
+  if(sm){ seekTo(+sm.dataset.sectime+0.05); return; }
+  const el=e.target.closest('.line');
+  if(el){
+    const i=+el.dataset.i;
+    seekTo(lines[i].t-0.15);
+    if(state.loopLine) setLoopTo(i);
+    if(au.paused) toggle();
+  }
+});
+lyr.addEventListener('keydown', e=>{
+  if(e.key!=='Enter'&&e.key!==' ') return;
+  const el=e.target.closest('.line'); if(!el) return;
+  e.preventDefault(); const i=+el.dataset.i; seekTo(lines[i].t-0.15);
+  if(state.loopLine) setLoopTo(i);
+  if(au.paused) toggle();
+});
+
+/* ── 표시 토글 ── */
+const prefKey='xmas.prefs';
+let prefs={pr:true,ko:true,tip:true,snow:true};
+try{ Object.assign(prefs, JSON.parse(localStorage.getItem(prefKey)||'{}')); }catch(_){}
+function applyPrefs(){
+  document.body.classList.toggle('hide-pr',!prefs.pr);
+  document.body.classList.toggle('hide-ko',!prefs.ko);
+  document.body.classList.toggle('hide-tip',!prefs.tip);
+  document.body.classList.toggle('snow-on',prefs.snow);
+  $$('.switch').forEach(b=>{
+    const k=b.dataset.toggle; const on=prefs[k];
+    b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false');
+  });
+  $('#btnSnow').classList.toggle('on',prefs.snow);
+  try{ localStorage.setItem(prefKey,JSON.stringify(prefs)); }catch(_){}
+}
+$$('.switch').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.toggle; prefs[k]=!prefs[k]; applyPrefs();
+});
+$('#btnSnow').onclick=()=>{ prefs.snow=!prefs.snow; applyPrefs(); };
+applyPrefs();
+
+/* ── 악보 뷰어 ── */
+const PAGES = ["score/p1.webp", "score/p2.webp", "score/p3.webp", "score/p4.webp"];
+let page=0, zoom=0; // 0 = fit, else percent
+const img=$('#scoreImg'), paper=$('#paper'), scoreBody=$('#scoreBody');
+function renderThumbs(){
+  $('#thumbs').innerHTML = PAGES.map((src,i)=>
+    `<button data-page="${i}" class="${i===page?'on':''}" aria-label="${i+1}쪽"><img src="${src}" alt=""></button>`).join('');
+  $$('#thumbs button').forEach(b=>b.onclick=()=>goPage(+b.dataset.page));
+}
+function applyZoom(){
+  if(zoom===0){
+    const h=scoreBody.clientHeight-26;
+    const w=scoreBody.clientWidth-26;
+    const naturalW=1571, naturalH=2222;
+    const s=Math.min(w/naturalW, h/naturalH);
+    paper.style.width = Math.max(220, naturalW*s)+'px';
+    paper.style.transform='none';
+    $('#zoomLabel').textContent='맞춤';
+  } else {
+    const w=scoreBody.clientWidth-26;
+    paper.style.width = Math.max(300, (w*zoom/100))+'px';
+    $('#zoomLabel').textContent=zoom+'%';
+  }
+  img.style.width='100%';
+}
+function goPage(i){
+  page=(i+PAGES.length)%PAGES.length;
+  img.src=PAGES[page];
+  img.alt='The Christmas Song 피아노 악보 '+(page+1)+'쪽';
+  $('#pageLabel').textContent=(page+1)+' / '+PAGES.length;
+  $$('#thumbs button').forEach((b,j)=>b.classList.toggle('on',j===page));
+  scoreBody.scrollTo({top:0,left:0});
+}
+$('#prevPage').onclick=()=>goPage(page-1);
+$('#nextPage').onclick=()=>goPage(page+1);
+$('#zoomIn').onclick=()=>{ zoom = zoom===0?120:Math.min(300,zoom+20); applyZoom(); };
+$('#zoomOut').onclick=()=>{ zoom = zoom===0?0:Math.max(0,zoom-20); if(zoom<100) zoom=0; applyZoom(); };
+$('#btnFs').onclick=()=>{
+  const el=$('#paneScore');
+  if(!document.fullscreenElement){ (el.requestFullscreen||el.webkitRequestFullscreen||(()=>{})).call(el); }
+  else document.exitFullscreen&&document.exitFullscreen();
+};
+img.addEventListener('load', applyZoom);
+new ResizeObserver(()=>applyZoom()).observe(scoreBody);
+renderThumbs(); goPage(0); applyZoom();
+
+/* 인쇄: 전체 악보 */
+function fillPrint(){
+  $('#printall').innerHTML=PAGES.map((s,i)=>`<img src="${s}" alt="${i+1}쪽">`).join('');
+}
+$('#btnPrint').onclick=()=>{ fillPrint(); setTimeout(()=>window.print(), 120); };
+addEventListener('beforeprint', fillPrint);
+
+/* ── 수업 화면 ── */
+function openPresent(){
+  document.body.classList.add('presenting');
+  const k = active>=0?active:0;
+  updatePresent(k);
+  if(au.paused) toggle();
+}
+function closePresent(){
+  document.body.classList.remove('presenting');
+}
+$('#btnPresent').onclick=openPresent;
+$('#pClose').onclick=closePresent;
+let pIdx=0;
+function updatePresent(k){
+  if(k>=0) pIdx=k;
+  const o=lines[pIdx];
+  if(!o) return;
+  $('#pEn').textContent=o.en;
+  $('#pPr').textContent=o.pr;
+  $('#pKo').textContent=o.ko;
+  $('#pTip').innerHTML=o.tip;
+  $('#pCount').textContent=String(pIdx+1).padStart(2,'0')+' / '+lines.length;
+  $('#pSec').textContent=SECTIONS[o.s].label+' · '+SECTIONS[o.s].en;
+  const nx=lines[pIdx+1];
+  $('#pNext2').textContent = nx? '다음 · '+nx.en : '마지막 소절';
+}
+$('#pPrev').onclick=()=>{ const i=Math.max(0,pIdx-1); seekTo(lines[i].t-0.15); updatePresent(i); };
+$('#pNext').onclick=()=>{ const i=Math.min(lines.length-1,pIdx+1); seekTo(lines[i].t-0.15); updatePresent(i); };
+
+/* ── 탭 (모바일) ── */
+$('#tabLyrics').onclick=()=>{ document.body.dataset.tab='lyrics'; $('#tabLyrics').classList.add('on'); $('#tabScore').classList.remove('on'); };
+$('#tabScore').onclick=()=>{ document.body.dataset.tab='score'; $('#tabScore').classList.add('on'); $('#tabLyrics').classList.remove('on'); setTimeout(applyZoom,60); };
+
+/* ── 키보드 ── */
+document.addEventListener('keydown', e=>{
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='textarea') return;
+  if(e.key==='Escape'){ closePresent(); return; }
+  if(e.code==='Space'){ e.preventDefault(); toggle(); return; }
+  if(e.key==='ArrowRight'){ e.preventDefault(); seekTo(au.currentTime+(e.shiftKey?15:5)); return; }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); seekTo(au.currentTime-(e.shiftKey?15:5)); return; }
+  if(e.key==='r'||e.key==='R'){ $('#loopLine').click(); return; }
+  if(e.key==='f'||e.key==='F'){ if(!document.body.classList.contains('presenting')) openPresent(); }
+});
+
+/* ── 눈 ── */
+(function snow(){
+  const cv=$('#snow'); const ctx=cv.getContext('2d');
+  let W,H,flakes=[],raf2=null,on=true;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function size(){ W=cv.width=innerWidth*devicePixelRatio; H=cv.height=innerHeight*devicePixelRatio; }
+  function init(){
+    size();
+    const n = Math.round(Math.min(110, Math.max(40, innerWidth/14)));
+    flakes = Array.from({length:n},()=>({
+      x:Math.random()*W, y:Math.random()*H,
+      r:(0.7+Math.random()*2.0)*devicePixelRatio,
+      vy:(0.12+Math.random()*0.42)*devicePixelRatio,
+      vx:(Math.random()-.5)*0.22*devicePixelRatio,
+      a:0.16+Math.random()*0.5, ph:Math.random()*6.283
+    }));
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#fff';
+    for(const f of flakes){
+      if(!reduce){ f.y+=f.vy; f.x+=f.vx+Math.sin((f.y+f.ph)*0.004)*0.18*devicePixelRatio; }
+      if(f.y>H+4){ f.y=-4; f.x=Math.random()*W; }
+      if(f.x<-4) f.x=W+4; if(f.x>W+4) f.x=-4;
+      ctx.globalAlpha=f.a; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,6.283); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    raf2=requestAnimationFrame(draw);
+  }
+  function start(){ if(!raf2){ init(); draw(); } }
+  function stop(){ if(raf2){ cancelAnimationFrame(raf2); raf2=null; ctx.clearRect(0,0,W,H);} }
+  addEventListener('resize', ()=>{ if(raf2){ size(); } });
+  const obs=new MutationObserver(()=>{ document.body.classList.contains('snow-on')?start():stop(); });
+  obs.observe(document.body,{attributes:true,attributeFilter:['class']});
+  if(document.body.classList.contains('snow-on')) start();
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) stop(); else if(document.body.classList.contains('snow-on')) start(); });
+})();
+
+/* 초기 */
+render();
+setPlaying(false);
+</script>
+</body>
+</html>
