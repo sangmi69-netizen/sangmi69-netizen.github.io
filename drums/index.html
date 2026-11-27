@@ -1065,7 +1065,7 @@ function initAudio(){
     wetBus = AC.createGain(); wetBus.gain.value = 0.30;
     reverb.connect(wetBus); wetBus.connect(makeup);
     /* 임펄스 응답 생성(약 13만 샘플)은 첫 제스처 경로에서 빼고 바로 뒤로 미룹니다. */
-    setTimeout(function(){ try{ if(reverb && !reverb.buffer) reverb.buffer = makeIR(1.5, 2.6); }catch(e){} }, 0);
+    setTimeout(function(){ try{ if(reverb && !reverb.buffer){ reverb.buffer = makeIR(1.5, 2.6); window.__vd.irReady = true; } }catch(e){} }, 0);
   }catch(e){ reverb = null; }
   unlockAudio();
   reportAudio();
