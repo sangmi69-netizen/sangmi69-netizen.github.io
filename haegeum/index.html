@@ -386,7 +386,7 @@ var S = { scaleId:"pyeongjo", tuningIdx:1, label:"yul", mode:"touch" };
 var GEO = {
   playTop: -380,
   playH: 760,
-  strX: [-40, 40],
+  strX: [-32, 32],
   laneInner: 6,
   laneOuter: 190,
   labelX: [-215, 215],
@@ -573,8 +573,8 @@ function buildBody(){
               fill:"#8f7141", opacity:".35"}, bodyG);
   el("path", {d:"M -46 " + (wy + 6) + " L -40 " + (wy - 7) + " L 40 " + (wy - 7) + " L 46 " + (wy + 6) + " Z",
               fill:"#f8eed4", opacity:".26"}, bodyG);
-  el("rect", {x:-46, y:wy - 15, width:9, height:5, rx:2, fill:"#1a1106", opacity:".85"}, bodyG);
-  el("rect", {x:37, y:wy - 15, width:9, height:5, rx:2, fill:"#1a1106", opacity:".85"}, bodyG);
+  el("rect", {x:-37, y:wy - 15, width:9, height:5, rx:2, fill:"#1a1106", opacity:".85"}, bodyG);
+  el("rect", {x:28, y:wy - 15, width:9, height:5, rx:2, fill:"#1a1106", opacity:".85"}, bodyG);
 
   /* 감잡이 */
   var gy = GEO.gamY;
