@@ -808,21 +808,21 @@ function buildModel(W, H){
   var bx0 = W * 0.355, bx1 = W * 0.468;
   ST.bridge = [];
   var jr = rng(7788);
-  var bw = s * 0.64, bhh = s * 1.12;
+  var bw = s * 0.60, bhh = s * 1.34;
   for(var bi = 0; bi < 12; bi++){
     var bxp = bx0 + (bx1 - bx0) * (bi / 11) + (jr() - 0.5) * s * 0.12;
     ST.bridge.push(bxp);
     var byy = yOf(bi);
     /* 바닥 접촉 그림자 */
-    el("ellipse", { cx: bxp + s * 0.10, cy: byy + bhh * 0.92, rx: bw * 0.78, ry: s * 0.16,
-                    fill: "#2a1505", opacity: ".28" }, gBridge);
+    el("ellipse", { cx: bxp + s * 0.16, cy: byy + bhh * 0.90, rx: bw * 0.72, ry: s * 0.15,
+                    fill: "#2a1505", opacity: ".34" }, gBridge);
     /* 기러기발: 두 다리 + 가운데 홈 */
     var dBr =
       "M " + (-bw * 0.50) + " " + (bhh * 0.96) +
       " C " + (-bw * 0.54) + " " + (bhh * 0.60) + " " + (-bw * 0.36) + " " + (bhh * 0.26) + " " + (-bw * 0.27) + " " + (bhh * 0.05) +
       " L " + (-bw * 0.19) + " " + (-bhh * 0.015) +
-      " Q " + (-bw * 0.055) + " " + (bhh * 0.20) + " 0 " + (bhh * 0.21) +
-      " Q " + (bw * 0.055) + " " + (bhh * 0.20) + " " + (bw * 0.19) + " " + (-bhh * 0.015) +
+      " Q " + (-bw * 0.060) + " " + (bhh * 0.27) + " 0 " + (bhh * 0.28) +
+      " Q " + (bw * 0.060) + " " + (bhh * 0.27) + " " + (bw * 0.19) + " " + (-bhh * 0.015) +
       " L " + (bw * 0.27) + " " + (bhh * 0.05) +
       " C " + (bw * 0.36) + " " + (bhh * 0.26) + " " + (bw * 0.54) + " " + (bhh * 0.60) + " " + (bw * 0.50) + " " + (bhh * 0.96) +
       " Z";
@@ -832,7 +832,7 @@ function buildModel(W, H){
     el("path", { d:dBr, transform:tr, fill:"none", stroke:"rgba(255,255,255,.55)",
                  "stroke-width": Math.max(0.3, s * 0.02), opacity: ".28", "stroke-linejoin":"round" }, gBridge);
     /* 홈에 걸린 줄 자리 */
-    el("path", { d: "M " + (-bw * 0.19) + " " + (-bhh * 0.015) + " Q 0 " + (bhh * 0.21) + " " + (bw * 0.19) + " " + (-bhh * 0.015),
+    el("path", { d: "M " + (-bw * 0.19) + " " + (-bhh * 0.015) + " Q 0 " + (bhh * 0.28) + " " + (bw * 0.19) + " " + (-bhh * 0.015),
                  transform:tr, fill:"none", stroke:"rgba(60,34,10,.45)",
                  "stroke-width": Math.max(0.5, s * 0.03) }, gBridge);
   }
