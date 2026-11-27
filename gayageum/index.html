@@ -616,8 +616,8 @@ function buildModel(W, H){
   ]);
   /* 판의 입체 조명: 위에서 내리쬐는 빛 */
   lg("boardLight", "0", "0", "0", "1", [
-    [0, "#fff8e8", ".10"], [14, "#fff0d4", ".02"], [40, "#ffffff", "0"],
-    [78, "#4a2606", ".03"], [94, "#33190a", ".07"], [100, "#2a1408", ".14"]
+    [0, "#fff8e8", ".06"], [14, "#fff0d4", ".01"], [40, "#ffffff", "0"],
+    [78, "#4a2606", ".02"], [94, "#33190a", ".06"], [100, "#2a1408", ".12"]
   ]);
   /* 앞뒤 길이 방향 음영(가운데 밝고 양끝 어둡게) */
   lg("boardFade", "0", "0", "1", "0", [
@@ -626,8 +626,8 @@ function buildModel(W, H){
   ]);
   /* 옻칠 반사광 */
   lg("lacquer", "0", "0.2", "0.85", "0.8", [
-    [0, "#ffffff", "0"], [30, "#ffffff", ".09"], [50, "#ffffff", ".19"],
-    [66, "#ffffff", ".06"], [100, "#ffffff", "0"]
+    [0, "#ffffff", "0"], [30, "#ffffff", ".03"], [50, "#ffffff", ".07"],
+    [66, "#ffffff", ".02"], [100, "#ffffff", "0"]
   ]);
   rg("warmSpot", "50%", "50%", "50%", [
     [0, "#ffb968", ".18"], [55, "#e08a34", ".06"], [100, "#c06a20", "0"]
@@ -698,7 +698,7 @@ function buildModel(W, H){
   el("rect", { x:0, y:top, width:W, height:bh, fill: "url(#lacquer)" }, gBoard);
   el("ellipse", {
     cx: W * 0.34, cy: top + bh * 0.24, rx: W * 0.30, ry: bh * 0.55,
-    fill: "url(#sheenSpot)", opacity: ".42"
+    fill: "url(#sheenSpot)", opacity: ".16"
   }, gBoard);
   /* 판 테두리 안쪽 그늘 (두께감) */
   el("path", {
