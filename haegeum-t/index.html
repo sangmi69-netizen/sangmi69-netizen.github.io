@@ -926,7 +926,17 @@ function makeWave(c, strId, f0){
     amps.push(a);
     if(a > mx) mx = a;
   }
-  for(var k2=1; k2<=nh; k2++) imag[k2] = amps[k2-1] / mx;
+  /* 파형의 실제 진폭(피크·실효값)을 재서 음 높이에 상관없이 비슷한 크기로 맞춤 */
+  var sumSq = 0, kk;
+  for(kk=0; kk<amps.length; kk++){ var na = amps[kk]/mx; sumSq += na*na; }
+  var rms = Math.sqrt(sumSq/2), pk = 0, NP = 512;
+  for(var i2=0; i2<NP; i2++){
+    var v2 = 0;
+    for(kk=1; kk<=nh; kk++) v2 += (amps[kk-1]/mx) * Math.sin(2*Math.PI*kk*i2/NP);
+    if(Math.abs(v2) > pk) pk = Math.abs(v2);
+  }
+  var sc = Math.min(1.25 / (pk || 1), 0.45 / (rms || 1));
+  for(var k2=1; k2<=nh; k2++) imag[k2] = (amps[k2-1] / mx) * sc;
   var w;
   try{ w = c.createPeriodicWave(real, imag, {disableNormalization:true}); }
   catch(e){
