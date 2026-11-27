@@ -8,11 +8,16 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%234a2f92'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23d9cdf5' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23f2d59a'/%3E%3C/svg%3E" />
-<title>보라색 텅드럼 — C key 15음 (공령고)</title>
+<title>보라색 텅드럼 — 15음 (공령고)</title>
 <style>
   :root{
     --gold:#f4d9a0;
     --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+    --glow1:rgba(126,88,229,.26);
+    --glow2:rgba(74,47,146,.13);
+    --bg1:#1d1040; --bg2:#150a2c; --bg3:#07030e;
+    --rim:#2a1a55;
+    --shadow:rgba(5,1,12,.65);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{
@@ -23,16 +28,16 @@
   }
   body{font-family:var(--ui);color:#f3ecff}
   #app{
-    position:fixed;inset:0;touch-action:none;
+    position:fixed;inset:0;overflow:hidden;touch-action:none;
     background:
-      radial-gradient(56% 44% at 50% 40%, rgba(126,88,229,.26) 0%, rgba(74,47,146,.13) 44%, rgba(11,5,24,0) 76%),
-      radial-gradient(120% 100% at 50% 40%, #1d1040 0%, #150a2c 46%, #07030e 100%);
+      radial-gradient(56% 44% at 50% 40%, var(--glow1) 0%, var(--glow2) 44%, rgba(11,5,24,0) 76%),
+      radial-gradient(120% 100% at 50% 40%, var(--bg1) 0%, var(--bg2) 46%, var(--bg3) 100%);
     display:grid;place-items:center;
   }
   #floor{
     position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
     border-radius:50%;pointer-events:none;
-    box-shadow:0 30px 80px -22px rgba(0,0,0,.9), 0 0 130px rgba(124,84,222,.18);
+    box-shadow:0 30px 80px -22px rgba(0,0,0,.9), 0 0 130px var(--glow1);
   }
   #stage{position:relative;aspect-ratio:1/1;display:grid;place-items:center;touch-action:none}
   #drum{width:100%;height:100%;display:block;touch-action:none;
@@ -57,36 +62,83 @@
   #ui{
     position:absolute;right:0;top:0;z-index:7;
     padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 0 0;
-    display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+    display:flex;flex-direction:column;align-items:flex-end;gap:6px;
   }
-  #menuBtn{
+  #ui .row{
+    display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px;
+    max-width:calc(100vw - 150px);
+  }
+  .pill{
     font:inherit;font-size:12.5px;font-weight:700;letter-spacing:.03em;color:#efe6ff;
-    padding:7px 13px;border-radius:999px;cursor:pointer;
+    padding:7px 12px;border-radius:999px;cursor:pointer;line-height:1.15;
     background:linear-gradient(180deg, rgba(84,54,158,.92), rgba(44,25,92,.92));
     border:1px solid rgba(196,170,255,.45);
     box-shadow:0 4px 16px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.14);
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
     touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+    white-space:nowrap;
   }
-  #menuBtn:active{transform:translateY(1px)}
-  #menu{
-    display:none;min-width:176px;padding:6px;border-radius:14px;
-    background:rgba(26,15,52,.95);
+  .pill:active{transform:translateY(1px)}
+  .pill.icon{padding:6px 10px;font-size:14px;min-width:33px;text-align:center}
+
+  .menuPanel{
+    display:none;min-width:186px;padding:6px;border-radius:14px;
+    background:rgba(26,15,52,.97);
     border:1px solid rgba(196,170,255,.28);
     box-shadow:0 14px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07);
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    max-height:66vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
   }
-  #menu.open{display:block}
-  #menu .lbl{font-size:10.5px;letter-spacing:.12em;color:#9d8dc6;padding:5px 10px 6px;font-weight:700}
-  #menu button{
+  .menuPanel.open{display:block}
+  .menuPanel .lbl{font-size:10.5px;letter-spacing:.12em;color:#9d8dc6;padding:5px 10px 6px;font-weight:700}
+  .menuPanel button.mi{
     display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;
     font:inherit;font-size:13px;color:#e8dfff;text-align:left;cursor:pointer;
     padding:9px 10px;border-radius:9px;border:0;background:transparent;
   }
-  #menu button:hover{background:rgba(140,110,230,.20)}
-  #menu button .tick{color:#f4d9a0;opacity:0;font-size:12px}
-  #menu button.on{background:rgba(140,110,230,.26);color:#fff}
-  #menu button.on .tick{opacity:1}
+  .menuPanel button.mi:hover{background:rgba(140,110,230,.20)}
+  .menuPanel button.mi .tick{color:#f4d9a0;opacity:0;font-size:12px}
+  .menuPanel button.mi.on{background:rgba(140,110,230,.26);color:#fff}
+  .menuPanel button.mi.on .tick{opacity:1}
+
+  #keyGrid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  #keyGrid button{
+    display:flex;flex-direction:column;align-items:center;gap:1px;
+    font:inherit;cursor:pointer;padding:7px 4px 6px;border-radius:10px;
+    background:rgba(70,45,130,.34);border:1px solid rgba(196,170,255,.16);color:#efe6ff;
+  }
+  #keyGrid button b{font-size:14.5px;font-weight:800;letter-spacing:.02em}
+  #keyGrid button span{font-size:10.5px;color:#b6a7dd;letter-spacing:.01em}
+  #keyGrid button.on{background:rgba(244,217,160,.20);border-color:rgba(244,217,160,.65)}
+  #keyGrid button.on span{color:#f4d9a0}
+
+  .swatches{display:flex;flex-wrap:wrap;gap:8px;padding:2px 10px 8px}
+  .sw{
+    width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid rgba(255,255,255,.22);
+    box-shadow:0 2px 8px rgba(0,0,0,.45), inset 0 1px 2px rgba(255,255,255,.35);
+    padding:0;position:relative;
+  }
+  .sw.on{border-color:#ffe9b8;box-shadow:0 0 0 2px rgba(255,233,184,.55), 0 2px 8px rgba(0,0,0,.45)}
+  .sw.on::after{
+    content:"✓";position:absolute;inset:0;display:grid;place-items:center;
+    font-size:13px;font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.85);
+  }
+
+  #zoomBox{
+    display:flex;align-items:center;gap:1px;padding:3px 5px;border-radius:999px;
+    background:linear-gradient(180deg, rgba(84,54,158,.92), rgba(44,25,92,.92));
+    border:1px solid rgba(196,170,255,.45);
+    box-shadow:0 4px 16px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.14);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  }
+  #zoomBox button{
+    width:30px;height:27px;border:0;border-radius:999px;background:transparent;color:#efe6ff;
+    font:inherit;font-size:17px;font-weight:800;line-height:1;cursor:pointer;padding:0;
+  }
+  #zoomBox button:active{background:rgba(196,170,255,.24)}
+  #zoomVal{
+    min-width:46px;text-align:center;font-size:11.5px;font-weight:700;color:#e9e0ff;cursor:pointer;
+  }
 
   #hint{
     position:absolute;left:50%;bottom:calc(9px + env(safe-area-inset-bottom));transform:translateX(-50%);
@@ -94,6 +146,46 @@
     pointer-events:none;white-space:nowrap;transition:opacity .8s ease;padding:0 10px;
   }
   #hint.gone{opacity:0}
+
+  #toast{
+    position:absolute;left:50%;bottom:calc(58px + env(safe-area-inset-bottom));transform:translate(-50%,10px);
+    z-index:40;max-width:min(86vw,420px);
+    font-size:12.5px;line-height:1.55;color:#fff;text-align:center;
+    padding:11px 16px;border-radius:14px;
+    background:rgba(26,15,52,.96);border:1px solid rgba(196,170,255,.34);
+    box-shadow:0 14px 40px rgba(0,0,0,.6);
+    opacity:0;pointer-events:none;transition:opacity .3s ease, transform .3s ease;
+    white-space:pre-line;
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+
+  #help{
+    position:absolute;inset:0;z-index:30;display:none;place-items:center;padding:16px;
+    background:rgba(6,2,14,.74);
+    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  }
+  #help.open{display:grid}
+  #help .card{
+    width:min(540px,100%);max-height:min(86vh,760px);overflow-y:auto;-webkit-overflow-scrolling:touch;
+    border-radius:18px;padding:18px 18px 14px;
+    background:linear-gradient(180deg,#241450,#150c2e);
+    border:1px solid rgba(196,170,255,.36);
+    box-shadow:0 24px 70px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  #help h3{margin:0 0 10px;font-size:16.5px;color:#f7e7c4;letter-spacing:.01em}
+  #help h4{margin:15px 0 3px;font-size:13px;color:#cbb8ff;letter-spacing:.01em}
+  #help p{margin:0;font-size:13px;line-height:1.62;color:#e7ddff}
+  #help .k{
+    display:inline-block;padding:0 6px;margin:0 1px;border-radius:6px;
+    background:rgba(150,120,240,.26);border:1px solid rgba(196,170,255,.3);
+    font-size:12px;color:#fff;font-weight:700;
+  }
+  #help .closeBtn{
+    display:block;width:100%;margin-top:16px;padding:12px;border-radius:12px;border:0;cursor:pointer;
+    font:inherit;font-size:14px;font-weight:800;color:#22123f;
+    background:linear-gradient(180deg,#fdf3da,#efd49b 55%,#d8b26a);
+    box-shadow:0 8px 22px rgba(0,0,0,.45);
+  }
 
   #cover{
     position:absolute;inset:0;z-index:20;display:grid;place-items:center;
@@ -130,7 +222,7 @@
 <div id="app">
   <div id="floor"></div>
   <div id="stage">
-    <svg id="drum" viewBox="-560 -560 1120 1120" aria-label="보라색 C key 15음 텅드럼">
+    <svg id="drum" viewBox="-560 -560 1120 1120" aria-label="15음 텅드럼">
       <defs>
         <!-- 상판 -->
         <radialGradient id="faceG" gradientUnits="userSpaceOnUse" cx="-120" cy="-190" r="720">
@@ -139,13 +231,6 @@
           <stop offset="52%"  stop-color="#7250c9"/>
           <stop offset="76%"  stop-color="#5539a3"/>
           <stop offset="100%" stop-color="#3c2879"/>
-        </radialGradient>
-        <!-- 혀(같은 강판, 아주 조금 밝게) — 드럼 전체 좌표로 조명이 일정하게 -->
-        <radialGradient id="tongueG" gradientUnits="userSpaceOnUse" cx="-60" cy="-170" r="560">
-          <stop offset="0%"   stop-color="#9a7fe8"/>
-          <stop offset="38%"  stop-color="#7d60d3"/>
-          <stop offset="72%"  stop-color="#5d41ac"/>
-          <stop offset="100%" stop-color="#4a2f8c"/>
         </radialGradient>
         <linearGradient id="bodyG" x1="0" y1="0" x2="0.3" y2="1">
           <stop offset="0%"   stop-color="#3a2570"/>
@@ -158,11 +243,11 @@
           <stop offset="66%"  stop-color="#9284b4"/>
           <stop offset="100%" stop-color="#6c5d8e"/>
         </linearGradient>
-        <linearGradient id="goldG" x1="0" y1="0" x2="0.35" y2="1">
+        <!-- 글자 색 -->
+        <linearGradient id="inkG" x1="0" y1="0" x2="0.35" y2="1">
           <stop offset="0%"   stop-color="#fff6dc"/>
           <stop offset="44%"  stop-color="#f2d59f"/>
-          <stop offset="74%"  stop-color="#cda265"/>
-          <stop offset="100%" stop-color="#ab8147"/>
+          <stop offset="100%" stop-color="#cda265"/>
         </linearGradient>
         <linearGradient id="topLight" x1="0" y1="0" x2="0.25" y2="1">
           <stop offset="0%"   stop-color="#ffffff" stop-opacity=".16"/>
@@ -171,12 +256,6 @@
           <stop offset="100%" stop-color="#0b0420" stop-opacity=".22"/>
         </linearGradient>
         <clipPath id="faceClip"><circle cx="0" cy="0" r="430"/></clipPath>
-        <linearGradient id="plateSheen" x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0%"   stop-color="#ffffff" stop-opacity=".10"/>
-          <stop offset="42%"  stop-color="#ffffff" stop-opacity=".02"/>
-          <stop offset="70%"  stop-color="#1a0b33" stop-opacity=".06"/>
-          <stop offset="100%" stop-color="#1a0b33" stop-opacity=".14"/>
-        </linearGradient>
         <radialGradient id="sheen" cx="50%" cy="50%" r="50%">
           <stop offset="0%"   stop-color="#ffffff" stop-opacity=".42"/>
           <stop offset="55%"  stop-color="#e8dcff" stop-opacity=".10"/>
@@ -206,12 +285,6 @@
           <line x1="0" y1="0" x2="0" y2="5" stroke="#ffffff" stroke-opacity=".05" stroke-width="1"/>
           <line x1="2.5" y1="0" x2="2.5" y2="5" stroke="#000000" stroke-opacity=".045" stroke-width="1"/>
         </pattern>
-        <!-- 땋은 로프: 비스듬한 마름모 꼬임 -->
-        <pattern id="braid" width="18" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(41)">
-          <rect width="18" height="14" fill="#b9abd4" fill-opacity="0"/>
-          <path d="M0 3.5 q4.5 3.6 9 0 q4.5 3.6 9 0" fill="none" stroke="#efe8ff" stroke-opacity=".34" stroke-width="3.4" stroke-linecap="round"/>
-          <path d="M0 10.5 q4.5 3.6 9 0 q4.5 3.6 9 0" fill="none" stroke="#4a3d68" stroke-opacity=".38" stroke-width="3" stroke-linecap="round"/>
-        </pattern>
       </defs>
       <g id="shell"></g>
       <g id="keys"></g>
@@ -223,23 +296,80 @@
   <div id="badge"><span>창일중학교 이상미</span></div>
 
   <div id="ui">
-    <button id="menuBtn" aria-haspopup="true" aria-expanded="false">표시 ▾</button>
-    <div id="menu" role="menu">
+    <div class="row">
+      <button id="menuBtn"  class="pill" aria-haspopup="true" aria-expanded="false">표시 ▾</button>
+      <button id="keyBtn"   class="pill" aria-haspopup="true" aria-expanded="false">C 장조 ▾</button>
+      <button id="helpBtn"  class="pill icon" aria-label="사용 설명서" aria-haspopup="dialog">?</button>
+      <button id="fsBtn"    class="pill icon" aria-label="전체화면">⛶</button>
+    </div>
+    <div class="row">
+      <button id="colorBtn" class="pill" aria-haspopup="true" aria-expanded="false">색 ▾</button>
+      <div id="zoomBox">
+        <button id="zoomOut" aria-label="작게">−</button>
+        <span id="zoomVal" title="눌러서 100%로">100%</span>
+        <button id="zoomIn" aria-label="크게">+</button>
+      </div>
+    </div>
+
+    <div id="menu" class="menuPanel" role="menu">
       <div class="lbl">혀에 표시할 이름</div>
-      <button data-mode="num"   role="menuitem">숫자 + 옥타브점 <span class="tick">✓</span></button>
-      <button data-mode="photo" role="menuitem">숫자만 (사진처럼) <span class="tick">✓</span></button>
-      <button data-mode="sol"   role="menuitem">계이름 (도레미) <span class="tick">✓</span></button>
-      <button data-mode="nam"   role="menuitem">음이름 (C D E) <span class="tick">✓</span></button>
+      <button class="mi" data-mode="num"   role="menuitem">숫자 + 옥타브점 <span class="tick">✓</span></button>
+      <button class="mi" data-mode="photo" role="menuitem">숫자만 (사진처럼) <span class="tick">✓</span></button>
+      <button class="mi" data-mode="sol"   role="menuitem">계이름 (도레미) <span class="tick">✓</span></button>
+      <button class="mi" data-mode="nam"   role="menuitem">음이름 (C D E) <span class="tick">✓</span></button>
+    </div>
+
+    <div id="keyMenu" class="menuPanel" role="menu">
+      <div class="lbl">조성 (Key)</div>
+      <div id="keyGrid"></div>
+      <div class="lbl" style="padding-top:8px">단조는 라를 으뜸음으로 봅니다</div>
+    </div>
+
+    <div id="colorMenu" class="menuPanel" role="menu">
+      <div class="lbl">텅드럼 색</div>
+      <div class="swatches" id="bodySw"></div>
+      <div class="lbl">글자 색</div>
+      <div class="swatches" id="inkSw"></div>
     </div>
   </div>
 
   <div id="hint">두 손가락으로 여러 음을 함께 칠 수 있어요 · 소리는 첫 터치에 켜집니다</div>
+  <div id="toast"></div>
+
+  <div id="help">
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <h3 id="helpTitle">텅드럼 사용 설명서</h3>
+
+      <h4>1. 소리 내기</h4>
+      <p>혀(금속 조각)를 손가락으로 톡 두드리면 소리가 납니다. 두 손가락 이상으로 여러 혀를 동시에 치면 화음이 됩니다. 처음 한 번은 화면을 눌러 소리를 켜 주세요.</p>
+
+      <h4>2. 표시 바꾸기</h4>
+      <p>오른쪽 위 <span class="k">표시 ▾</span>에서 숫자+옥타브점 / 숫자만 / 계이름(도레미) / 음이름(C D E) 중에 고릅니다. 숫자 위의 점은 한 옥타브 높은 음, 아래 점은 낮은 음입니다.</p>
+
+      <h4>3. 조성 바꾸기</h4>
+      <p><span class="k">C 장조 ▾</span>에서 장조 9가지(C·G·D·A·E·B·F·B♭·E♭)와 단조 4가지(가·마·라·다단조)를 고를 수 있습니다. 조성을 바꾸면 15개 혀의 실제 소리와 음이름이 함께 바뀝니다. 숫자와 계이름은 으뜸음을 기준으로 하는 이동도법으로 표시되고, 단조는 라를 으뜸음으로 봅니다.</p>
+
+      <h4>4. 색 바꾸기</h4>
+      <p><span class="k">색 ▾</span>에서 텅드럼 본체 색 7가지와 글자 색 4가지를 따로 고를 수 있습니다. 고른 색과 조성은 다음에 열어도 그대로 남아 있습니다.</p>
+
+      <h4>5. 크기 · 위치</h4>
+      <p><span class="k">−</span> <span class="k">+</span>로 70%~160%까지 키우고 줄일 수 있습니다. 가운데 <span class="k">100%</span>를 누르면 원래 크기로 돌아갑니다. 화면보다 커졌을 때는 드럼 바깥 빈 곳을 한 손가락으로 끌면 드럼이 따라 움직입니다(혀를 끌면 소리만 납니다).</p>
+
+      <h4>6. 전체화면</h4>
+      <p><span class="k">⛶</span> 버튼을 누르면 전체화면으로 열립니다. 아이폰 사파리는 전체화면 기능이 없어서, 공유(⬆︎) → <b>홈 화면에 추가</b>를 한 뒤 홈 화면 아이콘으로 열면 전체화면으로 열립니다.</p>
+
+      <h4>7. 키보드</h4>
+      <p><span class="k">1</span>~<span class="k">7</span> 가운데 음(도~시), <span class="k">Q</span> <span class="k">W</span> <span class="k">E</span> 한 옥타브 위, <span class="k">A</span> <span class="k">S</span> <span class="k">D</span> <span class="k">F</span> <span class="k">G</span> 낮은 음입니다.</p>
+
+      <button id="helpClose" class="closeBtn">확인</button>
+    </div>
+  </div>
 
   <div id="cover">
     <div class="box">
       <div class="kicker">STEEL TONGUE DRUM</div>
       <h1>보라색 텅드럼</h1>
-      <h2>C key · 15음 · 공령고 (E3 – E5)</h2>
+      <h2 id="coverSub">C 장조 · 15음 · 공령고 (E3 – E5)</h2>
       <div class="go">탭하여 시작</div>
       <div class="sub">말렛 없이 손가락으로 두드려도 됩니다</div>
     </div>
@@ -254,47 +384,127 @@ window.__errs = [];
 window.addEventListener("error", function(e){ window.__errs.push(String(e.message||e)); });
 window.addEventListener("unhandledrejection", function(e){ window.__errs.push("rejection:"+String(e.reason)); });
 
+var STORE = {
+  get:function(k, d){ try{ var v = localStorage.getItem(k); return v === null ? d : v; }catch(e){ return d; } },
+  set:function(k, v){ try{ localStorage.setItem(k, String(v)); }catch(e){} }
+};
+
 /* ══════════════════════════════════════════════════════════════
-   1. 악기 배치 — 사진(IMG_1074)의 15음 배열
-   · 가운데 큰 혀 = 3 (미, 가장 낮은 E3)
-   · 둘레 14혀는 12시부터 시계방향으로 3,3,1,1,6,6,4,4,5,5,7,7,2,2
-   · 같은 숫자가 이웃한 두 혀 — 짧은 혀 = 한 옥타브 위, 긴 혀 = 아래
+   1. 조성 · 음정
+   · 가운데 큰 혀 = 그 조성의 3도(으뜸음 위 3도), 둘레 14혀가 두 옥타브를 이룬다
+   · 둘레는 12시부터 시계방향으로 3,3,1,1,6,6,4,4,5,5,7,7,2,2 (짧은 혀 = 한 옥타브 위)
    ══════════════════════════════════════════════════════════════ */
-var A4 = 440;
-function hz(semi){ return A4 * Math.pow(2, semi/12); }   /* A4 기준 반음 거리 */
-/* 15음 C장조 표준 음역 E3–E5 (A4=440)
-   E3 164.81 · F3 174.61 · G3 196.00 · A3 220.00 · B3 246.94
-   C4 261.63 · D4 293.66 · E4 329.63 · F4 349.23 · G4 392.00
-   A4 440.00 · B4 493.88 · C5 523.25 · D5 587.33 · E5 659.26 */
-var E3 = hz(-17), F3 = hz(-16), G3 = hz(-14), A3 = hz(-12), B3 = hz(-10),
-    C4 = hz(-9),  D4 = hz(-7),  E4 = hz(-5),  F4 = hz(-4),  G4 = hz(-2),
-    A4v = hz(0),  B4 = hz(2),   C5 = hz(3),   D5 = hz(5),   E5 = hz(7);
+var SCALE = { maj:[0,2,4,5,7,9,11], min:[0,2,3,5,7,8,10] };
+var SOLFA = ["도","레","미","파","솔","라","시"];
+var SHARP_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+var FLAT_NAMES  = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
 
-var RING = [
-  { deg:"3", sol:"미", name:"E", oct:5, freq:E5,  kind:"short" },
-  { deg:"3", sol:"미", name:"E", oct:4, freq:E4,  kind:"long"  },
-  { deg:"1", sol:"도", name:"C", oct:5, freq:C5,  kind:"short" },
-  { deg:"1", sol:"도", name:"C", oct:4, freq:C4,  kind:"long"  },
-  { deg:"6", sol:"라", name:"A", oct:4, freq:A4v, kind:"short" },
-  { deg:"6", sol:"라", name:"A", oct:3, freq:A3,  kind:"long"  },
-  { deg:"4", sol:"파", name:"F", oct:4, freq:F4,  kind:"short" },
-  { deg:"4", sol:"파", name:"F", oct:3, freq:F3,  kind:"long"  },
-  { deg:"5", sol:"솔", name:"G", oct:4, freq:G4,  kind:"short" },
-  { deg:"5", sol:"솔", name:"G", oct:3, freq:G3,  kind:"long"  },
-  { deg:"7", sol:"시", name:"B", oct:4, freq:B4,  kind:"short" },
-  { deg:"7", sol:"시", name:"B", oct:3, freq:B3,  kind:"long"  },
-  { deg:"2", sol:"레", name:"D", oct:5, freq:D5,  kind:"short" },
-  { deg:"2", sol:"레", name:"D", oct:4, freq:D4,  kind:"long"  }
+/* tonic = 으뜸음의 MIDI 번호. 어느 조성으로 바꿔도 음역이 E3~E5 근처에 머물도록 옥타브를 골랐다. */
+var KEYS = [
+  { id:"C",  letter:"C",  ko:"다장조",    mode:"maj", tonic:48, flats:false },
+  { id:"G",  letter:"G",  ko:"사장조",    mode:"maj", tonic:55, flats:false },
+  { id:"D",  letter:"D",  ko:"라장조",    mode:"maj", tonic:50, flats:false },
+  { id:"A",  letter:"A",  ko:"가장조",    mode:"maj", tonic:45, flats:false },
+  { id:"E",  letter:"E",  ko:"마장조",    mode:"maj", tonic:52, flats:false },
+  { id:"B",  letter:"B",  ko:"나장조",    mode:"maj", tonic:47, flats:false },
+  { id:"F",  letter:"F",  ko:"바장조",    mode:"maj", tonic:53, flats:true  },
+  { id:"Bb", letter:"B♭", ko:"내림나장조", mode:"maj", tonic:46, flats:true  },
+  { id:"Eb", letter:"E♭", ko:"내림마장조", mode:"maj", tonic:51, flats:true  },
+  { id:"Am", letter:"Am", ko:"가단조",    mode:"min", tonic:45, flats:false },
+  { id:"Em", letter:"Em", ko:"마단조",    mode:"min", tonic:52, flats:false },
+  { id:"Dm", letter:"Dm", ko:"라단조",    mode:"min", tonic:50, flats:true  },
+  { id:"Cm", letter:"Cm", ko:"다단조",    mode:"min", tonic:48, flats:true  }
 ];
+var KEYMAP = {}; KEYS.forEach(function(k){ KEYMAP[k.id] = k; });
 
-var NOTES = [{ idx:0, angle:0, core:true, deg:"3", sol:"미", name:"E", oct:3, freq:E3, kind:"core" }];
-RING.forEach(function(n,i){
-  NOTES.push({ idx:i+1, angle:i*360/RING.length, core:false, deg:n.deg, sol:n.sol, name:n.name,
-               oct:n.oct, freq:n.freq, kind:n.kind });
-});
+function midiFreq(m){ return 440 * Math.pow(2, (m - 69) / 12); }
+
+/* 15음(으뜸음 위 3도부터 위로 14도) 을 만든다 */
+function buildAsc(key){
+  var sc = SCALE[key.mode], names = key.flats ? FLAT_NAMES : SHARP_NAMES, out = [];
+  for(var i = 0; i < 15; i++){
+    var step = 2 + i;                       /* 3도부터 시작 */
+    var octs = Math.floor(step / 7);
+    var d    = step - octs * 7;
+    var midi = key.tonic + octs * 12 + sc[d];
+    /* 이동도법: 장조는 도=으뜸음, 단조는 라=으뜸음 */
+    var di = (key.mode === "maj") ? d : (d + 5) % 7;
+    out.push({
+      midi: midi,
+      freq: midiFreq(midi),
+      name: names[((midi % 12) + 12) % 12],
+      oct:  Math.floor(midi / 12) - 1,
+      deg:  String(di + 1),
+      sol:  SOLFA[di]
+    });
+  }
+  return out;
+}
 
 /* ══════════════════════════════════════════════════════════════
-   2. 텅드럼 그리기
+   2. 색 — 본체 7가지 · 글자 4가지
+   ══════════════════════════════════════════════════════════════ */
+var THEMES = [
+  { id:"purple", name:"보라색",
+    face:["#a98cf0","#8f6ce4","#7250c9","#5539a3","#3c2879"],
+    body:["#3a2570","#241451","#120a26"],
+    rope:["#ded4f2","#bcb0d6","#9284b4","#6c5d8e"],
+    rim:"#2a1a55", rim2:"#0d0620",
+    bg:["#1d1040","#150a2c","#07030e"],
+    glow1:"rgba(126,88,229,.26)", glow2:"rgba(74,47,146,.13)" },
+  { id:"deep", name:"딥퍼플",
+    face:["#8b6fd6","#6d4fbe","#523b96","#3a2a6e","#251a4a"],
+    body:["#241545","#160d2e","#0a0618"],
+    rope:["#c9bfe0","#a79bc4","#7d719b","#564a75"],
+    rim:"#1f1538", rim2:"#0a0518",
+    bg:["#170e30","#0f0822","#05020b"],
+    glow1:"rgba(120,86,220,.24)", glow2:"rgba(60,40,120,.12)" },
+  { id:"sky", name:"스카이블루",
+    face:["#a4dbf6","#74c0ea","#4ba0d6","#3379ae","#1f5480"],
+    body:["#22445f","#16314a","#0a1a2a"],
+    rope:["#e8f5ff","#c4deee","#8fb0c8","#5f7f96"],
+    rim:"#1b3a52", rim2:"#07151f",
+    bg:["#123049","#0c2136","#04101a"],
+    glow1:"rgba(90,175,230,.24)", glow2:"rgba(50,110,160,.12)" },
+  { id:"mint", name:"민트그린",
+    face:["#a8e8cf","#79d3b0","#4fb894","#399273","#256b54"],
+    body:["#1e4a3e","#143530","#081a17"],
+    rope:["#e8fff6","#c4e8da","#8fb8a8","#5f8577"],
+    rim:"#16382f", rim2:"#061613",
+    bg:["#11302a","#0b221e","#030f0d"],
+    glow1:"rgba(90,210,170,.22)", glow2:"rgba(45,130,105,.12)" },
+  { id:"coral", name:"로즈골드",
+    face:["#f5bcaa","#e79d89","#d07c68","#a95e4f","#7e4136"],
+    body:["#5a2c26","#3d1d1c","#1f0d0d"],
+    rope:["#ffe9de","#f0c9b8","#c9a08d","#9c7364"],
+    rim:"#4a221c", rim2:"#1a0a08",
+    bg:["#3a1b18","#26110f","#0e0505"],
+    glow1:"rgba(230,140,110,.24)", glow2:"rgba(140,70,55,.12)" },
+  { id:"ivory", name:"아이보리",
+    face:["#fdfaf3","#f3ece0","#e4dac8","#cec0a7","#b0a086"],
+    body:["#c9bca4","#a8997f","#7d7059"],
+    rope:["#fffdf8","#efe7d6","#d3c5a9","#b0a086"],
+    rim:"#8c7d63", rim2:"#6b5d47",
+    bg:["#3b3327","#241f18","#0c0a07"],
+    glow1:"rgba(240,225,190,.20)", glow2:"rgba(150,130,95,.10)" },
+  { id:"black", name:"다크블랙",
+    face:["#60606c","#484852","#36363f","#282830","#1a1a20"],
+    body:["#22222a","#16161c","#0a0a0e"],
+    rope:["#c2c2ce","#9999a6","#70707c","#4c4c57"],
+    rim:"#2c2c36", rim2:"#08080c",
+    bg:["#1b1b21","#111116","#000000"],
+    glow1:"rgba(160,160,190,.16)", glow2:"rgba(80,80,100,.10)" }
+];
+var INKS = [
+  { id:"gold",   name:"금색",   c1:"#fff6dc", c2:"#f2d59f", c3:"#cda265", halo:"#2a1c05" },
+  { id:"white",  name:"흰색",   c1:"#ffffff", c2:"#f6f4fb", c3:"#d6d2e2", halo:"#1d1233" },
+  { id:"silver", name:"은색",   c1:"#ffffff", c2:"#d5d8e4", c3:"#98a0b4", halo:"#12161f" },
+  { id:"black",  name:"검정",   c1:"#3b3b46", c2:"#16161c", c3:"#000000", halo:"#ffffff" }
+];
+var THEMEMAP = {}; THEMES.forEach(function(t){ THEMEMAP[t.id] = t; });
+
+/* ══════════════════════════════════════════════════════════════
+   3. 텅드럼 그리기
    ══════════════════════════════════════════════════════════════ */
 var NS = "http://www.w3.org/2000/svg";
 function el(tag, attrs, parent){
@@ -304,18 +514,18 @@ function el(tag, attrs, parent){
   return e;
 }
 
-var FACE_R  = 430;    /* 상판 */
+var FACE_R  = 430;
 var RIM_IN  = 430;
-var RIM_OUT = 494;    /* 땋은 링 */
-var OUTER   = 526;    /* 강철 몸통 */
-var ARM_R   = 470;    /* 혀의 갈래 끝(링 밑으로 들어감) */
+var RIM_OUT = 494;
+var OUTER   = 526;
+var ARM_R   = 470;
 
-/* 둘레 혀: tip = 둥근 끝 중심의 반지름, hw = 반폭, 안쪽 끝 = tip - hw */
-var LONG  = { tip:300, hw:57, fs:54, label:272 };
-var SHORT = { tip:352, hw:44, fs:46, label:330 };
-var CORE_G = { hw:105, armY:-166, capY:52, fs:68, label:-104 };
+/* 둘레 혀: tip = 둥근 끝 중심의 반지름, hw = 반폭, label = 이름표 높이 */
+var LONG  = { tip:300, hw:57, fs:62, label:320 };
+var SHORT = { tip:352, hw:44, fs:56, label:356 };
+var CORE_G = { hw:105, armY:-166, capY:52, fs:82, label:-30 };
+var FONT_SERIF = "Georgia,'Times New Roman','Apple SD Gothic Neo',serif";
 
-/* 둘레 혀 모양: 국부좌표에서 -y 가 바깥(테두리), 둥근 끝은 안쪽으로 볼록 */
 function tonguePath(tipR, hw, armR){
   var yArm = -armR, yTip = -tipR;
   return "M " + (-hw) + " " + yArm +
@@ -323,8 +533,6 @@ function tonguePath(tipR, hw, armR){
          " A " + hw + " " + hw + " 0 0 0 " + hw + " " + yTip +
          " L " + hw + " " + yArm + " Z";
 }
-
-/* 가운데 혀: 화면 기준 세로 (갈래가 위로, 둥근 끝이 아래로) — 위 모서리는 살짝 둥글게 */
 function corePath(hw, armY, capY){
   var r = 30;
   return "M " + (-hw) + " " + (armY + 14) +
@@ -336,21 +544,32 @@ function corePath(hw, armY, capY){
          " Z";
 }
 
-var shell = document.getElementById("shell");
-var keysG = document.getElementById("keys");
+var shellG = document.getElementById("shell");
+var keysG  = document.getElementById("keys");
 var glossG = document.getElementById("gloss");
-var rimG  = document.getElementById("rim");
+var rimG   = document.getElementById("rim");
 
-/* ── 몸통 · 상판 ── */
-el("circle", {cx:0, cy:0, r:OUTER, fill:"url(#bodyG)", filter:"url(#dropSoft)"}, shell);
-el("circle", {cx:0, cy:0, r:OUTER-1, fill:"none", stroke:"#0a0418", "stroke-width":3, opacity:".8"}, shell);
-el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#faceG)"}, shell);
-el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#brushed)"}, shell);
-[396, 262].forEach(function(r){
-  el("circle",{cx:0, cy:0, r:r, fill:"none", stroke:"#ffffff", "stroke-opacity":".04", "stroke-width":1.2}, shell);
+/* ── 혀 배치 (12시부터 시계방향) ── */
+var RING_POS = [14, 7, 12, 5, 10, 3, 8, 1, 9, 2, 11, 4, 13, 6];
+var TONGUES  = [{ idx:0, angle:0, core:true, pos:0, kind:"core" }];
+RING_POS.forEach(function(p, i){
+  TONGUES.push({ idx:i+1, angle:i * 360 / RING_POS.length, core:false, pos:p,
+                 kind:(i % 2 === 0 ? "short" : "long") });
+});
+var NOTES = TONGUES.map(function(t){
+  return { idx:t.idx, angle:t.angle, core:t.core, pos:t.pos, kind:t.kind,
+           deg:"3", sol:"미", name:"E", oct:3, midi:52, freq:164.81, band:0 };
 });
 
-/* ── 혀 ── */
+/* ── 몸통 · 상판 ── */
+el("circle", {cx:0, cy:0, r:OUTER, fill:"url(#bodyG)", filter:"url(#dropSoft)"}, shellG);
+el("circle", {cx:0, cy:0, r:OUTER-1, fill:"none", stroke:"#0a0418", "stroke-width":3, opacity:".8"}, shellG);
+el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#faceG)"}, shellG);
+el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#brushed)"}, shellG);
+[396, 262].forEach(function(r){
+  el("circle",{cx:0, cy:0, r:r, fill:"none", stroke:"#ffffff", "stroke-opacity":".04", "stroke-width":1.2}, shellG);
+});
+
 var keyEls = [];
 var labelEls = [];
 
@@ -364,10 +583,10 @@ function drawKey(note){
   }else{
     var c = note.kind === "long" ? LONG : SHORT;
     path = tonguePath(c.tip, c.hw, ARM_R);
-    fs = c.fs; labelY = -c.label; hw = c.hw;   /* 국부 +y 는 안쪽 → 반지름은 음수 */
+    fs = c.fs; labelY = -c.label; hw = c.hw;
   }
 
-  /* 컷(틈) — core 는 갈래 끝의 가로선을 그리지 않는다 */
+  /* 컷(틈) */
   var strokePath = note.core
     ? ("M " + (-hw) + " " + CORE_G.armY + " L " + (-hw) + " " + CORE_G.capY +
        " A " + hw + " " + hw + " 0 0 0 " + hw + " " + CORE_G.capY +
@@ -378,57 +597,49 @@ function drawKey(note){
   el("path", {d:strokePath, fill:"none", stroke:"#0a0418", "stroke-width":2.6,
               "stroke-linejoin":"round", opacity:".9", "stroke-linecap":"round"}, g);
 
-  /* 혀 판 — 상판과 같은 강판(빛만 살짝 다르게) */
   var plate = el("path", {d:path, fill:"url(#faceG)", "data-i":note.idx, class:"plate"}, g);
-  /* 판 위 미세 결 */
   el("path", {d:path, fill:"url(#brushed)", opacity:".35", "pointer-events":"none"}, g);
-  /* 컷 가장자리의 밝은 선 (가운데 혀는 가로선 없이) */
   el("path", {d:strokePath, fill:"none", stroke:"#e9dcff", "stroke-opacity":".09", "stroke-width":1.1,
               "stroke-linejoin":"round", opacity:".9", "pointer-events":"none"}, g);
-  /* 안쪽 끝의 옅은 그늘 */
   if(!note.core){
     el("path", {d:path, fill:"url(#capShade)", opacity:".18", "pointer-events":"none"}, g);
   }
 
-  /* 빛남 */
   var glow = el("path", {d:path, fill:"#ffeec2", filter:"url(#glowF)", opacity:"0",
                           "pointer-events":"none"}, g);
 
-  /* 이름표 — 둘레 혀는 방사형, 가운데 혀는 똑바로 */
-  var labTr = note.core ? ("translate(0," + labelY + ")")
-                        : ("translate(0," + labelY + ") rotate(180)");
+  /* 이름표 — 15개 모두 연주자 시선 기준 0° (똑바로) */
+  var labTr = note.core
+    ? ("translate(0," + labelY + ")")
+    : ("translate(0," + labelY + ") rotate(" + (-note.angle) + ")");
   var lab = el("g", {transform:labTr, "pointer-events":"none"}, g);
   drawLabel(lab, note, fs);
 
   plate.addEventListener("pointerdown", onPointerDown, {passive:false});
   keyEls.push({note:note, plate:plate, glow:glow, fs:fs, e:0, lit:false});
-
-  if(note.core) drawSeal(g);
-}
-
-function drawSeal(g){
-  var seal = el("g", {transform:"translate(0,46)", "pointer-events":"none"}, g);
-  el("rect", {x:-45, y:-64, width:90, height:128, rx:8, fill:"#2a1a58", opacity:".38"}, seal);
-  el("rect", {x:-45, y:-64, width:90, height:128, rx:8, fill:"none",
-              stroke:"url(#goldG)", "stroke-width":2.2, opacity:".9"}, seal);
-  el("rect", {x:-38, y:-57, width:76, height:114, rx:5, fill:"none",
-              stroke:"url(#goldG)", "stroke-width":.9, opacity:".45"}, seal);
-  ["텅","드","럼"].forEach(function(ch,i){
-    el("text", {x:0, y:-29 + i*41, "text-anchor":"middle", "dominant-baseline":"middle",
-                "font-family":"Georgia,'Times New Roman',serif", "font-size":30,
-                fill:"url(#goldG)", "letter-spacing":"1"}, seal).textContent = ch;
-  });
 }
 
 function drawLabel(parent, note, fs){
-  var txt = el("text", {
+  var common = {
     x:0, y:0, "text-anchor":"middle", "dominant-baseline":"central",
-    "font-family":"Georgia,'Times New Roman',serif", "font-size":fs, "font-weight":"600",
-    fill:"url(#goldG)", stroke:"#33240a", "stroke-width":".55", "stroke-opacity":".5"
-  }, parent);
-  var dotUp = el("circle", {cx:0, cy:-(fs*0.84), r:Math.max(3.2, fs*0.082), fill:"url(#goldG)"}, parent);
-  var dotDn = el("circle", {cx:0, cy: (fs*0.76), r:Math.max(3.2, fs*0.082), fill:"url(#goldG)"}, parent);
-  labelEls.push({note:note, txt:txt, up:dotUp, dn:dotDn, fs:fs});
+    "font-family":FONT_SERIF, "font-size":fs, "font-weight":"700",
+    "paint-order":"stroke"
+  };
+  /* 바탕과 구분되는 테두리(그늘) — 글자를 한층 선명하게 */
+  var out = el("text", Object.assign({}, common, {
+    fill:"none", stroke:"#000", "stroke-width":fs*0.16, "stroke-linejoin":"round",
+    "stroke-opacity":".55"
+  }), parent);
+  /* 글자 — 얇은 테두리 + 채움 */
+  var txt = el("text", Object.assign({}, common, {
+    fill:"url(#inkG)", stroke:"#000", "stroke-width":Math.max(1.1, fs*0.05),
+    "stroke-linejoin":"round"
+  }), parent);
+  var dotUp = el("circle", {cx:0, cy:-(fs*0.62), r:Math.max(4.2, fs*0.115),
+                            fill:"url(#inkG)", stroke:"#000", "stroke-width":1.1}, parent);
+  var dotDn = el("circle", {cx:0, cy: (fs*0.56), r:Math.max(4.2, fs*0.115),
+                            fill:"url(#inkG)", stroke:"#000", "stroke-width":1.1}, parent);
+  labelEls.push({note:note, txt:txt, out:out, up:dotUp, dn:dotDn, fs:fs});
 }
 
 var LABEL_MODE = "num";
@@ -436,25 +647,79 @@ function applyLabels(){
   labelEls.forEach(function(L){
     var n = L.note, s = "", up = false, dn = false;
     if(LABEL_MODE === "num"){
-      s = n.deg; up = (n.oct === 5); dn = (n.oct === 3);
+      s = n.deg; up = (n.band === 2); dn = (n.band === 0);
     }else if(LABEL_MODE === "photo"){
       s = n.deg;
     }else if(LABEL_MODE === "sol"){
-      s = n.sol; up = (n.oct === 5); dn = (n.oct === 3);
+      s = n.sol; up = (n.band === 2); dn = (n.band === 0);
     }else{
       s = n.name + n.oct;
     }
-    L.txt.textContent = s;
-    L.txt.setAttribute("font-size", LABEL_MODE === "nam" ? L.fs*0.70 : (LABEL_MODE === "sol" ? L.fs*0.82 : L.fs));
+    var sz = LABEL_MODE === "nam" ? L.fs * 0.66 : (LABEL_MODE === "sol" ? L.fs * 0.84 : L.fs);
+    L.txt.textContent = s; L.out.textContent = s;
+    L.txt.setAttribute("font-size", sz);
+    L.out.setAttribute("font-size", sz);
+    L.txt.setAttribute("stroke-width", Math.max(1.1, sz * 0.05));
+    L.out.setAttribute("stroke-width", Math.max(2, sz * 0.15));
+    L.txt.setAttribute("stroke", CUR_INK.halo);
+    L.out.setAttribute("stroke", CUR_INK.halo);
     L.up.setAttribute("display", up ? "inline" : "none");
     L.dn.setAttribute("display", dn ? "inline" : "none");
   });
 }
 
 /* ══════════════════════════════════════════════════════════════
-   3. 소리 — 스틸 텅드럼 합성 (Web Audio)
+   4. 색 적용
    ══════════════════════════════════════════════════════════════ */
-var AC = { ctx:null, master:null, wet:null, conv:null, noise:null, ready:false };
+var CUR_THEME = THEMES[0];
+var CUR_INK   = INKS[0];
+
+function setStops(id, arr){
+  var nodes = document.querySelectorAll("#" + id + " stop");
+  for(var i = 0; i < nodes.length && i < arr.length; i++){
+    nodes[i].setAttribute("stop-color", arr[i]);
+  }
+}
+
+function applyTheme(id, save){
+  var t = THEMEMAP[id] || THEMES[0];
+  CUR_THEME = t;
+  setStops("faceG", t.face);
+  setStops("bodyG", t.body);
+  setStops("ropeG", t.rope);
+  var root = document.documentElement.style;
+  root.setProperty("--bg1", t.bg[0]);
+  root.setProperty("--bg2", t.bg[1]);
+  root.setProperty("--bg3", t.bg[2]);
+  root.setProperty("--glow1", t.glow1);
+  root.setProperty("--glow2", t.glow2);
+  root.setProperty("--rim", t.rim);
+  document.querySelectorAll("#rim .rimline").forEach(function(c){ c.setAttribute("stroke", t.rim); });
+  document.querySelectorAll("#rim .rimline2").forEach(function(c){ c.setAttribute("stroke", t.rim2); });
+  var mt = document.querySelector('meta[name="theme-color"]');
+  if(mt) mt.setAttribute("content", t.bg[1]);
+  Array.prototype.forEach.call(document.querySelectorAll("#bodySw .sw"), function(b){
+    b.classList.toggle("on", b.getAttribute("data-theme") === t.id);
+  });
+  if(save) STORE.set("td_theme", t.id);
+}
+
+function applyInk(id, save){
+  var k = null;
+  for(var i = 0; i < INKS.length; i++) if(INKS[i].id === id) k = INKS[i];
+  CUR_INK = k || INKS[0];
+  setStops("inkG", [CUR_INK.c1, CUR_INK.c2, CUR_INK.c3]);
+  applyLabels();
+  Array.prototype.forEach.call(document.querySelectorAll("#inkSw .sw"), function(b){
+    b.classList.toggle("on", b.getAttribute("data-ink") === CUR_INK.id);
+  });
+  if(save) STORE.set("td_ink", CUR_INK.id);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5. 소리 — 스틸 텅드럼 합성 (Web Audio)
+   ══════════════════════════════════════════════════════════════ */
+var AC = { ctx:null, master:null, wet:null, noise:null, ready:false };
 
 function buildIR(ctx, seconds){
   var rate = ctx.sampleRate, len = Math.max(1, Math.floor(rate*seconds));
@@ -475,14 +740,12 @@ function buildIR(ctx, seconds){
   }
   return buf;
 }
-
 function makeNoise(ctx, seconds){
   var rate = ctx.sampleRate, len = Math.max(1, Math.floor(rate*seconds));
   var buf = ctx.createBuffer(1, len, rate), d = buf.getChannelData(0);
   for(var i=0;i<len;i++) d[i] = (Math.random()*2-1) * (1 - i/len);
   return buf;
 }
-
 function initAudio(){
   if(AC.ctx) return AC.ctx;
   var Ctx = window.AudioContext || window.webkitAudioContext;
@@ -592,7 +855,7 @@ function strike(note, vel){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   4. 터치 / 마우스
+   6. 터치 / 마우스
    ══════════════════════════════════════════════════════════════ */
 var pointerSeen = Object.create(null);
 
@@ -620,13 +883,12 @@ function hit(note, cx, cy){
   hideHintSoon();
 }
 
-/* 타격한 혀가 부드럽게 빛나며 울리는 효과 — requestAnimationFrame */
 var litList = [];
 var lastFrameT = 0;
 function glowLoop(ts){
   var dt = lastFrameT ? Math.min(0.1, (ts - lastFrameT)/1000) : 0.016;
   lastFrameT = ts;
-  var decay = Math.exp(-dt / 2.2);          /* 화면 주사율과 무관한 시간 기반 감쇠 */
+  var decay = Math.exp(-dt / 2.2);
   for(var i=litList.length-1; i>=0; i--){
     var k = litList[i];
     k.e *= decay;
@@ -659,31 +921,258 @@ document.addEventListener("dblclick", function(e){ e.preventDefault(); }, {passi
 document.addEventListener("contextmenu", function(e){ e.preventDefault(); }, {passive:false});
 
 /* ══════════════════════════════════════════════════════════════
-   5. 메뉴 · 시작 · 키보드 · 크기
+   7. 조성 적용 · 이름표 · 키보드
    ══════════════════════════════════════════════════════════════ */
-var menuBtn = document.getElementById("menuBtn");
-var menu = document.getElementById("menu");
-function setMenu(open){
-  menu.classList.toggle("open", open);
-  menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+var CURRENT_KEY = KEYS[0];
+
+function applyKey(id, save){
+  var key = KEYMAP[id] || KEYS[0];
+  CURRENT_KEY = key;
+  var asc = buildAsc(key), lowOct = asc[0].oct;
+  NOTES.forEach(function(n){
+    var a = asc[n.pos];
+    n.midi = a.midi; n.freq = a.freq; n.name = a.name;
+    n.oct = a.oct; n.deg = a.deg; n.sol = a.sol;
+    n.band = a.oct - lowOct;
+  });
+  applyLabels();
+  buildKeyboard();
+
+  keyBtn.textContent = "조성 " + key.letter + " ▾";
+  Array.prototype.forEach.call(document.querySelectorAll("#keyGrid button"), function(b){
+    b.classList.toggle("on", b.getAttribute("data-key") === key.id);
+  });
+  var sub = document.getElementById("coverSub");
+  if(sub){
+    var range = NOTES[0].name + NOTES[0].oct + " – " + NOTES[14].name + NOTES[14].oct;
+    sub.textContent = key.letter.replace("♭","b") + " " + (key.mode === "maj" ? "장조" : "단조") +
+                      " · 15음 · 공령고 (" + range + ")";
+  }
+  document.title = "텅드럼 — " + key.letter + " " + (key.mode === "maj" ? "장조" : "단조") + " 15음";
+  if(save) STORE.set("td_key", key.id);
 }
-menuBtn.addEventListener("click", function(e){ e.stopPropagation(); setMenu(!menu.classList.contains("open")); });
-menu.addEventListener("click", function(e){ e.stopPropagation(); });
+
+var KB = {};
+function buildKeyboard(){
+  var bands = {0:[], 1:[], 2:[]};
+  NOTES.forEach(function(n){ if(bands[n.band]) bands[n.band].push(n); });
+  function pick(band, num){
+    var arr = bands[band] || [];
+    for(var i = 0; i < arr.length; i++) if(arr[i].deg === String(num)) return arr[i];
+    return null;
+  }
+  KB = {};
+  "1234567".split("").forEach(function(ch){ var n = pick(1, ch); if(n) KB[ch] = n; });
+  "qwe".split("").forEach(function(ch, i){ var n = pick(2, i+1); if(n) KB[ch] = n; });
+  "asdfg".split("").forEach(function(ch, i){ var n = pick(0, i+3); if(n) KB[ch] = n; });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   8. 화면 · 크기 · 위치
+   ══════════════════════════════════════════════════════════════ */
+var app     = document.getElementById("app");
+var stageEl = document.getElementById("stage");
+var floorEl = document.getElementById("floor");
+var zoomVal = document.getElementById("zoomVal");
+
+var ZMIN = 0.7, ZMAX = 1.6, ZSTEP = 0.1;
+var zoom = Math.max(ZMIN, Math.min(ZMAX, parseFloat(STORE.get("td_zoom", "1")) || 1));
+var panX = 0, panY = 0;
+
+function baseSize(){
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var land = vw > vh;
+  /* 화면에 꼭 맞는 크기 × 배율(70%~160%) */
+  return Math.min(vw * (land ? 0.99 : 0.96), vh * (land ? 0.87 : 0.80)) * zoom;
+}
+
+function layout(){
+  var size = Math.round(baseSize());
+  stageEl.style.width  = size + "px";
+  stageEl.style.height = size + "px";
+  floorEl.style.width  = size + "px";
+  floorEl.style.height = size + "px";
+  clampPan();
+  applyPan();
+}
+
+function clampPan(){
+  var size = parseFloat(stageEl.style.width) || 0;
+  var mx = Math.max(0, (size - window.innerWidth ) / 2);
+  var my = Math.max(0, (size - window.innerHeight) / 2);
+  panX = Math.max(-mx, Math.min(mx, panX));
+  panY = Math.max(-my, Math.min(my, panY));
+}
+function applyPan(){
+  stageEl.style.transform = "translate(" + panX + "px," + panY + "px)";
+  floorEl.style.transform = "translate(calc(-50% + " + panX + "px), calc(-50% + " + panY + "px))";
+}
+
+function setZoom(z, save){
+  zoom = Math.round(Math.max(ZMIN, Math.min(ZMAX, z)) * 10) / 10;
+  zoomVal.textContent = Math.round(zoom * 100) + "%";
+  layout();
+  if(save) STORE.set("td_zoom", zoom);
+}
+
+/* 마우스·한 손가락으로 드럼 옮기기 (혀를 누르면 연주) */
+(function(){
+  var drag = { on:false, id:null, x:0, y:0, ox:0, oy:0 };
+  function pannable(){
+    return (parseFloat(stageEl.style.width) || 0) > Math.min(window.innerWidth, window.innerHeight) + 2;
+  }
+  app.addEventListener("pointerdown", function(e){
+    if(e.pointerType === "mouse" && e.button !== 0) return;
+    var t = e.target;
+    if(!t || !t.closest) return;
+    if(t.closest(".plate") || t.closest("#ui") || t.closest("#help") || t.closest("#cover")) return;
+    if(!pannable()) return;
+    drag.on = true; drag.id = e.pointerId;
+    drag.x = e.clientX; drag.y = e.clientY;
+    drag.ox = panX; drag.oy = panY;
+    try{ app.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  app.addEventListener("pointermove", function(e){
+    if(!drag.on || e.pointerId !== drag.id) return;
+    panX = drag.ox + (e.clientX - drag.x);
+    panY = drag.oy + (e.clientY - drag.y);
+    clampPan(); applyPan();
+  });
+  function end(e){ if(drag.on && e.pointerId === drag.id) drag.on = false; }
+  app.addEventListener("pointerup", end);
+  app.addEventListener("pointercancel", end);
+})();
+
+window.addEventListener("resize", layout);
+window.addEventListener("orientationchange", function(){ setTimeout(layout, 120); });
+
+/* ══════════════════════════════════════════════════════════════
+   9. 버튼 · 메뉴 · 설명서 · 전체화면
+   ══════════════════════════════════════════════════════════════ */
+var menuBtn  = document.getElementById("menuBtn");
+var keyBtn   = document.getElementById("keyBtn");
+var colorBtn = document.getElementById("colorBtn");
+var menu     = document.getElementById("menu");
+var keyMenu  = document.getElementById("keyMenu");
+var colorMenu= document.getElementById("colorMenu");
+
+function closeMenus(){
+  [menu, keyMenu, colorMenu].forEach(function(m){ m.classList.remove("open"); });
+  [menuBtn, keyBtn, colorBtn].forEach(function(b){ b.setAttribute("aria-expanded","false"); });
+}
+function toggleMenu(panel, btn){
+  var open = panel.classList.contains("open");
+  closeMenus();
+  if(!open){ panel.classList.add("open"); btn.setAttribute("aria-expanded","true"); }
+}
+menuBtn.addEventListener("click",  function(e){ e.stopPropagation(); toggleMenu(menu, menuBtn); });
+keyBtn.addEventListener("click",   function(e){ e.stopPropagation(); toggleMenu(keyMenu, keyBtn); });
+colorBtn.addEventListener("click", function(e){ e.stopPropagation(); toggleMenu(colorMenu, colorBtn); });
+[menu, keyMenu, colorMenu].forEach(function(m){ m.addEventListener("click", function(e){ e.stopPropagation(); }); });
 document.addEventListener("pointerdown", function(e){
-  if(menu.classList.contains("open") && !menu.contains(e.target) && e.target !== menuBtn) setMenu(false);
+  var t = e.target;
+  if(!t || !t.closest || !t.closest("#ui")) closeMenus();
 }, true);
 
-function setMode(mode){
+/* 표시 방식 */
+var MODE_KEY = "td_mode";
+function setMode(mode, save){
   LABEL_MODE = mode;
   applyLabels();
   Array.prototype.forEach.call(menu.querySelectorAll("button[data-mode]"), function(b){
     b.classList.toggle("on", b.getAttribute("data-mode") === mode);
   });
+  if(save) STORE.set(MODE_KEY, mode);
 }
 Array.prototype.forEach.call(menu.querySelectorAll("button[data-mode]"), function(b){
-  b.addEventListener("click", function(){ setMode(b.getAttribute("data-mode")); setMenu(false); });
+  b.addEventListener("click", function(){ setMode(b.getAttribute("data-mode"), true); closeMenus(); });
 });
 
+/* 조성 목록 */
+var keyGrid = document.getElementById("keyGrid");
+KEYS.forEach(function(k){
+  var b = document.createElement("button");
+  b.setAttribute("data-key", k.id);
+  b.innerHTML = "<b>" + k.letter + "</b><span>" + k.ko + "</span>";
+  b.addEventListener("click", function(){ applyKey(k.id, true); closeMenus(); });
+  keyGrid.appendChild(b);
+});
+
+/* 색 견본 */
+var bodySw = document.getElementById("bodySw");
+THEMES.forEach(function(t){
+  var b = document.createElement("button");
+  b.className = "sw"; b.setAttribute("data-theme", t.id);
+  b.setAttribute("aria-label", t.name); b.title = t.name;
+  b.style.background = "radial-gradient(circle at 34% 28%, " + t.face[0] + " 0%, " + t.face[1] + " 42%, " + t.face[3] + " 100%)";
+  b.addEventListener("click", function(){ applyTheme(t.id, true); });
+  bodySw.appendChild(b);
+});
+var inkSw = document.getElementById("inkSw");
+INKS.forEach(function(k){
+  var b = document.createElement("button");
+  b.className = "sw"; b.setAttribute("data-ink", k.id);
+  b.setAttribute("aria-label", k.name); b.title = k.name;
+  b.style.background = "radial-gradient(circle at 34% 28%, " + k.c1 + " 0%, " + k.c2 + " 52%, " + k.c3 + " 100%)";
+  b.addEventListener("click", function(){ applyInk(k.id, true); });
+  inkSw.appendChild(b);
+});
+
+/* 확대 · 축소 */
+document.getElementById("zoomIn").addEventListener("click", function(){ setZoom(zoom + ZSTEP, true); });
+document.getElementById("zoomOut").addEventListener("click", function(){ setZoom(zoom - ZSTEP, true); });
+zoomVal.addEventListener("click", function(){ panX = 0; panY = 0; setZoom(1, true); });
+
+/* 알림 */
+var toastEl = document.getElementById("toast");
+var toastT = null;
+function toast(msg, ms){
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  if(toastT) clearTimeout(toastT);
+  toastT = setTimeout(function(){ toastEl.classList.remove("show"); }, ms || 4200);
+}
+
+/* 전체화면 */
+function isStandalone(){
+  return (window.navigator.standalone === true) ||
+         (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+}
+function toggleFullscreen(){
+  var de = document.documentElement;
+  var cur = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+  if(cur){
+    var exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if(exit) exit.call(document);
+    return;
+  }
+  var req = de.requestFullscreen || de.webkitRequestFullscreen || de.msRequestFullscreen;
+  if(req){
+    try{
+      var p = req.call(de);
+      if(p && p.catch) p.catch(function(){ toast("전체화면을 열 수 없어요."); });
+    }catch(err){ toast("전체화면을 열 수 없어요."); }
+    return;
+  }
+  if(isStandalone()){ toast("이미 홈 화면 앱으로 열려 있어 전체화면입니다."); return; }
+  toast("아이폰 사파리는 전체화면 버튼을 지원하지 않아요.\n공유(⬆︎) → 홈 화면에 추가 → 홈 화면 아이콘으로 열면 전체화면으로 열립니다.", 7000);
+}
+document.getElementById("fsBtn").addEventListener("click", toggleFullscreen);
+["fullscreenchange","webkitfullscreenchange"].forEach(function(ev){
+  document.addEventListener(ev, function(){ setTimeout(layout, 140); });
+});
+
+/* 사용 설명서 */
+var helpEl = document.getElementById("help");
+function openHelp(){ closeMenus(); helpEl.classList.add("open"); }
+function closeHelp(){ helpEl.classList.remove("open"); }
+document.getElementById("helpBtn").addEventListener("click", openHelp);
+document.getElementById("helpClose").addEventListener("click", closeHelp);
+helpEl.addEventListener("pointerdown", function(e){ if(e.target === helpEl) closeHelp(); });
+
+/* ══════════════════════════════════════════════════════════════
+   10. 시작 화면 · 키보드 · 실행
+   ══════════════════════════════════════════════════════════════ */
 var cover = document.getElementById("cover");
 function unlock(){
   var ctx = initAudio();
@@ -695,55 +1184,36 @@ function unlock(){
   hideHintSoon();
 }
 cover.addEventListener("pointerdown", function(e){ e.preventDefault(); unlock(); }, {passive:false});
-cover.addEventListener("touchstart", function(e){ e.preventDefault(); unlock(); }, {passive:false});
-cover.addEventListener("click", function(e){ e.preventDefault(); unlock(); });
-
-var KEY_BY_NAME = {
-  "1":"C4", "2":"D4", "3":"E4", "4":"F4", "5":"G4", "6":"A4", "7":"B4",
-  "q":"C5", "w":"D5", "e":"E5",
-  "a":"E3", "s":"F3", "d":"G3", "f":"A3", "g":"B3"
-};
-var NAME_TO_NOTE = {};
-NOTES.forEach(function(n){ NAME_TO_NOTE[n.name + n.oct] = n; });
+cover.addEventListener("touchstart",  function(e){ e.preventDefault(); unlock(); }, {passive:false});
+cover.addEventListener("click",       function(e){ e.preventDefault(); unlock(); });
 
 window.addEventListener("keydown", function(e){
   if(e.metaKey || e.ctrlKey || e.altKey) return;
   var k = (e.key || "").toLowerCase();
-  if(KEY_BY_NAME[k]){
+  if(k === "escape"){
+    if(helpEl.classList.contains("open")){ closeHelp(); e.preventDefault(); return; }
+    closeMenus(); return;
+  }
+  if(helpEl.classList.contains("open")) return;
+  if(KB[k]){
     e.preventDefault();
     if(!AC.ready) unlock();
-    var n = NAME_TO_NOTE[KEY_BY_NAME[k]];
-    if(n) hit(n);
+    hit(KB[k]);
   }
 });
 
-var hint = document.getElementById("hint");
+var hintEl = document.getElementById("hint");
 var hintTimer = null;
 function hideHintSoon(){
   if(hintTimer) return;
-  hintTimer = setTimeout(function(){ hint.classList.add("gone"); }, 5500);
+  hintTimer = setTimeout(function(){ hintEl.classList.add("gone"); }, 5500);
 }
-setTimeout(function(){ hint.classList.add("gone"); }, 16000);
-
-function layout(){
-  var vw = window.innerWidth, vh = window.innerHeight;
-  var land = vw > vh;
-  var size = Math.min(vw * (land ? 0.99 : 0.96), vh * (land ? 0.87 : 0.80));
-  var stage = document.getElementById("stage");
-  stage.style.width = size + "px";
-  stage.style.height = size + "px";
-  var floor = document.getElementById("floor");
-  floor.style.width = (size*1.0) + "px";
-  floor.style.height = (size*1.0) + "px";
-}
-window.addEventListener("resize", layout);
-window.addEventListener("orientationchange", function(){ setTimeout(layout, 120); });
+setTimeout(function(){ hintEl.classList.add("gone"); }, 16000);
 
 /* ── 실행 ── */
-drawKey(NOTES[0]);
-for(var i=1;i<NOTES.length;i++) drawKey(NOTES[i]);
+TONGUES.forEach(function(t){ drawKey(NOTES[t.idx]); });
 
-/* ── 반사광(혀 위까지 같은 빛) ── */
+/* 반사광 */
 el("rect", {x:-FACE_R, y:-FACE_R, width:FACE_R*2, height:FACE_R*2, fill:"url(#topLight)",
              "pointer-events":"none", "clip-path":"url(#faceClip)"}, glossG);
 el("circle", {cx:0, cy:0, r:FACE_R, fill:"url(#edgeShade)", "pointer-events":"none"}, glossG);
@@ -754,33 +1224,36 @@ el("ellipse",{cx:-190, cy:-60, rx:210, ry:320, fill:"url(#sheen)", opacity:".14"
 el("ellipse",{cx:160, cy:270, rx:240, ry:160, fill:"url(#sheen)", opacity:".07",
                transform:"rotate(-26 160 270)", "pointer-events":"none"}, glossG);
 
-/* 땋은 테두리 — 혀 위에 덮어 혀 끝이 링 밑으로 들어가 보이게 */
+/* 땋은 테두리 */
 var ropeR = (RIM_IN + RIM_OUT) / 2, ropeW = (RIM_OUT - RIM_IN);
 var circ = 2 * Math.PI * ropeR;
-var dash = Math.round(circ / 52);           /* 꼬임 한 칸 */
-/* 테두리 바로 안쪽 그늘(혀 위로 드러우게) */
+var dash = Math.round(circ / 52);
 el("circle", {cx:0, cy:0, r:FACE_R+2, fill:"none", stroke:"#0a0418", "stroke-width":18, opacity:".22",
               filter:"url(#innerBlur)"}, rimG);
-el("circle", {cx:0, cy:0, r:ropeR, fill:"none", stroke:"url(#ropeG)",
-              "stroke-width":ropeW}, rimG);
-/* 두 가닥이 서로 엇갈리는 꼬임 */
+el("circle", {cx:0, cy:0, r:ropeR, fill:"none", stroke:"url(#ropeG)", "stroke-width":ropeW}, rimG);
 el("circle", {cx:0, cy:0, r:ropeR, fill:"none", stroke:"#f4eeff", "stroke-opacity":".62",
               "stroke-width":ropeW*0.42, "stroke-dasharray":dash + " " + dash, "stroke-linecap":"round",
               transform:"rotate(-8)"}, rimG);
 el("circle", {cx:0, cy:0, r:ropeR, fill:"none", stroke:"#6a5b8f", "stroke-opacity":".45",
               "stroke-width":ropeW*0.40, "stroke-dasharray":dash + " " + dash,
               "stroke-dashoffset":dash, "stroke-linecap":"round", transform:"rotate(-8)"}, rimG);
-el("circle", {cx:0, cy:0, r:RIM_IN+1.5, fill:"none", stroke:"#2a1a55", "stroke-width":4.5, opacity:".9"}, rimG);
-el("circle", {cx:0, cy:0, r:RIM_OUT-1.5, fill:"none", stroke:"#0d0620", "stroke-width":5, opacity:".85"}, rimG);
+var rl1 = el("circle", {cx:0, cy:0, r:RIM_IN+1.5, fill:"none", stroke:"#2a1a55", "stroke-width":4.5, opacity:".9", class:"rimline"}, rimG);
+var rl2 = el("circle", {cx:0, cy:0, r:RIM_OUT-1.5, fill:"none", stroke:"#0d0620", "stroke-width":5, opacity:".85", class:"rimline2"}, rimG);
 el("circle", {cx:0, cy:0, r:RIM_IN+8, fill:"none", stroke:"#0a0418", "stroke-width":7, opacity:".28"}, rimG);
 el("circle", {cx:0, cy:0, r:RIM_OUT-9, fill:"none", stroke:"#ffffff", "stroke-width":1.4, opacity:".22"}, rimG);
 
-setMode("num");
+/* 저장된 설정 복원 */
+applyTheme(STORE.get("td_theme", "purple"), false);
+applyInk(STORE.get("td_ink", "gold"), false);
+applyKey(STORE.get("td_key", "C"), false);
+setMode(STORE.get("td_mode", "num"), false);
+zoomVal.textContent = Math.round(zoom * 100) + "%";
 layout();
 
 /* 확인용 공개 API */
 window.__td = {
   notes: NOTES,
+  keys: KEYS,
   makeVoice: makeVoice,
   buildIR: buildIR,
   makeNoise: makeNoise,
@@ -790,7 +1263,32 @@ window.__td = {
   ready: function(){ return AC.ready; },
   last: function(){ return lastHit; },
   history: function(){ return hitLog; },
-  unlock: unlock
+  unlock: unlock,
+  setKey: function(id){ applyKey(id, true); return CURRENT_KEY.id; },
+  key: function(){ return CURRENT_KEY.id; },
+  setZoom: function(z){ setZoom(z, true); return zoom; },
+  zoom: function(){ return zoom; },
+  pan: function(){ return {x:panX, y:panY}; },
+  setPan: function(x, y){ panX = x; panY = y; clampPan(); applyPan(); return {x:panX, y:panY}; },
+  setMode: function(m){ setMode(m, true); return LABEL_MODE; },
+  mode: function(){ return LABEL_MODE; },
+  setTheme: function(id){ applyTheme(id, true); return CUR_THEME.id; },
+  theme: function(){ return CUR_THEME.id; },
+  setInk: function(id){ applyInk(id, true); return CUR_INK.id; },
+  ink: function(){ return CUR_INK.id; },
+  openHelp: function(){ openHelp(); },
+  closeHelp: function(){ closeHelp(); },
+  helpOpen: function(){ return helpEl.classList.contains("open"); },
+  labels: function(){
+    return labelEls.map(function(L){
+      return { idx:L.note.idx, text:L.txt.textContent,
+               rot:(L.txt.parentNode.getAttribute("transform")||""),
+               up:L.up.getAttribute("display") !== "none",
+               dn:L.dn.getAttribute("display") !== "none" };
+    });
+  },
+  kb: function(){ var o = {}; for(var k in KB) o[k] = KB[k].idx; return o; },
+  layoutSize: function(){ return parseFloat(stageEl.style.width) || 0; }
 };
 })();
 </script>
