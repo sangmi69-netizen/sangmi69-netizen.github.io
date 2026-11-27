@@ -173,6 +173,57 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 }
 .k.sel .sprite{filter:drop-shadow(0 26px 34px rgba(0,0,0,.82)) drop-shadow(0 6px 12px rgba(0,0,0,.55)) drop-shadow(0 0 16px rgba(240,169,74,.55))}
 
+/* ───────── 위치·크기 편집 모드 ───────── */
+#editBar{
+  position:absolute;left:50%;top:44px;transform:translateX(-50%);z-index:36;
+  display:flex;align-items:center;gap:7px;height:40px;padding:0 8px 0 12px;border-radius:12px;
+  background:rgba(24,16,10,.94);border:1px solid rgba(240,190,130,.55);color:#f6e2c4;
+  font-size:12.5px;white-space:nowrap;box-shadow:0 10px 28px rgba(0,0,0,.6);
+}
+#editBar[hidden]{display:none!important}
+#editBar .nm{font-weight:800;color:#ffe3bd;max-width:28vw;overflow:hidden;text-overflow:ellipsis}
+#editBar button.sz{
+  width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+  font-size:17px;font-weight:800;line-height:1;color:#ffe9c9;
+  background:rgba(240,190,130,.13);border:1px solid rgba(240,190,130,.34);
+}
+#editBar button.sz:active{background:rgba(240,190,130,.3)}
+#editBar button.sz:disabled{opacity:.32}
+#editBar .pct{min-width:44px;text-align:center;color:#f8cf96;font-weight:800;font-variant-numeric:tabular-nums}
+#editBar input[type=range]{width:104px;height:20px}
+#editBar #resetLayout{
+  width:auto;height:30px;padding:0 11px;border-radius:9px;font-size:11.5px;font-weight:700;
+  color:#f3d9b6;background:rgba(240,190,130,.10);border:1px solid rgba(240,190,130,.30);
+}
+#editBar #resetLayout:active{background:rgba(240,190,130,.26)}
+#editHint{
+  position:absolute;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:19;pointer-events:none;padding:8px 16px;border-radius:999px;
+  background:rgba(16,10,7,.9);border:1px solid rgba(240,190,130,.5);color:#f6e2c4;
+  font-size:12.5px;letter-spacing:.02em;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.55);
+}
+#editHint[hidden]{display:none!important}
+#editBtn.on{background:linear-gradient(180deg,#f0c084,#c07a43);color:#2a1608;border-color:#f0c084}
+body.editing .k{cursor:move}
+body.editing .k::after{
+  content:"";position:absolute;inset:-2%;border-radius:50%;pointer-events:none;
+  border:1.5px dashed rgba(255,214,150,.40);
+  transition:border-color .12s,box-shadow .12s;
+}
+body.editing .k.sel::after{
+  border:2px solid rgba(255,214,150,.95);
+  box-shadow:0 0 0 3px rgba(240,170,90,.16),0 0 26px rgba(240,170,90,.35);
+}
+body.editing .k.dragging{z-index:6}
+body.editing .k.dragging::after{border-color:rgba(255,232,196,1);box-shadow:0 0 0 3px rgba(240,170,90,.28),0 0 30px rgba(240,170,90,.45)}
+body.editing #hint{opacity:0}
+body.editing .k .note,body.editing .k .sub{opacity:.5}
+@media (max-height:430px){
+  #editBar{top:34px;height:36px;gap:5px;padding:0 6px 0 10px;font-size:11.5px}
+  #editBar input[type=range]{width:78px}
+  #editBar .nm{max-width:24vw}
+}
+
 /* ───────── 조율 콘솔 ───────── */
 #deck{
   position:relative;z-index:15;flex:0 0 auto;height:64px;
@@ -306,6 +357,9 @@ input[type=range]{accent-color:#d69a5c;height:24px;width:150px}
         <button data-n="5">5</button>
         <button data-n="6">6</button>
       </div>
+      <button id="editBtn" class="tb" aria-label="위치·크기 조정" title="위치·크기 조정">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>
+      </button>
       <button id="tuneBtn" class="tb txt" aria-label="조율 설정">조율</button>
       <button id="helpBtn" class="tb" aria-label="사용설명서">?</button>
       <button id="fsBtn" class="tb" aria-label="전체화면">
@@ -313,6 +367,16 @@ input[type=range]{accent-color:#d69a5c;height:24px;width:150px}
       </button>
     </div>
   </div>
+
+  <div id="editBar" hidden>
+    <span class="nm" id="ebName">32″ 팀파니</span>
+    <button class="sz" id="ebMinus" aria-label="작게">−</button>
+    <span class="pct" id="ebPct">100%</span>
+    <button class="sz" id="ebPlus" aria-label="크게">＋</button>
+    <input type="range" id="ebRange" min="60" max="160" step="5" aria-label="통 크기">
+    <button id="resetLayout" aria-label="기본 위치와 크기로">기본값</button>
+  </div>
+  <div id="editHint" hidden>통을 눌러 고르고 끌어서 옮기세요 · − ＋ 로 크기</div>
 
   <div id="stage">
     <div id="scene">
@@ -388,6 +452,13 @@ input[type=range]{accent-color:#d69a5c;height:24px;width:150px}
         <li>오른쪽 위 <b>⛶</b> 로 전체화면 연주를 합니다. 아이폰을 세로로 들고 있어도 화면이 저절로 가로로 돌아갑니다.</li>
         <li>마지막으로 고른 대수와 조율은 이 브라우저에 저장되어 다음에 열어도 그대로입니다.</li>
       </ul>
+      <h3>⑥ 통의 위치와 크기 바꾸기</h3>
+      <ul>
+        <li>오른쪽 위 <b>✥</b> 단추를 누르면 <b>편집 모드</b>가 됩니다. 이때는 통을 눌러도 소리가 나지 않고, 통을 <b>끌어서</b> 원하는 자리로 옮길 수 있습니다.</li>
+        <li>통을 누르면 위쪽 막대에 그 통이 나옵니다. <b>−</b> / <b>＋</b> 나 막대로 크기를 <b>60%~160%</b>까지 바꾸고, <b>기본값</b>을 누르면 그 대수의 처음 위치와 크기로 돌아갑니다.</li>
+        <li>2·3·4·5·6대마다 배치와 크기를 <b>따로</b> 기억합니다. 4대로 맞춘 자리는 5대로 바꿔도 그대로 남고, 앱을 다시 열어도 유지됩니다.</li>
+        <li>컴퓨터에서는 편집 모드에서 <kbd>1</kbd>~<kbd>6</kbd>으로 통을 고르고 <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd>로 옮기며, <kbd>-</kbd><kbd>+</kbd>로 크기를 바꿉니다.</li>
+      </ul>
       <button class="pri" data-close="help">닫고 연주하기</button>
     </div>
   </div>
@@ -434,6 +505,10 @@ var PRESETS = [
 ];
 
 var STORE_KEY = "tp_v1";
+/* 대수별 통 위치·크기 (편집 모드). 예: {"4":[{x,y,s}, null, ...], "5":[...]} */
+var LAYOUT_KEY = "tp_layout_v1";
+var SCALE_MIN = 0.6, SCALE_MAX = 1.6;
+var LAY = {};
 var state = {
   count:4, a4:440, vol:0.85,
   notes:{},                 /* size(문자열) → MIDI */
@@ -723,16 +798,69 @@ function rebuild(){
   paintTableLabels();
   layout();
   paint();
+  if(isEditing()) syncEditUI();
 }
 
-function layout(){
+function clampScale(v){ return Math.max(SCALE_MIN, Math.min(SCALE_MAX, v)); }
+function num(v){ return typeof v === "number" && isFinite(v); }
+
+/* 대수 하나의 배치 배열을 항상 통 수만큼 맞춰 돌려줍니다 (배열 자체는 그대로 둡니다) */
+function layOf(n){
+  n = Number(n);
+  var len = SETS[n].length;
+  var arr = Array.isArray(LAY[n]) ? LAY[n] : [];
+  LAY[n] = arr;
+  if(arr.length > len) arr.length = len;
+  while(arr.length < len) arr.push(null);
+  for(var i = 0; i < len; i++){
+    var v = arr[i];
+    if(!v || typeof v !== "object"){ arr[i] = null; continue; }
+    var x = Number(v.x), y = Number(v.y), sc = Number(v.s);
+    if(!num(x) || !num(y)){ arr[i] = null; continue; }
+    arr[i] = {x:x, y:y, s:num(sc) ? clampScale(sc) : 1};
+  }
+  return arr;
+}
+function loadLayout(){
+  try{
+    var raw = localStorage.getItem(LAYOUT_KEY);
+    if(!raw) return;
+    var o = JSON.parse(raw);
+    if(!o || typeof o !== "object") return;
+    Object.keys(o).forEach(function(n){
+      if(!SETS[Number(n)] || !Array.isArray(o[n])) return;
+      LAY[n] = o[n].map(function(v){
+        if(!v || typeof v !== "object") return null;
+        var x = Number(v.x), y = Number(v.y), sc = Number(v.s);
+        if(!num(x) || !num(y)) return null;
+        return {x:x, y:y, s:num(sc) ? clampScale(sc) : 1};
+      });
+    });
+    window.__tp.layoutLoaded = true;
+  }catch(e){ window.__tp.layoutError = String(e && e.message ? e.message : e); }
+}
+function saveLayout(){
+  try{
+    var out = {};
+    Object.keys(LAY).forEach(function(n){
+      var arr = LAY[n] || [];
+      var any = false;
+      for(var i = 0; i < arr.length; i++){ if(arr[i]) any = true; }
+      if(any) out[n] = arr;
+    });
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify(out));
+    window.__tp.layoutSaved = out;
+  }catch(e){ window.__tp.layoutError = String(e && e.message ? e.message : e); }
+}
+
+/* 기본 배치 — 대수와 통 크기만으로 정해지는 좌표 (장면 1600폭 기준) */
+function baseGeom(){
   var sizes = SETS[state.count].map(Number);
   var n = sizes.length;
   var avail = 1500;
   var gap = Math.max(18, Math.min(58, 1500 / 130 * 4.4));
   var k = (avail - gap * (n - 1)) / sizes.reduce(function(a, b){ return a + b; }, 0);
   var arch = Math.max(36, Math.min(190, 30 * n));
-  var maxSize = Math.max.apply(null, sizes);
   k = Math.min(k, 20);
   var D = sizes.map(function(s){ return s * k; });
   var totalW = D.reduce(function(a, b){ return a + b; }, 0) + gap * (n - 1);
@@ -745,19 +873,42 @@ function layout(){
   var bots = centers.map(function(c, i){ return c + D[i] / 2; });
   var minT = Math.min.apply(null, tops), maxB = Math.max.apply(null, bots);
   /* 장면 높이를 내용에 맞춰 줄여, 작은 화면에서도 통이 최대한 크게 보이게 합니다 */
-  var sceneH = (maxB - minT) + 56;
-  var off = (sceneH - (maxB - minT)) / 2 - minT;
+  var baseH = (maxB - minT) + 56;
+  var off = (baseH - (maxB - minT)) / 2 - minT;
+  return {sizes:sizes, n:n, D:D, x:x, y:centers.map(function(c){ return c + off; }), baseH:baseH};
+}
 
-  for(var j = 0; j < n; j++){
-    var el = drumEls[j];
-    var d = D[j], left = x[j] - d / 2, top = centers[j] + off - d / 2;
-    el.style.width = d + "px"; el.style.height = d + "px";
-    el.style.left = left + "px"; el.style.top = top + "px";
-    el.style.setProperty("--d", d + "px");
+function placeDrum(i, x, y, d){
+  var el = drumEls[i]; if(!el) return;
+  el.style.width = d + "px"; el.style.height = d + "px";
+  el.style.left = (x - d / 2) + "px"; el.style.top = (y - d / 2) + "px";
+  el.style.setProperty("--d", d + "px");
+}
+
+function layout(){
+  var g = baseGeom();
+  var n = g.n;
+  var lay = layOf(state.count);
+  var sw = stageEl.clientWidth || 1, sh = stageEl.clientHeight || 1;
+  /* 가로 기준 배율로 채울 수 있는 장면 높이 — 기본 배치가 작으면 그만큼 넓혀 통을 옮길 자리를 만듭니다 */
+  var availH = sh * SCENE_W / sw;
+  var sceneH = Math.max(g.baseH, Math.min(1500, availH));
+  var shift = (sceneH - g.baseH) / 2;   /* 기본 배치는 장면 세로 가운데 */
+  var xs = [], ys = [], ds = [];
+  for(var i = 0; i < n; i++){
+    var c = lay[i];
+    var s = c ? clampScale(c.s) : 1;
+    var d = g.D[i] * s;
+    var r = d / 2;
+    var x = c ? c.x : g.x[i];
+    var y = c ? c.y : g.y[i] + shift;
+    x = Math.max(r, Math.min(SCENE_W - r, x));
+    y = (sceneH >= d) ? Math.max(r, Math.min(sceneH - r, y)) : sceneH / 2;
+    xs.push(x); ys.push(y); ds.push(d);
+    placeDrum(i, x, y, d);
   }
   sceneEl.style.height = sceneH + "px";
   /* 무대 확대/축소 */
-  var sw = stageEl.clientWidth, sh = stageEl.clientHeight;
   var scale = Math.min(sw / SCENE_W, sh / sceneH);
   sceneEl.style.transform = "translate(" + ((sw - SCENE_W * scale) / 2) + "px," + ((sh - sceneH * scale) / 2) + "px) scale(" + scale + ")";
 
@@ -767,8 +918,8 @@ function layout(){
   var maxW = (deckW - 4 * (n - 1) - 8) / n;
   if(maxW < itemW) itemW = Math.max(74, maxW);
   for(var q = 0; q < n; q++){
-    var scx = (sw - SCENE_W * scale) / 2 + x[q] * scale;
-    var w = Math.min(itemW, Math.max(74, D[q] * scale * 1.35));
+    var scx = (sw - SCENE_W * scale) / 2 + xs[q] * scale;
+    var w = Math.min(itemW, Math.max(74, ds[q] * scale * 1.35));
     if(n > 1) w = Math.min(w, (deckW - 6 * (n - 1) - 6) / n);
     var left2 = scx - w / 2;
     if(left2 < 3) left2 = 3;
@@ -776,7 +927,11 @@ function layout(){
     deckEls[q].style.width = w + "px";
     deckEls[q].style.left = left2 + "px";
   }
-  window.__tp.lastLayout = {count:n, scale:Math.round(scale * 1000) / 1000, sceneH:Math.round(sceneH), drums:D.map(function(d, idx){ return {size:sizes[idx], d:Math.round(d), x:Math.round(x[idx])}; })};
+  window.__tp.lastLayout = {count:n, scale:Math.round(scale * 1000) / 1000, sceneH:Math.round(sceneH),
+    drums:ds.map(function(d, idx){
+      return {size:g.sizes[idx], d:Math.round(d), x:Math.round(xs[idx]), y:Math.round(ys[idx]),
+              custom:!!lay[idx], s:Math.round((d / g.D[idx]) * 100) / 100};
+    })};
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -862,6 +1017,13 @@ function onDrumDown(ev){
   if(ev.pointerType === "mouse" && ev.button !== 0) return;
   var el = ev.currentTarget;
   var i = Number(el.dataset.i);
+  if(isEditing()){
+    if(ev.cancelable) ev.preventDefault();
+    ev.stopPropagation();
+    selectDrum(i);
+    startDrag(el, i, ev);
+    return;
+  }
   var r = el.getBoundingClientRect();
   var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
   var dx = ev.clientX - cx, dy = ev.clientY - cy;
@@ -909,11 +1071,187 @@ function bindRepeat(btn, fn){
   btn.addEventListener("contextmenu", function(e){ e.preventDefault(); });
 }
 
+/* ══════════════════════════════════════════════════════════
+   6.5 위치·크기 편집 모드
+   ══════════════════════════════════════════════════════════ */
+var editBtn = document.getElementById("editBtn");
+var editBarEl = document.getElementById("editBar");
+var editHintEl = document.getElementById("editHint");
+var ebName = document.getElementById("ebName");
+var ebPct = document.getElementById("ebPct");
+var ebMinus = document.getElementById("ebMinus");
+var ebPlus = document.getElementById("ebPlus");
+var ebRange = document.getElementById("ebRange");
+var resetLayoutBtn = document.getElementById("resetLayout");
+var editHintTimer = 0;
+var EDIT_HINT = "통을 눌러 고르고 끌어서 옮기세요 · − ＋ 로 크기";
+var drag = null;
+
+function isEditing(){ return document.body.classList.contains("editing"); }
+
+/* 화면이 세로일 때 앱 전체가 90° 돌아 있으므로, 손가락 이동량을 장면 좌표로 돌립니다 */
+function appAngle(){
+  var el = document.getElementById("app");
+  var t = el ? window.getComputedStyle(el).transform : "none";
+  if(!t || t === "none") return 0;
+  var m = t.match(/matrix\(([^)]+)\)/);
+  if(!m) return 0;
+  var p = m[1].split(",").map(Number);
+  return Math.atan2(p[1], p[0]);
+}
+function curDrum(i){
+  var L = window.__tp.lastLayout;
+  return (L && L.drums && L.drums[i]) || null;
+}
+function flashEditHint(msg, ms){
+  if(!editHintEl) return;
+  editHintEl.textContent = msg;
+  clearTimeout(editHintTimer);
+  editHintTimer = setTimeout(function(){ editHintEl.textContent = EDIT_HINT; }, ms || 2000);
+}
+function syncEditUI(){
+  if(!isEditing()) return;
+  var i = state.selected, lay = layOf(state.count), c = lay[i];
+  var s = c ? clampScale(c.s) : 1;
+  ebName.textContent = SETS[state.count][i] + "″ 팀파니";
+  ebPct.textContent = Math.round(s * 100) + "%";
+  ebRange.value = String(Math.round(s * 100));
+  ebMinus.disabled = s <= SCALE_MIN + 0.0001;
+  ebPlus.disabled = s >= SCALE_MAX - 0.0001;
+  window.__tp.editSel = i;
+}
+
+/* 한 통의 위치·크기를 정하고 그립니다. x·y·s 를 비우면 지금 값을 씁니다. */
+function setPos(i, x, y, s, live){
+  var lay = layOf(state.count), c = lay[i], g0 = curDrum(i);
+  var L = window.__tp.lastLayout;
+  var bx = (c && num(c.x)) ? c.x : (g0 ? g0.x : SCENE_W / 2);
+  var by = (c && num(c.y)) ? c.y : (g0 ? g0.y : (L ? L.sceneH / 2 : SCENE_H / 2));
+  var bs = (c && num(c.s)) ? c.s : 1;
+  var out = {
+    x: Math.round((num(x) ? x : bx) * 10) / 10,
+    y: Math.round((num(y) ? y : by) * 10) / 10,
+    s: clampScale(num(s) ? s : bs)
+  };
+  lay[i] = out;
+  layout();
+  var g2 = curDrum(i);
+  if(g2){ out = {x:g2.x, y:g2.y, s:out.s}; lay[i] = out; }   /* 무대 밖으로 나간 값은 다듬어 저장 */
+  if(!live) saveLayout();
+  syncEditUI();
+  window.__tp.lastPos = {i:i, x:out.x, y:out.y, s:out.s};
+  return out;
+}
+function nudgeScale(delta){
+  var i = state.selected, lay = layOf(state.count), c = lay[i];
+  var s = (c ? clampScale(c.s) : 1) + delta;
+  return setPos(i, null, null, s, false);
+}
+
+function startDrag(el, i, ev){
+  var g0 = curDrum(i);
+  if(!g0) return;
+  var c = layOf(state.count)[i];
+  drag = {i:i, el:el, pid:ev.pointerId, sx:ev.clientX, sy:ev.clientY,
+          x0:g0.x, y0:g0.y, s:(c ? clampScale(c.s) : 1), moved:false};
+  el.classList.add("dragging");
+  try{ el.setPointerCapture(ev.pointerId); }catch(err){}
+  window.__tp.dragStart = i;
+}
+window.addEventListener("pointermove", function(e){
+  if(!drag || e.pointerId !== drag.pid) return;
+  var ang = appAngle();
+  var dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+  var cc = Math.cos(-ang), ss = Math.sin(-ang);
+  var lx = dx * cc - dy * ss, ly = dx * ss + dy * cc;
+  if(Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+  var sc = (window.__tp.lastLayout && window.__tp.lastLayout.scale) || 1;
+  setPos(drag.i, drag.x0 + lx / sc, drag.y0 + ly / sc, drag.s, true);
+}, {passive:true});
+function endDrag(e){
+  if(!drag) return;
+  if(e && e.pointerId != null && e.pointerId !== drag.pid) return;
+  drag.el.classList.remove("dragging");
+  if(drag.moved){
+    saveLayout();
+    flashEditHint("위치와 크기를 저장했어요");
+  }
+  drag = null;
+  syncEditUI();
+}
+window.addEventListener("pointerup", endDrag);
+window.addEventListener("pointercancel", endDrag);
+window.addEventListener("blur", function(){
+  if(drag){ drag.el.classList.remove("dragging"); drag = null; }
+});
+
+function setEditing(on){
+  on = !!on;
+  if(on === isEditing()) return;
+  document.body.classList.toggle("editing", on);
+  editBtn.classList.toggle("on", on);
+  editBtn.title = on ? "편집 끝내기" : "위치·크기 조정";
+  editBtn.setAttribute("aria-label", editBtn.title);
+  editBarEl.hidden = !on;
+  editHintEl.hidden = !on;
+  if(on){
+    closeAll();
+    hideHint();
+    selectDrum(state.selected);
+    syncEditUI();
+    editHintEl.textContent = EDIT_HINT;
+  }else{
+    if(drag){ drag.el.classList.remove("dragging"); drag = null; }
+    saveLayout();
+    flashEditHint(EDIT_HINT, 1);
+  }
+  window.__tp.editing = on;
+}
+
+function resetLayoutHere(){
+  var lay = layOf(state.count);
+  for(var i = 0; i < lay.length; i++) lay[i] = null;
+  saveLayout();
+  layout();
+  syncEditUI();
+  flashEditHint("이 대수의 처음 위치와 크기로 되돌렸어요");
+  window.__tp.layoutReset = state.count;
+}
+
+editBtn.addEventListener("click", function(e){ e.preventDefault(); setEditing(!isEditing()); });
+ebMinus.addEventListener("click", function(e){ e.preventDefault(); nudgeScale(-0.05); });
+ebPlus.addEventListener("click", function(e){ e.preventDefault(); nudgeScale(0.05); });
+ebRange.addEventListener("input", function(){ setPos(state.selected, null, null, Number(ebRange.value) / 100, false); });
+resetLayoutBtn.addEventListener("click", function(e){ e.preventDefault(); resetLayoutHere(); });
+
 var KEYMAP = {"1":0,"2":1,"3":2,"4":3,"5":4,"6":5};
 document.addEventListener("keydown", function(e){
   if(document.querySelector(".overlay:not([hidden])")){
     if(e.key === "Escape") closeAll();
     return;
+  }
+  if(isEditing()){
+    var nSel = SETS[state.count].length;
+    if(e.key === "Escape"){ setEditing(false); e.preventDefault(); return; }
+    if(KEYMAP[e.key] !== undefined && KEYMAP[e.key] < nSel){
+      selectDrum(KEYMAP[e.key]); e.preventDefault(); return;
+    }
+    if(e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown"){
+      var gk = curDrum(state.selected);
+      if(gk){
+        var step = e.shiftKey ? 1 : 10;
+        var mx = gk.x, my = gk.y;
+        if(e.key === "ArrowLeft") mx -= step;
+        if(e.key === "ArrowRight") mx += step;
+        if(e.key === "ArrowUp") my -= step;
+        if(e.key === "ArrowDown") my += step;
+        setPos(state.selected, mx, my, null, false);
+      }
+      e.preventDefault(); return;
+    }
+    if(e.key === "-" || e.key === "_"){ nudgeScale(-0.05); e.preventDefault(); return; }
+    if(e.key === "+" || e.key === "="){ nudgeScale(0.05); e.preventDefault(); return; }
+    return;   /* 편집 중에는 소리·조율 키를 쓰지 않습니다 */
   }
   if(KEYMAP[e.key] !== undefined && KEYMAP[e.key] < SETS[state.count].length){
     var i = KEYMAP[e.key];
@@ -965,6 +1303,7 @@ document.querySelectorAll("#countSeg button").forEach(function(b){
     var n = Number(b.dataset.n);
     if(!SETS[n] || n === state.count) return;
     state.count = n; state.selected = 0;
+    saveLayout();
     saveState(); rebuild(); hideHint();
   });
 });
@@ -1145,11 +1484,23 @@ window.__tp.applyPreset = function(id){
 window.__tp.state = function(){ return {count:state.count, a4:state.a4, vol:state.vol, notes:Object.assign({}, state.notes), selected:state.selected}; };
 window.__tp.strike = function(i, v, p){ return strike(i, v, p); };
 window.__tp.strikeAll = function(){ SETS[state.count].forEach(function(_, i){ strike(i, 0.85, 0.34); }); };
+window.__tp.edit = function(on){ setEditing(on === undefined ? !isEditing() : !!on); return isEditing(); };
+window.__tp.isEditing = function(){ return isEditing(); };
+window.__tp.layouts = function(){ return JSON.parse(JSON.stringify(LAY)); };
+window.__tp.setPos = function(i, x, y, s){ return setPos(i, x, y, s, false); };
+window.__tp.setScale = function(i, s){ return setPos(i, null, null, s, false); };
+window.__tp.resetLayout = function(){ resetLayoutHere(); return state.count; };
+window.__tp.geom = function(){ return window.__tp.lastLayout; };
+window.__tp.editBarState = function(){
+  return {hidden:editBarEl.hidden, name:ebName.textContent, pct:ebPct.textContent,
+          minus:ebMinus.disabled, plus:ebPlus.disabled, range:ebRange.value};
+};
 
 /* ══════════════════════════════════════════════════════════
    9. 시작
    ══════════════════════════════════════════════════════════ */
 loadState();
+loadLayout();
 rebuild();
 window.__tp.ready = true;
 setTimeout(function(){ var h = document.getElementById("hint"); if(h) h.classList.add("off"); }, 7000);
