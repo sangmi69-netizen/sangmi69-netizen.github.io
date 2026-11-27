@@ -140,12 +140,12 @@
           <stop offset="84%"  stop-color="#412a80"/>
           <stop offset="100%" stop-color="#33206a"/>
         </radialGradient>
-        <!-- 혀(같은 강판, 아주 조금 밝게) -->
-        <radialGradient id="tongueG" cx="40%" cy="32%" r="82%">
-          <stop offset="0%"   stop-color="#9377e2"/>
-          <stop offset="32%"  stop-color="#7759cd"/>
-          <stop offset="64%"  stop-color="#5b3fa9"/>
-          <stop offset="100%" stop-color="#472d87"/>
+        <!-- 혀(같은 강판, 아주 조금 밝게) — 드럼 전체 좌표로 조명이 일정하게 -->
+        <radialGradient id="tongueG" gradientUnits="userSpaceOnUse" cx="-60" cy="-170" r="560">
+          <stop offset="0%"   stop-color="#9a7fe8"/>
+          <stop offset="38%"  stop-color="#7d60d3"/>
+          <stop offset="72%"  stop-color="#5d41ac"/>
+          <stop offset="100%" stop-color="#4a2f8c"/>
         </radialGradient>
         <linearGradient id="bodyG" x1="0" y1="0" x2="0.3" y2="1">
           <stop offset="0%"   stop-color="#3a2570"/>
@@ -153,10 +153,10 @@
           <stop offset="100%" stop-color="#120a26"/>
         </linearGradient>
         <linearGradient id="ropeG" x1="0.1" y1="0" x2="0.5" y2="1">
-          <stop offset="0%"   stop-color="#e6ddf7"/>
-          <stop offset="34%"  stop-color="#cfc3e6"/>
-          <stop offset="66%"  stop-color="#a798c6"/>
-          <stop offset="100%" stop-color="#7c6da0"/>
+          <stop offset="0%"   stop-color="#ded4f2"/>
+          <stop offset="34%"  stop-color="#bcb0d6"/>
+          <stop offset="66%"  stop-color="#9284b4"/>
+          <stop offset="100%" stop-color="#6c5d8e"/>
         </linearGradient>
         <linearGradient id="goldG" x1="0" y1="0" x2="0.35" y2="1">
           <stop offset="0%"   stop-color="#fff6dc"/>
@@ -196,8 +196,8 @@
         <!-- 땋은 로프: 비스듬한 마름모 꼬임 -->
         <pattern id="braid" width="26" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(41)">
           <rect width="26" height="20" fill="#b9abd4" fill-opacity="0"/>
-          <path d="M0 5 q6.5 5 13 0 q6.5 5 13 0" fill="none" stroke="#ffffff" stroke-opacity=".62" stroke-width="5.2" stroke-linecap="round"/>
-          <path d="M0 15 q6.5 5 13 0 q6.5 5 13 0" fill="none" stroke="#6a5b8e" stroke-opacity=".5" stroke-width="4.6" stroke-linecap="round"/>
+          <path d="M0 5 q6.5 5 13 0 q6.5 5 13 0" fill="none" stroke="#ffffff" stroke-opacity=".50" stroke-width="5" stroke-linecap="round"/>
+          <path d="M0 15 q6.5 5 13 0 q6.5 5 13 0" fill="none" stroke="#5b4d7d" stroke-opacity=".45" stroke-width="4.4" stroke-linecap="round"/>
         </pattern>
       </defs>
       <g id="shell"></g>
@@ -346,14 +346,19 @@ function drawKey(note){
   }else{
     var c = note.kind === "long" ? LONG : SHORT;
     path = tonguePath(c.tip, c.hw, ARM_R);
-    fs = c.fs; labelY = c.label; hw = c.hw;
+    fs = c.fs; labelY = -c.label; hw = c.hw;   /* 국부 +y 는 안쪽 → 반지름은 음수 */
   }
 
-  /* 컷(틈) — 얇은 선 + 은은한 그늘 */
-  el("path", {d:path, fill:"none", stroke:"#0a0418", "stroke-width":7, opacity:".30",
+  /* 컷(틈) — core 는 갈래 끝의 가로선을 그리지 않는다 */
+  var strokePath = note.core
+    ? ("M " + (-hw) + " " + CORE_G.armY + " L " + (-hw) + " " + CORE_G.capY +
+       " A " + hw + " " + hw + " 0 0 0 " + hw + " " + CORE_G.capY +
+       " L " + hw + " " + CORE_G.armY)
+    : path;
+  el("path", {d:strokePath, fill:"none", stroke:"#0a0418", "stroke-width":6, opacity:".28",
               "stroke-linejoin":"round", filter:"url(#innerBlur)"}, g);
-  el("path", {d:path, fill:"none", stroke:"#0a0418", "stroke-width":2.8,
-              "stroke-linejoin":"round", opacity:".92"}, g);
+  el("path", {d:strokePath, fill:"none", stroke:"#0a0418", "stroke-width":2.6,
+              "stroke-linejoin":"round", opacity:".9", "stroke-linecap":"round"}, g);
 
   /* 혀 판 */
   var plate = el("path", {d:path, fill:"url(#tongueG)", "data-i":note.idx, class:"plate"}, g);
