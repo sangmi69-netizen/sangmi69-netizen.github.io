@@ -219,6 +219,7 @@
 
   @media (max-width: 470px){
     #badge span{font-size:11px;padding:4px 8px}
+    #badge b{display:none}
     .pill{font-size:11.5px;padding:6px 9px}
     .pill.icon{padding:5px 8px;min-width:30px;font-size:13px}
     #ui .row{gap:5px;max-width:calc(100vw - 132px)}
@@ -302,7 +303,7 @@
     </svg>
   </div>
 
-  <div id="badge"><span>창일중학교 이상미</span></div>
+  <div id="badge"><span><b>창일중학교</b> 이상미</span></div>
 
   <div id="ui">
     <div class="row">
@@ -505,7 +506,7 @@ var THEMES = [
     glow1:"rgba(160,160,190,.16)", glow2:"rgba(80,80,100,.10)" }
 ];
 var INKS = [
-  { id:"gold",   name:"금색",   c1:"#fff6dc", c2:"#f2d59f", c3:"#cda265", dot:"#ffe6ac", halo:"#2a1c05" },
+  { id:"gold",   name:"금색",   c1:"#fffdf2", c2:"#ffeab8", c3:"#e8c98c", dot:"#ffefc4", halo:"#2a1c05" },
   { id:"white",  name:"흰색",   c1:"#ffffff", c2:"#f6f4fb", c3:"#d6d2e2", dot:"#ffffff", halo:"#1d1233" },
   { id:"silver", name:"은색",   c1:"#ffffff", c2:"#d5d8e4", c3:"#98a0b4", dot:"#eef1f9", halo:"#12161f" },
   { id:"black",  name:"검정",   c1:"#3b3b46", c2:"#16161c", c3:"#000000", dot:"#14141a", halo:"#ffffff" }
@@ -664,13 +665,13 @@ function applyLabels(){
     }else{
       s = n.name + n.oct;
     }
-    var sz = LABEL_MODE === "nam" ? L.fs * 0.66 : (LABEL_MODE === "sol" ? L.fs * 0.84 : L.fs);
+    var sz = LABEL_MODE === "nam" ? L.fs * 0.68 : (LABEL_MODE === "sol" ? L.fs * 0.86 : L.fs);
     L.txt.textContent = s; L.out.textContent = s;
     L.txt.setAttribute("font-size", sz);
     L.out.setAttribute("font-size", sz);
     L.txt.setAttribute("stroke-width", Math.max(1.1, sz * 0.05));
     L.out.setAttribute("stroke-width", Math.max(2, sz * 0.14));
-    L.out.setAttribute("stroke-opacity", ".45");
+    L.out.setAttribute("stroke-opacity", ".38");
     L.txt.setAttribute("stroke", CUR_INK.halo);
     L.out.setAttribute("stroke", CUR_INK.halo);
     L.up.setAttribute("display", up ? "inline" : "none");
