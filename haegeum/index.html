@@ -737,7 +737,7 @@ function buildOverlay(){
     var inner = (s === 0) ? -GEO.laneInner : GEO.laneInner;
     for(var b=0;b<=n;b++){
       var by = GEO.playTop + b * h;
-      el("line", {x1:inner, y1:by, x2:outer, y2:by, stroke:"rgba(246,214,160,.07)", "stroke-width":1}, markG);
+      el("line", {x1:inner, y1:by, x2:outer, y2:by, stroke:"rgba(246,214,160,.1)", "stroke-width":1}, markG);
     }
     el("line", {x1:outer, y1:GEO.playTop, x2:outer, y2:GEO.playTop + GEO.playH,
                 stroke:"rgba(246,214,160,.13)", "stroke-width":1}, markG);
