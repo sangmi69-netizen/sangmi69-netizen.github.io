@@ -639,16 +639,16 @@ function buildModel(W, H){
     [0, "#7d5330"], [26, "#5b3a1d"], [66, "#3a2210"], [100, "#1f1108"]
   ]);
   lg("capG", "0.1", "0", "0.4", "1", [
-    [0, "#6b4123"], [22, "#54301a"], [58, "#3a1f10"], [100, "#240f07"]
+    [0, "#84512a"], [20, "#663c1c"], [55, "#45260f"], [100, "#2c1608"]
   ]);
   lg("headG", "0.1", "0", "0.4", "1", [
-    [0, "#71462a"], [22, "#583420"], [58, "#3d2312"], [100, "#271207"]
+    [0, "#9a6a3e"], [20, "#7d5029"], [55, "#5a3517"], [100, "#3a200c"]
   ]);
   lg("nutG", "0", "0", "0", "1", [
     [0, "#d8c9a8"], [26, "#efe2c2"], [58, "#dccaa4"], [100, "#a58a60"]
   ]);
   lg("brgG", "0", "0", "0", "1", [
-    [0, "#e8d3a2"], [22, "#dcc28c"], [56, "#bd9a63"], [84, "#93703c"], [100, "#63431f"]
+    [0, "#ddc392"], [22, "#d0b27a"], [56, "#b18a55"], [84, "#93703c"], [100, "#63431f"]
   ]);
   lg("silkLight", "0", "0", "0", "1", [
     [0, "#ffffff", ".95"], [30, "#fffaf0", ".55"], [62, "#e8d9bd", ".30"], [100, "#8d7a58", ".22"]
@@ -745,7 +745,7 @@ function buildModel(W, H){
   el("path", { d: dTail }, cpT);
   var gT = el("g", { "clip-path":"url(#tailClip)" }, gTail);
   el("image", { x: tX0, y: ty1 - earH, width: tX1 - tX0, height: (ty2 - ty1) + earH * 2,
-                preserveAspectRatio:"none", href: TEX_DARK, opacity: ".92" }, gT);
+                preserveAspectRatio:"none", href: TEX_DARK, opacity: ".62" }, gT);
   el("path", { d: dTail, fill: "none", stroke: "#1a0e05", "stroke-width": Math.max(0.6, s * 0.04) }, gTail);
   /* 목재 결 */
   for(var tgi = 0; tgi < 7; tgi++){
@@ -821,7 +821,7 @@ function buildModel(W, H){
   el("path", { d: dHead }, cpH);
   var gH = el("g", { "clip-path":"url(#headClip)" }, gHead);
   el("image", { x: hx, y: hy1, width: W - hx, height: hy2 - hy1,
-                preserveAspectRatio:"none", href: TEX_DARK, opacity: ".92" }, gH);
+                preserveAspectRatio:"none", href: TEX_DARK, opacity: ".50" }, gH);
   el("path", { d: dHead, fill: "none", stroke: "#170b04", "stroke-width": Math.max(0.6, s * 0.04) }, gHead);
   for(var hgi = 0; hgi < 8; hgi++){
     var hyy = hy1 + (hy2 - hy1) * (0.08 + hgi * 0.115);
