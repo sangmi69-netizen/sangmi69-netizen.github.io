@@ -117,12 +117,13 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
   box-shadow:
     0 30px 54px -14px rgba(0,0,0,.9),
     0 8px 18px rgba(0,0,0,.65),
-    inset -10px -14px 34px rgba(40,14,2,.6),
-    inset 8px 10px 30px rgba(255,206,150,.28);
+    inset 0 0 0 2px rgba(255,214,172,.35),
+    inset -10px -14px 34px rgba(60,22,4,.55),
+    inset 8px 10px 30px rgba(255,206,150,.30);
 }
 .k .bowl::before{
   content:"";position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 55%,rgba(30,10,2,.30) 88%,rgba(10,4,1,.55) 100%);
+  background:radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 52%,rgba(46,16,4,.18) 72%,rgba(16,6,1,.62) 96%,rgba(10,4,1,.75) 100%);
 }
 .k .bowl::after{
   content:"";position:absolute;inset:0;border-radius:50%;
@@ -169,13 +170,13 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 .k .head{
   position:absolute;inset:13.2%;border-radius:50%;overflow:hidden;
   background:
-    radial-gradient(circle at 30% 21%, #fffdfa 0%, #fbf6ea 18%, #f3e9d5 42%, #e6d7ba 68%, #d3c19d 88%, #bdaa83 100%);
+    radial-gradient(circle at 28% 18%, #fffefb 0%, #fdf8ee 14%, #f7efdd 34%, #eee0c6 58%, #ddcbaa 80%, #c9b593 94%, #b9a482 100%);
   box-shadow:
-    inset 0 0 0 2px rgba(70,45,22,.5),
-    inset 0 0 0 4px rgba(255,251,242,.5),
-    inset 0 12px 28px rgba(255,255,255,.35),
-    inset 0 -26px 50px rgba(96,64,28,.28),
-    0 3px 8px rgba(0,0,0,.45);
+    inset 0 0 0 1px rgba(52,34,18,.45),
+    inset 0 0 26px rgba(96,66,30,.30),
+    inset 0 14px 30px rgba(255,255,255,.30),
+    inset 0 -30px 56px rgba(88,58,26,.30),
+    0 3px 8px rgba(0,0,0,.5);
   touch-action:none;
 }
 .k .grain{
@@ -745,9 +746,10 @@ function copperTexture(){
   c.width = c.height = S;
   var x = c.getContext("2d");
   var base = x.createLinearGradient(0, 0, S, S);
-  base.addColorStop(0, "#dd9a5d");
-  base.addColorStop(0.42, "#c9824a");
-  base.addColorStop(1, "#95522a");
+  base.addColorStop(0, "#e6a05c");
+  base.addColorStop(0.40, "#cf8144");
+  base.addColorStop(0.75, "#b86a33");
+  base.addColorStop(1, "#95501f");
   x.fillStyle = base; x.fillRect(0, 0, S, S);
 
   var i, px, py, r, g;
@@ -761,13 +763,13 @@ function copperTexture(){
     x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, 6.2832); x.fill();
   }
   /* 해머 자국 — 작은 오목한 점들이 위에서 온 빛을 받습니다 */
-  for(i = 0; i < 300; i++){
-    px = Math.random() * S; py = Math.random() * S; r = S * (0.013 + Math.random() * 0.020);
-    g = x.createRadialGradient(px - r * 0.42, py - r * 0.42, r * 0.08, px, py, r);
-    g.addColorStop(0, "rgba(255,240,214,.72)");
-    g.addColorStop(0.42, "rgba(240,176,116,.26)");
-    g.addColorStop(0.78, "rgba(96,48,20,.24)");
-    g.addColorStop(1, "rgba(60,28,10,0)");
+  for(i = 0; i < 620; i++){
+    px = Math.random() * S; py = Math.random() * S; r = S * (0.006 + Math.random() * 0.011);
+    g = x.createRadialGradient(px - r * 0.45, py - r * 0.45, r * 0.05, px, py, r);
+    g.addColorStop(0, "rgba(255,244,220,.80)");
+    g.addColorStop(0.40, "rgba(244,178,116,.30)");
+    g.addColorStop(0.74, "rgba(112,52,18,.26)");
+    g.addColorStop(1, "rgba(70,30,10,0)");
     x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, 6.2832); x.fill();
   }
   /* 미세한 결 */
@@ -859,7 +861,7 @@ function layout(){
   var avail = 1560;
   var gap = Math.max(16, Math.min(58, 1560 / 130 * 4.4));
   var k = (avail - gap * (n - 1)) / sizes.reduce(function(a, b){ return a + b; }, 0);
-  var arch = Math.max(44, Math.min(168, 30 * n));
+  var arch = Math.max(36, Math.min(110, 16 * n));
   var maxSize = Math.max.apply(null, sizes);
   k = Math.min(k, 22, (SCENE_H - 76 - arch) / maxSize);
   var D = sizes.map(function(s){ return s * k; });
@@ -872,7 +874,7 @@ function layout(){
   var tops = centers.map(function(c, i){ return c - D[i] / 2; });
   var bots = centers.map(function(c, i){ return c + D[i] / 2; });
   var minT = Math.min.apply(null, tops), maxB = Math.max.apply(null, bots);
-  var off = (SCENE_H - 30) - maxB;
+  var off = (SCENE_H - (maxB - minT)) / 2 - minT;
 
   for(var j = 0; j < n; j++){
     var el = drumEls[j];
