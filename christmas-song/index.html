@@ -901,13 +901,15 @@ function setActive(k){
 }
 /* 자동 스크롤 */
 let userScrollAt=0;
-lyr.addEventListener('scroll', ()=>{ userScrollAt=Date.now(); }, {passive:true});
-function autoScroll(k){
+['wheel','touchmove','pointerdown'].forEach(ev=>{
+  lyr.addEventListener(ev, ()=>{ userScrollAt=Date.now(); }, {passive:true});
+});
+function autoScroll(k, force){
   const el = lyr.querySelector(`.line[data-i="${k}"]`);
   if(!el) return;
-  if(Date.now()-userScrollAt < 4500) return;      // 사용자가 직접 넘긴 직후엔 양보
+  if(!force && Date.now()-userScrollAt < 4000) return;   // 사용자가 직접 넘긴 직후엔 양보
   if(document.body.dataset.tab==='score') return;
-  const top = el.offsetTop - lyr.clientHeight*0.34;
+  const top = el.offsetTop - lyr.clientHeight*0.32;
   lyr.scrollTo({top: Math.max(0,top), behavior:'smooth'});
 }
 /* 소절 클릭 이동 */
@@ -920,6 +922,7 @@ lyr.addEventListener('click', e=>{
   if(el){
     const i=+el.dataset.i;
     seekTo(lines[i].t-0.15);
+    autoScroll(i,true);
     if(state.loopLine) setLoopTo(i);
     if(au.paused) toggle();
   }
@@ -928,6 +931,7 @@ lyr.addEventListener('keydown', e=>{
   if(e.key!=='Enter'&&e.key!==' ') return;
   const el=e.target.closest('.line'); if(!el) return;
   e.preventDefault(); const i=+el.dataset.i; seekTo(lines[i].t-0.15);
+  autoScroll(i,true);
   if(state.loopLine) setLoopTo(i);
   if(au.paused) toggle();
 });
