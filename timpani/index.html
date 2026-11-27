@@ -127,47 +127,55 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 .k .bowl::after{
   content:"";position:absolute;inset:0;border-radius:50%;
   background:
+    radial-gradient(58% 46% at 25% 16%,rgba(255,246,228,.34),rgba(255,246,228,0) 62%),
     conic-gradient(from 208deg,
-      rgba(255,232,196,.30) 0deg, rgba(255,232,196,0) 34deg,
-      rgba(0,0,0,.22) 128deg, rgba(255,224,182,.20) 196deg,
-      rgba(0,0,0,.26) 268deg, rgba(255,232,196,0) 320deg, rgba(255,232,196,.30) 360deg);
+      rgba(255,236,204,.50) 0deg, rgba(255,236,204,0) 40deg,
+      rgba(0,0,0,.30) 130deg, rgba(255,228,190,.34) 196deg,
+      rgba(0,0,0,.34) 268deg, rgba(255,236,204,0) 322deg, rgba(255,236,204,.50) 360deg);
   mix-blend-mode:overlay;
 }
 .k .hoop{
   position:absolute;inset:6.6%;border-radius:50%;
   background:
-    conic-gradient(from 8deg,
-      #f6d4b0 0deg,#c88a56 18deg,#8d4f28 40deg,#e8b98c 70deg,#b9723f 96deg,
-      #7f4624 126deg,#f2cda6 152deg,#c98a58 182deg,#8b4e28 210deg,
-      #eabf94 238deg,#c07b48 264deg,#7c4321 294deg,#f6d8b6 322deg,#c88a56 348deg,#f6d4b0 360deg);
+    repeating-linear-gradient(101deg, rgba(255,255,255,.13) 0 1px, rgba(0,0,0,.05) 1px 2px),
+    conic-gradient(from 10deg,
+      #f4f7f9 0deg,#c2c9cf 24deg,#eaefe0 44deg,#b6bec5 78deg,
+      #f2f6f9 112deg,#bcc4ca 148deg,#e9eef3 178deg,#aeb6bd 212deg,
+      #eff4f8 244deg,#b9c1c8 280deg,#e7ecf1 314deg,#b3bbc2 340deg,#f4f7f9 360deg);
   box-shadow:
-    0 0 0 2px rgba(46,22,9,.9),
-    0 3px 9px rgba(0,0,0,.65),
-    inset 0 0 0 2px rgba(255,229,193,.30),
-    inset 0 0 10px rgba(52,24,8,.55);
+    0 0 0 2px rgba(38,20,9,.92),
+    0 3px 10px rgba(0,0,0,.7),
+    inset 0 0 0 2px rgba(255,255,255,.55),
+    inset 0 0 12px rgba(30,20,14,.55);
 }
 .k .hoop::before{
   content:"";position:absolute;inset:0;border-radius:50%;
   background:
-    radial-gradient(120% 120% at 30% 18%,rgba(255,250,238,.55),rgba(255,246,226,0) 42%),
-    radial-gradient(120% 120% at 72% 88%,rgba(60,26,8,.45),rgba(60,26,8,0) 46%);
+    radial-gradient(120% 120% at 30% 16%,rgba(255,255,255,.75),rgba(255,255,255,0) 40%),
+    radial-gradient(120% 120% at 74% 90%,rgba(20,14,10,.55),rgba(20,14,10,0) 52%);
   mix-blend-mode:overlay;
 }
 .k .lug{
-  position:absolute;width:5.4%;height:3.4%;border-radius:26%;
-  background:linear-gradient(180deg,#ffe6c8,#d69a68 42%,#8a4a24 100%);
-  box-shadow:0 2px 4px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,246,228,.8);
+  position:absolute;width:7.4%;height:4.4%;border-radius:24%;
+  background:linear-gradient(180deg,#f6f9fb 0%,#b7bfc6 26%,#6b737a 58%,#2e3338 100%);
+  box-shadow:0 2px 5px rgba(0,0,0,.72),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(0,0,0,.5);
+}
+.k .lug::after{
+  content:"";position:absolute;left:50%;top:50%;width:34%;height:34%;border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 35% 30%,#ffffff,#c4ccd2 55%,#7b838a 100%);
+  box-shadow:inset 0 0 0 1px rgba(40,45,50,.5);
 }
 .k .head{
   position:absolute;inset:13.2%;border-radius:50%;overflow:hidden;
   background:
-    radial-gradient(circle at 33% 25%, #fffdf6 0%, #f8f1e1 24%, #efe3cc 48%, #e0d0b2 72%, #cbb995 90%, #b5a17e 100%);
+    radial-gradient(circle at 30% 21%, #fffdfa 0%, #fbf6ea 18%, #f3e9d5 42%, #e6d7ba 68%, #d3c19d 88%, #bdaa83 100%);
   box-shadow:
-    inset 0 0 0 2px rgba(84,54,26,.55),
-    inset 0 0 0 4px rgba(255,250,240,.45),
-    inset 0 10px 26px rgba(255,255,255,.40),
-    inset 0 -22px 46px rgba(104,70,32,.26),
-    0 2px 6px rgba(0,0,0,.35);
+    inset 0 0 0 2px rgba(70,45,22,.5),
+    inset 0 0 0 4px rgba(255,251,242,.5),
+    inset 0 12px 28px rgba(255,255,255,.35),
+    inset 0 -26px 50px rgba(96,64,28,.28),
+    0 3px 8px rgba(0,0,0,.45);
   touch-action:none;
 }
 .k .grain{
@@ -179,9 +187,9 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 .k .sheen{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;
   background:
-    linear-gradient(122deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.34) 44%, rgba(255,255,255,.05) 52%, rgba(255,255,255,0) 62%),
-    radial-gradient(60% 40% at 68% 76%, rgba(255,236,196,.30), rgba(255,236,196,0) 70%);
-  mix-blend-mode:screen;opacity:.85;
+    linear-gradient(120deg, rgba(255,255,255,0) 26%, rgba(255,255,255,.42) 43%, rgba(255,255,255,.10) 50%, rgba(255,255,255,0) 60%),
+    radial-gradient(58% 38% at 70% 80%, rgba(255,240,205,.34), rgba(255,240,205,0) 72%);
+  mix-blend-mode:screen;opacity:.95;
 }
 .k .ric{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;
@@ -737,9 +745,9 @@ function copperTexture(){
   c.width = c.height = S;
   var x = c.getContext("2d");
   var base = x.createLinearGradient(0, 0, S, S);
-  base.addColorStop(0, "#c07c48");
-  base.addColorStop(0.45, "#b06a3b");
-  base.addColorStop(1, "#8b4c27");
+  base.addColorStop(0, "#dd9a5d");
+  base.addColorStop(0.42, "#c9824a");
+  base.addColorStop(1, "#95522a");
   x.fillStyle = base; x.fillRect(0, 0, S, S);
 
   var i, px, py, r, g;
@@ -756,9 +764,9 @@ function copperTexture(){
   for(i = 0; i < 300; i++){
     px = Math.random() * S; py = Math.random() * S; r = S * (0.013 + Math.random() * 0.020);
     g = x.createRadialGradient(px - r * 0.42, py - r * 0.42, r * 0.08, px, py, r);
-    g.addColorStop(0, "rgba(255,226,186,.55)");
-    g.addColorStop(0.42, "rgba(226,160,106,.22)");
-    g.addColorStop(0.78, "rgba(84,42,18,.20)");
+    g.addColorStop(0, "rgba(255,240,214,.72)");
+    g.addColorStop(0.42, "rgba(240,176,116,.26)");
+    g.addColorStop(0.78, "rgba(96,48,20,.24)");
     g.addColorStop(1, "rgba(60,28,10,0)");
     x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, 6.2832); x.fill();
   }
@@ -851,7 +859,7 @@ function layout(){
   var avail = 1560;
   var gap = Math.max(16, Math.min(58, 1560 / 130 * 4.4));
   var k = (avail - gap * (n - 1)) / sizes.reduce(function(a, b){ return a + b; }, 0);
-  var arch = Math.max(44, Math.min(150, 24 * n));
+  var arch = Math.max(44, Math.min(168, 30 * n));
   var maxSize = Math.max.apply(null, sizes);
   k = Math.min(k, 22, (SCENE_H - 76 - arch) / maxSize);
   var D = sizes.map(function(s){ return s * k; });
