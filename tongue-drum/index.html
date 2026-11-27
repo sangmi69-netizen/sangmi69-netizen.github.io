@@ -603,14 +603,15 @@ function onPointerDown(ev){
   if(pointerSeen[key]) return;
   pointerSeen[key] = 1;
   var idx = parseInt(ev.currentTarget.getAttribute("data-i"), 10);
-  hit(NOTES[idx]);
+  hit(NOTES[idx], ev.clientX, ev.clientY);
 }
 ["pointerup","pointercancel"].forEach(function(t){
   document.addEventListener(t, function(ev){ delete pointerSeen[ev.pointerId || 0]; }, true);
 });
 
-function hit(note){
+function hit(note, cx, cy){
   strike(note, 1);
+  if(cx !== undefined && lastHit){ lastHit.x = cx; lastHit.y = cy; }
   var k = keyEls[note.idx];
   if(k){
     try{
