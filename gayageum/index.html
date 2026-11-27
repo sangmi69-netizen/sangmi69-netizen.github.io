@@ -945,11 +945,12 @@ function buildModel(W, H){
   var gLab = el("g", null, root);
   var labelX = hx - s * 1.45;
   ST.labelX = labelX;
-  var fs = clamp(s * 0.42, 8, 16);
+  var fs = clamp(s * (LAY.rot ? 0.30 : 0.42), 7.2, LAY.rot ? 10.5 : 16);
   ST.fs = fs;
   for(var li = 0; li < 12; li++){
     var ly = yOf(li) - s * 0.28;
-    var lg2 = el("g", { transform:"translate(" + labelX.toFixed(1) + "," + ly.toFixed(1) + ")" }, gLab);
+    var lg2 = el("g", { transform:"translate(" + labelX.toFixed(1) + "," + ly.toFixed(1) + ")" +
+                        (LAY.rot ? " rotate(90)" : "") }, gLab);
     var lab = txt(labelText(li), {
       x:0, y: (fs * 0.34).toFixed(1), "text-anchor":"middle",
       "font-family": "'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif",
