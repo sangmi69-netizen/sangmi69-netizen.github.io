@@ -55,52 +55,80 @@ function run(){
   var tap = A.log.slice(n0).map(function(e){ return e.i + 1; });
   log('tap 5현 → ' + JSON.stringify(tap));
 
-  // ── 2. 훑기 (1현 → 12현)
-  var n1 = A.log.length;
-  var p0 = P(0, 0.78);
-  fire('pointerdown', p0.x, p0.y, 21, svg);
+  // ── 2~5. 훑기·멀티·농현 (20ms 간격)
+  var seq = [];
+  function step(fn, delay){ seq.push({fn:fn, t:delay}); }
+  var tAcc = 0;
+  function at(fn){ tAcc += 20; step(fn, tAcc); }
+
+  at(function(){
+    var n1 = A.log.length;
+    w.__n1 = n1;
+    var p0 = P(0, 0.78);
+    fire('pointerdown', p0.x, p0.y, 21, svg);
+  });
   for(var i = 1; i < 12; i++){
-    var pi = P(i, 0.78);
-    fire('pointermove', pi.x, pi.y, 21);
+    (function(i){
+      at(function(){ var pi = P(i, 0.78); fire('pointermove', pi.x, pi.y, 21); });
+    })(i);
   }
-  var p11 = P(11, 0.78);
-  fire('pointerup', p11.x, p11.y, 21);
-  var sweep = A.log.slice(n1).map(function(e){ return e.i + 1; });
-  log('sweep → ' + JSON.stringify(sweep));
+  at(function(){
+    var p11 = P(11, 0.78);
+    fire('pointerup', p11.x, p11.y, 21);
+    log('sweep 1→12 → ' + JSON.stringify(A.log.slice(w.__n1).map(function(e){ return e.i + 1; })));
+  });
 
-  // ── 3. 역훑기 (12현 → 1현)
-  var n2 = A.log.length;
-  var q11 = P(11, 0.80);
-  fire('pointerdown', q11.x, q11.y, 31, svg);
+  // 역훑기
+  at(function(){ w.__n2 = A.log.length; var q = P(11, 0.80); fire('pointerdown', q.x, q.y, 31, svg); });
   for(var j = 10; j >= 0; j--){
-    var pj = P(j, 0.80);
-    fire('pointermove', pj.x, pj.y, 31);
+    (function(j){
+      at(function(){ var pj = P(j, 0.80); fire('pointermove', pj.x, pj.y, 31); });
+    })(j);
   }
-  var q0 = P(0, 0.80);
-  fire('pointerup', q0.x, q0.y, 31);
-  var sweep2 = A.log.slice(n2).map(function(e){ return e.i + 1; });
-  log('sweep back → ' + JSON.stringify(sweep2));
+  at(function(){
+    var q0 = P(0, 0.80);
+    fire('pointerup', q0.x, q0.y, 31);
+    log('sweep 12→1 → ' + JSON.stringify(A.log.slice(w.__n2).map(function(e){ return e.i + 1; })));
+  });
 
-  // ── 4. 멀티터치 (3현 + 9현)
-  var n3 = A.log.length;
-  var m1 = P(2, 0.72), m2 = P(8, 0.72);
-  fire('pointerdown', m1.x, m1.y, 41, svg);
-  fire('pointerdown', m2.x, m2.y, 42, svg);
-  fire('pointerup', m1.x, m1.y, 41);
-  fire('pointerup', m2.x, m2.y, 42);
-  log('multi → ' + JSON.stringify(A.log.slice(n3).map(function(e){ return e.i + 1; })));
+  // 멀티터치
+  at(function(){
+    w.__n3 = A.log.length;
+    var m1 = P(2, 0.72), m2 = P(8, 0.72);
+    fire('pointerdown', m1.x, m1.y, 41, svg);
+    fire('pointerdown', m2.x, m2.y, 42, svg);
+  });
+  at(function(){
+    var m1 = P(2, 0.72), m2 = P(8, 0.72);
+    fire('pointerup', m1.x, m1.y, 41);
+    fire('pointerup', m2.x, m2.y, 42);
+    log('multi (3현+9현) → ' + JSON.stringify(A.log.slice(w.__n3).map(function(e){ return e.i + 1; })));
+  });
 
-  // ── 5. 농현 (안족 왼쪽 누르고 흔들기)
-  var n4 = A.log.length;
-  var z = P(6, 0.22);
-  fire('pointerdown', z.x, z.y, 51, svg);
-  for(var k = 1; k <= 6; k++){
-    var zp = P(6, 0.22 - k * 0.012);
-    fire('pointermove', zp.x, zp.y + (k % 2 ? 6 : -6), 51);
+  // 농현: 안족 왼쪽을 누르고 옆으로 흔들기
+  at(function(){
+    w.__n4 = A.log.length;
+    var z = P(6, 0.22);
+    w.__z = z;
+    fire('pointerdown', z.x, z.y, 51, svg);
+  });
+  for(var k = 1; k <= 8; k++){
+    (function(k){
+      at(function(){
+        var zp = P(6, 0.22 - k * 0.015);
+        fire('pointermove', zp.x, zp.y + (k % 2 ? 7 : -7), 51);
+      });
+    })(k);
   }
-  var v = A.log.length > n4 ? A.log[A.log.length - 1] : null;
-  log('농현 zone → ' + (v ? (v.i + 1) + '현' : '없음'));
-  fire('pointerup', z.x, z.y, 51);
+  at(function(){
+    var vs = A.voices();
+    var v = vs.filter(function(x){ return x.i === 6; })[0];
+    log('농현 → 보이스 ' + JSON.stringify(v) + ' / 로그 ' + JSON.stringify(A.log.slice(w.__n4).map(function(e){ return e.i + 1; })));
+    fire('pointerup', w.__z.x, w.__z.y, 51);
+  });
+
+  var runAt = 0;
+  seq.forEach(function(s){ setTimeout(s.fn, s.t); });
 
   // ── 6. 버퍼 상태
   var bufs = A.buffers();
@@ -111,7 +139,7 @@ function run(){
   log('buffers ' + Object.keys(bufs).length + '\n  ' + rows.join('\n  '));
 
   // ── 7. 오프라인 렌더(체인 통과 후 실제 음량)
-  var jobs = [0, 5, 11].map(function(i){
+  setTimeout(function(){ var jobs = [0, 5, 11].map(function(i){
     return A.offlineTest(i, 1.2).then(function(r){
       return 'offline ' + (i + 1) + '현: peak ' + r.peak.toFixed(3) + ' rms ' + r.rms.toFixed(4) + ' f0 ' + r.measured.toFixed(1) + '/' + r.freq.toFixed(1);
     }).catch(function(e){ return 'offline ' + (i + 1) + '현 실패: ' + e.message; });
@@ -119,9 +147,10 @@ function run(){
   Promise.all(jobs).then(function(res){
     res.forEach(log);
     log('audio: ' + JSON.stringify(A.audioState()));
+    log('voices now: ' + JSON.stringify(A.voices()));
     log('errs end: ' + JSON.stringify(w.__errs));
     log('DONE');
-  });
+  }); }, 900);
 }
 </script>
 </body>

@@ -892,13 +892,13 @@ function refreshLabels(){
 var LOG = [];
 var VOICES = [];
 
-function pluck(i, vel, px){
+function pluck(i, vel, px, delay){
   var ctx = AC.ctx;
   if(!ctx) return null;
   var buf = getBuffer(i);
   if(!buf) return null;
   var vv = clamp(vel === undefined ? 0.9 : vel, 0.25, 1.15);
-  var t = ctx.currentTime + 0.006;
+  var t = ctx.currentTime + 0.006 + (delay || 0);
 
   var src = ctx.createBufferSource();
   src.buffer = buf;
@@ -1118,15 +1118,14 @@ function onMove(ev){
   /* ── 훑기(스와이프) ── */
   var inside = p.x > ST.xS0 - ST.s * 0.4 && p.x < ST.W && p.y > ST.yTop - ST.s * 1.2 && p.y < ST.yTop + 11 * ST.s + ST.s * 1.2;
   var ni = nearestString(p.y);
-  if(inside && ni >= 0 && ni !== rec.idx && now - rec.lastPluck > 28){
+  if(inside && ni >= 0 && ni !== rec.idx && now - rec.lastPluck > 10){
     var step = ni > rec.idx ? 1 : -1;
     var cnt = Math.abs(ni - rec.idx);
     var vel = clamp(0.5 + speed * 2.6, 0.5, 1.1);
     for(var k = 1; k <= cnt; k++){
       var target = rec.idx + step * k;
       if(target < 0 || target > 11) continue;
-      if(k === cnt) pluck(target, vel, p.x);
-      else pluck(target, vel * 0.82, p.x);
+      pluck(target, k === cnt ? vel : vel * 0.85, p.x, (k - 1) * 0.010);
     }
     rec.idx = ni;
     rec.lastPluck = now;
@@ -1406,6 +1405,11 @@ window.__gaya = {
   audioState: function(){ return { ctx: !!AC.ctx, state: AC.ctx ? AC.ctx.state : "none", sr: AC.SR, buffers: Object.keys(AC.buf).length }; },
   buffers: function(){ return BUFINFO; },
   pluck: function(i, v){ if(!AC.ctx) ensureAudio(); return pluck(i, v || 0.9, null); },
+  voices: function(){
+    return VOICES.filter(function(v){ return !v.dead; }).map(function(v){
+      return { i:v.i, bend:v.bend, nong:v.nong };
+    });
+  },
   labelText: function(i){ return labelText(i); },
   buildInfo: function(){
     return {
