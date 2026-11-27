@@ -253,10 +253,14 @@ window.addEventListener("unhandledrejection", function(e){ window.__errs.push("r
    · 같은 숫자가 이웃한 두 혀 — 짧은 혀 = 한 옥타브 위, 긴 혀 = 아래
    ══════════════════════════════════════════════════════════════ */
 var A4 = 440;
-function hz(semi){ return A4 * Math.pow(2, semi/12); }
-var E3 = hz(-5), F3 = hz(-4), G3 = hz(-2), A3 = hz(0), B3 = hz(2),
-    C4 = hz(3),  D4 = hz(5),  E4 = hz(7),  F4 = hz(8), G4 = hz(10),
-    A4v = hz(12), B4 = hz(14), C5 = hz(15), D5 = hz(17), E5 = hz(19);
+function hz(semi){ return A4 * Math.pow(2, semi/12); }   /* A4 기준 반음 거리 */
+/* 15음 C장조 표준 음역 E3–E5 (A4=440)
+   E3 164.81 · F3 174.61 · G3 196.00 · A3 220.00 · B3 246.94
+   C4 261.63 · D4 293.66 · E4 329.63 · F4 349.23 · G4 392.00
+   A4 440.00 · B4 493.88 · C5 523.25 · D5 587.33 · E5 659.26 */
+var E3 = hz(-17), F3 = hz(-16), G3 = hz(-14), A3 = hz(-12), B3 = hz(-10),
+    C4 = hz(-9),  D4 = hz(-7),  E4 = hz(-5),  F4 = hz(-4),  G4 = hz(-2),
+    A4v = hz(0),  B4 = hz(2),   C5 = hz(3),   D5 = hz(5),   E5 = hz(7);
 
 var RING = [
   { deg:"3", sol:"미", name:"E", oct:5, freq:E5,  kind:"short" },
@@ -484,13 +488,13 @@ function initAudio(){
   var ctx = new Ctx({latencyHint:"interactive"});
   AC.ctx = ctx;
 
-  var master = ctx.createGain();  master.gain.value = 0.86;
+  var master = ctx.createGain();  master.gain.value = 0.60;
   var comp = ctx.createDynamicsCompressor();
-  comp.threshold.value = -15; comp.knee.value = 20; comp.ratio.value = 3.4;
+  comp.threshold.value = -14; comp.knee.value = 18; comp.ratio.value = 3.2;
   comp.attack.value = 0.004;  comp.release.value = 0.26;
   var lim = ctx.createDynamicsCompressor();
-  lim.threshold.value = -2.2; lim.knee.value = 0; lim.ratio.value = 20;
-  lim.attack.value = 0.001;   lim.release.value = 0.11;
+  lim.threshold.value = -4; lim.knee.value = 0; lim.ratio.value = 20;
+  lim.attack.value = 0.0006;  lim.release.value = 0.10;
   master.connect(comp); comp.connect(lim); lim.connect(ctx.destination);
   AC.master = master;
 

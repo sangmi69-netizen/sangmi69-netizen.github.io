@@ -34,6 +34,18 @@ function peakFreq(buf, rate, lo, hi, step){
 }
 function cents(a,b){ return 1200*Math.log2(a/b); }
 
+function chain(oc, gain){
+  const master = oc.createGain(); master.gain.value = gain;
+  const comp = oc.createDynamicsCompressor();
+  comp.threshold.value = -14; comp.knee.value = 18; comp.ratio.value = 3.2;
+  comp.attack.value = 0.004; comp.release.value = 0.26;
+  const lim = oc.createDynamicsCompressor();
+  lim.threshold.value = -4; lim.knee.value = 0; lim.ratio.value = 20;
+  lim.attack.value = 0.0006; lim.release.value = 0.10;
+  master.connect(comp); comp.connect(lim); lim.connect(oc.destination);
+  return master;
+}
+
 window.addEventListener('load', function(){
   const fr = document.getElementById('fr');
   const t0 = Date.now();
@@ -48,80 +60,62 @@ window.addEventListener('load', function(){
 async function run(w){
   const td = w.__td;
   p('오류 수집: ' + JSON.stringify(w.__errs || null), (w.__errs && w.__errs.length) ? 'bad' : 'ok');
-  p('악기 초기화: ' + (td.ready() ? 'audio ready' : 'audio not started') );
   p('혀 개수: ' + td.notes.length + ' / DOM: ' + w.document.querySelectorAll('#keys path.plate').length);
   p('');
   p('idx  숫자  음이름   대상Hz     검출Hz    차이(cent)  peak   RMS');
-  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
   let bad = 0, clip = 0;
+  const single = [];
   for(const n of td.notes){
     const rate = 44100, sec = 1.2;
     const oc = new OfflineAudioContext(1, Math.floor(rate*sec), rate);
-    const dest = oc.createGain(); dest.gain.value = 0.86; dest.connect(oc.destination);
+    const master = chain(oc, 0.60);
     const conv = oc.createConvolver(); conv.buffer = td.buildIR(oc, 2.0);
-    const wet = oc.createGain(); wet.gain.value = 0.30; conv.connect(wet); wet.connect(dest);
+    const wet = oc.createGain(); wet.gain.value = 0.30; conv.connect(wet); wet.connect(master);
     const noise = td.makeNoise(oc, 0.06);
-    td.makeVoice(oc, dest, conv, n.freq, 0, 1, noise);
+    td.makeVoice(oc, master, conv, n.freq, 0, 1, noise);
     const rendered = await oc.startRendering();
     const buf = rendered.getChannelData(0);
     let peak = 0, sum = 0;
     for(let i=0;i<buf.length;i++){ const a=Math.abs(buf[i]); if(a>peak) peak=a; sum += buf[i]*buf[i]; }
     const rms = Math.sqrt(sum/buf.length);
-    const det = peakFreq(buf, rate, n.freq*0.90, n.freq*1.10, n.freq/900);
+    const det = peakFreq(buf, rate, n.freq*0.88, n.freq*1.12, n.freq/900);
     const ct = cents(det.freq, n.freq);
     const okPitch = Math.abs(ct) < 6;
     if(!okPitch) bad++;
     if(peak >= 0.999) clip++;
+    single.push({n:n, peak:peak});
     p(String(n.idx).padStart(3) + '   ' + n.deg + '      ' + (n.name+n.oct).padEnd(4) + '  ' +
       n.freq.toFixed(2).padStart(8) + '  ' + det.freq.toFixed(2).padStart(9) + '  ' +
       (ct>=0?'+':'') + ct.toFixed(1).padStart(8) + '   ' + peak.toFixed(3) + '  ' + rms.toFixed(4),
-      (okPitch && peak < 0.999) ? 'ok' : 'bad');
+      okPitch ? 'ok' : 'bad');
   }
   p('');
-  p('음정 오차 6cent 초과: ' + bad + '건,  클리핑(peak>=1.0): ' + clip + '건', (bad||clip)?'bad':'ok');
+  p('음정 오차 6cent 초과: ' + bad + '건,  단음 클리핑: ' + clip + '건', (bad||clip)?'bad':'ok');
+  p('단음 peak 범위: ' + Math.min(...single.map(s=>s.peak)).toFixed(3) + ' ~ ' +
+    Math.max(...single.map(s=>s.peak)).toFixed(3));
 
-  /* 15음 동시 화음 — 마스터 리미터 포함 전체 체인으로 클리핑 확인 */
-  {
+  async function chord(name, idxs, vel){
     const rate = 44100, sec = 3.0;
     const oc = new OfflineAudioContext(2, Math.floor(rate*sec), rate);
-    const master = oc.createGain(); master.gain.value = 0.86;
-    const comp = oc.createDynamicsCompressor();
-    comp.threshold.value = -15; comp.knee.value = 20; comp.ratio.value = 3.4;
-    comp.attack.value = 0.004; comp.release.value = 0.26;
-    const lim = oc.createDynamicsCompressor();
-    lim.threshold.value = -2.2; lim.knee.value = 0; lim.ratio.value = 20;
-    lim.attack.value = 0.001; lim.release.value = 0.11;
-    master.connect(comp); comp.connect(lim); lim.connect(oc.destination);
+    const master = chain(oc, 0.60);
     const conv = oc.createConvolver(); conv.buffer = td.buildIR(oc, 2.0);
     const wetG = oc.createGain(); wetG.gain.value = 0.30; conv.connect(wetG); wetG.connect(master);
     const noise = td.makeNoise(oc, 0.06);
-    td.notes.forEach(function(n, i){ td.makeVoice(oc, master, conv, n.freq, 0.001*i, 1, noise); });
+    idxs.forEach(function(i, k){ td.makeVoice(oc, master, conv, td.notes[i].freq, 0.002*k, vel, noise); });
     const r = await oc.startRendering();
     let peak = 0;
     for(let ch=0; ch<r.numberOfChannels; ch++){
       const b = r.getChannelData(ch);
       for(let i=0;i<b.length;i++){ const a=Math.abs(b[i]); if(a>peak) peak=a; }
     }
-    p('15음 동시 타격 peak = ' + peak.toFixed(3) + (peak < 0.999 ? '  → 클리핑 없음' : '  → 클리핑!'),
+    p(name + ' peak = ' + peak.toFixed(3) + (peak < 0.999 ? '  → 클리핑 없음' : '  → 클리핑!'),
       peak < 0.999 ? 'ok' : 'bad');
   }
-
-  /* 3음 화음 + 잔향 */
-  {
-    const rate = 44100, sec = 2.0;
-    const oc = new OfflineAudioContext(2, Math.floor(rate*sec), rate);
-    const dest = oc.createGain(); dest.gain.value = 0.86; dest.connect(oc.destination);
-    const conv = oc.createConvolver(); conv.buffer = td.buildIR(oc, 2.0);
-    const wet = oc.createGain(); wet.gain.value = 0.30; conv.connect(wet); wet.connect(dest);
-    const noise = td.makeNoise(oc, 0.06);
-    [4, 8, 11].forEach(function(i){ td.makeVoice(oc, dest, conv, td.notes[i].freq, 0, 1, noise); });
-    const r = await oc.startRendering();
-    let peak = 0; for(let i=0;i<r.length;i++){ const a=Math.abs(r.getChannelData(0)[i]); if(a>peak) peak=a; }
-    p('3음 화음(도·파·시) peak = ' + peak.toFixed(3) + (peak<0.999?'  → 정상':'  → 클리핑'), peak<0.999?'ok':'bad');
-  }
-
+  await chord('15음 동시 타격', [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14], 1);
+  await chord('8음 동시 타격', [1,3,5,7,9,11,13,2], 1);
+  await chord('3음 화음(도·파·시)', [4,8,11], 1);
+  await chord('15음 동시 타격(세게)', [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14], 1.6);
   p('');
-  /* 실제 클릭 발음 확인은 바깥 브라우저에서 수행 */
   p('done');
   window.__done = true;
 }
