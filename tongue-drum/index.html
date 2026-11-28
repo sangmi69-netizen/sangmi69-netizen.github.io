@@ -304,8 +304,8 @@
             values="0.1571 0.5284 0.0533 0 0  0.1471 0.4949 0.0499 0 0  0.1783 0.5999 0.0605 0 0  0 0 0 1 0"/>
         </filter>
         <filter id="glowF" x="-70%" y="-70%" width="240%" height="240%">
-          <feGaussianBlur stdDeviation="11" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="b"/></feMerge>
+          <feGaussianBlur stdDeviation="8" result="b"/>
+          <feMerge><feMergeNode in="b"/></feMerge>
         </filter>
         <filter id="slotBlur" x="-40%" y="-40%" width="180%" height="180%">
           <feGaussianBlur stdDeviation="6.5"/>
@@ -686,7 +686,7 @@ function drawKey(note){
   drawLabel(lab, note, fs);
 
   plate.addEventListener("pointerdown", onPointerDown, {passive:false});
-  keyEls.push({note:note, plate:plate, glow:glow, fs:fs, e:0, lit:false});
+  keyEls.push({note:note, plate:plate, glow:glow, fs:fs, e:0, lit:false, t0:0});
 }
 
 function drawLabel(parent, note, fs){
@@ -992,29 +992,38 @@ function hit(note, cx, cy){
   if(cx !== undefined && lastHit){ lastHit.x = cx; lastHit.y = cy; }
   var k = keyEls[note.idx];
   if(k){
-    k.e = 1;
+    k.t0 = performance.now();
+    k.e = GLOW_PEAK;
     if(!k.lit){ k.lit = true; litList.push(k); }
   }
   hideHintSoon();
 }
 
+/* 타격 반짝임 — 아주 짧게(0.17초) 켜졌다가 흔들림 없이 부드럽게 사라진다 */
+var GLOW_MS     = 170;    /* 완전히 사라지기까지의 시간 */
+var GLOW_ATTACK = 0.012;  /* 켜지는 데 걸리는 시간(초) */
+var GLOW_PEAK   = 0.55;   /* 최대 밝기(눈부심 줄임) */
 var litList = [];
-var lastFrameT = 0;
 function glowLoop(ts){
-  var dt = lastFrameT ? Math.min(0.1, (ts - lastFrameT)/1000) : 0.016;
-  lastFrameT = ts;
-  var decay = Math.exp(-dt / 2.2);
+  var now = (typeof ts === "number") ? ts : performance.now();
   for(var i=litList.length-1; i>=0; i--){
     var k = litList[i];
-    k.e *= decay;
-    if(k.e < 0.012){
+    var t = (now - k.t0) / 1000;
+    if(!(t < GLOW_MS/1000)){
       k.e = 0; k.lit = false;
       k.glow.setAttribute("opacity", "0");
       litList.splice(i,1);
       continue;
     }
-    var shimmer = 0.80 + 0.20*Math.sin(ts/46 + k.note.idx*1.7);
-    k.glow.setAttribute("opacity", (k.e * shimmer).toFixed(3));
+    var p;
+    if(t < GLOW_ATTACK){
+      p = t / GLOW_ATTACK;
+    }else{
+      var q = (t - GLOW_ATTACK) / (GLOW_MS/1000 - GLOW_ATTACK);
+      p = 0.5 + 0.5*Math.cos(Math.PI * Math.min(1, Math.max(0, q)));
+    }
+    k.e = GLOW_PEAK * p;
+    k.glow.setAttribute("opacity", k.e.toFixed(3));
   }
   requestAnimationFrame(glowLoop);
 }
