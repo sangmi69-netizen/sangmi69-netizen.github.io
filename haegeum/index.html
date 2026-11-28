@@ -1283,7 +1283,7 @@ function makeWave(c, strId, f0, bright){
 
 /* 마스터 체인 — 리미터 대신 여유 있는 게인과 부드러운 컴프레서 */
 function buildChain(c){
-  var master = c.createGain(); master.gain.value = 0.74;
+  var master = c.createGain(); master.gain.value = 0.85;
   var hp = bq(c, "highpass", 52, 0.7, 0);
   var comp = c.createDynamicsCompressor();
   comp.threshold.value = -13; comp.knee.value = 26; comp.ratio.value = 2.2;
@@ -1966,11 +1966,11 @@ function analyze(buf, f0exp){
     for(var m2=0; m2<bl && b2*bl+m2<n; m2++){ s3 += d[b2*bl+m2]*d[b2*bl+m2]; cnt++; }
     blocks.push(+Math.sqrt(s3 / Math.max(1,cnt)).toFixed(5));
   }
-  /* 20 ms 창 사이 레벨 변화 (dB) — 지퍼·클릭 지표 */
+  /* 20 ms 창 사이 레벨 변화 (dB) — 지속 구간의 지퍼·클릭 지표 */
   var bmax2 = 0;
   for(var b3=0; b3<blocks.length; b3++) if(blocks[b3] > bmax2) bmax2 = blocks[b3];
-  var maxJump = 0;
-  for(var w2=1; w2<blocks.length; w2++){
+  var maxJump = 0, b0 = Math.floor(blocks.length * 0.35), b1 = Math.floor(blocks.length * 0.92);
+  for(var w2=Math.max(1, b0); w2<b1; w2++){
     var d1 = 20 * Math.log(Math.max(1e-7, blocks[w2]) / Math.max(1e-7, bmax2)) / Math.LN10;
     var d0 = 20 * Math.log(Math.max(1e-7, blocks[w2-1]) / Math.max(1e-7, bmax2)) / Math.LN10;
     var jr = Math.abs(d1 - d0);
