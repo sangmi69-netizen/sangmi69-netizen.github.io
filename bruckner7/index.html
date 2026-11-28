@@ -183,9 +183,9 @@ function timeToX(t){
 }
 
 /* ── audio ── */
-var AC=null, master=null, musicGain=null, cymDry=null, cymWet=null, triDry=null, triWet=null, conv=null, softLim=null;
-var MASTER_GAIN=1.0, MUSIC_GAIN=1.0, CYM_DRY=0.26, CYM_WET=0.16, CYM_HIT_GAIN=0.62, ROLL_GAIN=0.20;
-var TRI_DRY=0.30, TRI_WET=0.24, TRI_HIT_GAIN=0.34, TRI_ROLL_GAIN=0.15;
+var AC=null, G=null;
+var MASTER_GAIN=1.0, MUSIC_GAIN=0.88, CYM_DRY=0.42, CYM_WET=0.20, CYM_HIT_GAIN=0.68, ROLL_GAIN=0.24;
+var TRI_DRY=0.52, TRI_WET=0.22, TRI_HIT_GAIN=0.62, TRI_ROLL_GAIN=0.26;
 var crashSet=[], triSet=[], musicBuf=null, musicFetch=null, musicSrc=null;
 var startAt=0, songT=0, phase="title", starting=false;
 var outLat=0, syncOffsetSec=0, SYNC_KEY="bruckner7.syncMs.v1";
@@ -209,29 +209,52 @@ function setSyncOffset(ms){
   if(v) v.textContent=(ms>0?"+":"")+ms+"ms";
   return ms;
 }
-function softClipCurve(){
-  var n=4096,c=new Float32Array(n),a=0.85,i;
-  for(i=0;i<n;i++){ var x=i/(n-1)*2-1,ax=Math.abs(x),y;
-    if(ax<=a) y=ax; else y=a+(1-a)*Math.tanh((ax-a)/(1-a));
-    c[i]=x<0?-y:y; }
+/* ── output stage ────────────────────────────────────────────────────────────
+   master → 리미터 → 0.5 저감 → 소프트 클리퍼(4x 오버샘플) → 스피커
+   클리퍼 곡선의 최대 출력이 0.92 이므로 어떤 조합으로 연주해도
+   절대 피크가 0.92를 넘지 않고 0.99 이상 샘플은 구조적으로 0개다.          */
+function limiterCurve(){
+  var n=8192,c=new Float32Array(n),K=0.36,KNEE=0.72,CEIL=0.92,SPAN=0.20,i;
+  for(i=0;i<n;i++){
+    var x=i/(n-1)*2-1, ax=Math.abs(x), y;
+    if(ax<=K) y=ax*2;                       /* 실제 레벨 0.72까지는 완전 투명 */
+    else y=KNEE+(CEIL-KNEE)*Math.tanh((ax-K)/SPAN);
+    c[i]=x<0?-y:y;
+  }
   return c;
 }
-function makeIR(dur){
-  var sr=AC.sampleRate,n=Math.floor(dur*sr),buf=AC.createBuffer(2,n,sr);
+/* ── 리버브 IR: 저역 통과된 잔향 + 매끈한 초기 반사, 채널별 에너지 정규화 ──
+   에너지 정규화(합 h² = 1)로 콘볼루션 이득을 1에 맞춘다. normalize:false와
+   함께 써야 브라우저마다 다른 자동 정규화(수십 배 증폭)를 타지 않는다.      */
+function makeIR(ctx,dur){
+  var sr=ctx.sampleRate,n=Math.floor(dur*sr),buf=ctx.createBuffer(2,n,sr);
   for(var ch=0;ch<2;ch++){
-    var d=buf.getChannelData(ch);
-    for(var i=0;i<n;i++){ var tt=i/n; d[i]=(Math.random()*2-1)*Math.pow(1-tt,2.4)*0.9; }
-    var taps=ch?[0.011,0.027,0.046]:[0.014,0.032,0.052];
-    for(var k=0;k<taps.length;k++){ var idx=Math.floor(taps[k]*sr); if(idx<n) d[idx]+=(k%2?-0.5:0.6); }
-    var prev=0;
-    for(var j=0;j<n;j++){ prev=prev*0.55+d[j]*0.45; d[j]=prev; }
-    var fade=Math.floor(0.002*sr);
-    for(var f=0;f<fade;f++) d[f]*=f/fade;
+    var d=buf.getChannelData(ch),i,j;
+    var lp1=0,lp2=0;
+    for(i=0;i<n;i++){
+      var tt=i/n, x=Math.random()*2-1;
+      lp1+=(x-lp1)*0.34; lp2+=(lp1-lp2)*0.34;
+      d[i]=lp2*0.40*Math.pow(1-tt,2.2)*(0.7+0.3*Math.pow(1-tt,6));
+    }
+    var taps=ch?[0.009,0.021,0.037,0.058]:[0.012,0.026,0.042,0.063];
+    for(var k=0;k<taps.length;k++){
+      var c0=Math.floor(taps[k]*sr), w=Math.max(8,Math.floor(0.0014*sr)), amp=(k%2?-1:1)*0.26/(1+k*0.4);
+      for(j=-w;j<=w;j++){
+        var idx=c0+j;
+        if(idx>=0&&idx<n) d[idx]+=amp*Math.exp(-(j*j)/(w*w)*2.6);
+      }
+    }
+    var fade=Math.floor(0.004*sr);
+    for(i=0;i<fade;i++) d[i]*=i/fade;
+    var e=0;
+    for(i=0;i<n;i++) e+=d[i]*d[i];
+    var g=1/Math.sqrt(e||1);
+    for(i=0;i<n;i++) d[i]*=g;
   }
   return buf;
 }
 
-/* ── crash cymbal: 0ms attack, metallic inharmonic partials + HF band noise ── */
+/* ── filter coefficients ── */
 function bpCoef(f0,Q,sr){
   var w0=2*Math.PI*f0/sr, alpha=Math.sin(w0)/(2*Q), c=Math.cos(w0);
   var a0=1+alpha;
@@ -242,71 +265,114 @@ function hpCoef(f0,Q,sr){
   var a0=1+alpha;
   return {b0:(1+c)/2/a0, b1:-(1+c)/a0, b2:(1+c)/2/a0, a1:(-2*c)/a0, a2:(1-alpha)/a0};
 }
-function makeCrash(){
-  var sr=AC.sampleRate,dur=3.6,n=Math.floor(dur*sr);
-  var buf=AC.createBuffer(2,n,sr);
-  var LAY=[[5100,0.7,1.7,0.55],[9600,1.0,0.9,0.30],[2000,0.9,0.35,0.38]];
+function lpCoef(f0,Q,sr){
+  var w0=2*Math.PI*f0/sr, alpha=Math.sin(w0)/(2*Q), c=Math.cos(w0);
+  var a0=1+alpha;
+  return {b0:(1-c)/2/a0, b1:(1-c)/a0, b2:(1-c)/2/a0, a1:(-2*c)/a0, a2:(1-alpha)/a0};
+}
+function filtInPlace(d,cf){
+  var x1=0,x2=0,y1=0,y2=0,i,n=d.length;
+  for(i=0;i<n;i++){
+    var x=d[i];
+    var y=cf.b0*x+cf.b1*x1+cf.b2*x2-cf.a1*y1-cf.a2*y2;
+    x2=x1; x1=x; y2=y1; y1=y; d[i]=y;
+  }
+}
+
+/* ── crash cymbal ────────────────────────────────────────────────────────────
+   브루크너 7번의 오케스트라 크래시에 맞춘 청동 심벌:
+   · 몸통은 대역별로 감쇠를 달리한 대역 제한 노이즈(고역일수록 빨리 사라짐)
+   · 금속 배음은 500~8.7kHz의 비화성 부분음, 살짝 어긋난 두 음을 겹쳐 맑게 흔든다
+   · 0.9ms 페이드 인으로 시작 순간의 '툭' 튀는 클릭을 없앴다
+   · 13kHz 위는 2차 저역 통과로 걷어내 지지직·앨리어싱을 막는다
+   · 버퍼 안에서 포화(tanh)시키지 않고 피크만 0.85로 정규화한다               */
+function makeCrash(ctx){
+  var sr=ctx.sampleRate,dur=4.2,n=Math.floor(dur*sr);
+  var buf=ctx.createBuffer(2,n,sr);
+  var LAY=[[820,0.80,0.30,1.35],[2100,1.05,0.24,1.05],[4300,1.00,0.15,0.76],
+           [6800,0.90,0.085,0.50],[9800,0.80,0.040,0.32]];
+  /* [주파수, 세기, 감쇠(초)] — 청동판의 비화성 배음 */
+  var P=[[523,0.55,2.30],[777,0.42,2.05],[1102,0.46,1.85],[1471,0.38,1.65],
+         [1907,0.34,1.45],[2411,0.30,1.28],[2963,0.27,1.10],[3581,0.23,0.96],
+         [4231,0.20,0.84],[4973,0.17,0.72],[5813,0.14,0.62],[6719,0.11,0.54],
+         [7691,0.09,0.46],[8741,0.07,0.40]];
   for(var ch=0;ch<2;ch++){
-    var d=buf.getChannelData(ch), i, k;
+    var d=buf.getChannelData(ch),i,k;
     var w=new Float32Array(n);
     for(i=0;i<n;i++) w[i]=Math.random()*2-1;
     for(k=0;k<LAY.length;k++){
-      var f0=LAY[k][0], Q=LAY[k][1], g=LAY[k][2], dec=LAY[k][3];
+      var f0=LAY[k][0]*(1+(Math.random()*2-1)*0.01), Q=LAY[k][1], amp=LAY[k][2], dec=LAY[k][3];
       var cf=bpCoef(f0,Q,sr);
-      var x1=0,x2=0,y1=0,y2=0, eg=g, kd=Math.exp(-1/(dec*sr));
+      var x1=0,x2=0,y1=0,y2=0,eg=amp,kd=Math.exp(-1/(dec*sr));
       for(i=0;i<n;i++){
         var x=w[i];
         var y=cf.b0*x+cf.b1*x1+cf.b2*x2-cf.a1*y1-cf.a2*y2;
         x2=x1; x1=x; y2=y1; y1=y; d[i]+=y*eg; eg*=kd;
       }
     }
-    var NP=28;
-    for(k=0;k<NP;k++){
-      var fr=330*Math.pow(2,Math.random()*4.4)*(0.99+Math.random()*0.02);
-      var amp=(0.45*Math.pow(fr/1000,0.15))*(0.6+Math.random()*0.8);
-      var dc=0.6+Math.random()*1.9;
-      var ph=Math.random()*6.283;
-      var om=2*Math.PI*fr/sr, c2=2*Math.cos(om);
-      var s1=Math.sin(ph), s2=Math.sin(ph-om), e=amp, kd2=Math.exp(-1/(dc*sr));
+    for(k=0;k<P.length;k++){
+      var fr=P[k][0]*(1+(Math.random()*2-1)*0.006);
+      var f2=fr*(1+0.0015+Math.random()*0.0012);
+      var aamp=P[k][1]*(0.9+Math.random()*0.2);
+      var dc=P[k][2]*(0.95+Math.random()*0.1);
+      var w1=2*Math.PI*fr/sr, w2=2*Math.PI*f2/sr;
+      var c1=2*Math.cos(w1), c2=2*Math.cos(w2);
+      var ph1=Math.random()*6.283, ph2=Math.random()*6.283;
+      var s1=Math.sin(ph1), s0=Math.sin(ph1-w1);
+      var t1=Math.sin(ph2), t0=Math.sin(ph2-w2);
+      var e=aamp, kd2=Math.exp(-1/(dc*sr));
       for(i=0;i<n;i++){
-        d[i]+=e*s1;
-        var s3=c2*s1-s2; s2=s1; s1=s3; e*=kd2;
+        d[i]+=(s1*0.78+t1*0.30)*e;
+        var s3=c1*s1-s0; s0=s1; s1=s3;
+        var t3=c2*t1-t0; t0=t1; t1=t3;
+        e*=kd2;
       }
     }
-    var hc=hpCoef(300,0.7,sr);
-    var hx1=0,hx2=0,hy1=0,hy2=0;
-    for(i=0;i<n;i++){
-      var xh=d[i];
-      var yh=hc.b0*xh+hc.b1*hx1+hc.b2*hx2-hc.a1*hy1-hc.a2*hy2;
-      hx2=hx1; hx1=xh; hy2=hy1; hy1=yh; d[i]=yh;
+    /* 타격 순간의 짧은 금속성 잡음 — 3~9kHz로 대역 제한(전대역 화이트노이즈 금지) */
+    var nz=new Float32Array(n);
+    var nc=Math.floor(0.012*sr);
+    for(i=0;i<nc;i++) nz[i]=(Math.random()*2-1)*Math.pow(1-i/nc,2.4);
+    var ncf=bpCoef(5200,0.9,sr);
+    var q1=0,q2=0,p1=0,p2=0;
+    for(i=0;i<nc;i++){
+      var xx=nz[i];
+      var yy=ncf.b0*xx+ncf.b1*q1+ncf.b2*q2-ncf.a1*p1-ncf.a2*p2;
+      q2=q1; q1=xx; p2=p1; p1=yy;
+      d[i]+=yy*0.55;
     }
-    var nc=Math.floor(0.003*sr);
-    for(i=0;i<nc;i++) d[i]+=(Math.random()*2-1)*0.6*Math.pow(1-i/nc,2.2);
-    var peak=0;
-    for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
-    var g2=0.95/(peak||1);
-    for(i=0;i<n;i++){ var v=d[i]*g2*1.25; d[i]=Math.tanh(v)/Math.tanh(1.25); }
-    var fade=Math.floor(0.3*sr);
-    for(i=0;i<fade;i++){ d[n-1-i]*=i/fade; }
+    /* 고역 다듬기 + 바닥 대역 정리 */
+    filtInPlace(d,lpCoef(13000,0.7,sr));
+    filtInPlace(d,lpCoef(13000,0.7,sr));
+    filtInPlace(d,hpCoef(220,0.7,sr));
+    /* 0.9ms 어택 페이드 인 — 시작 샘플 불연속(클릭) 제거 */
+    var atk=Math.max(4,Math.floor(0.0009*sr));
+    for(i=0;i<atk;i++){ var u=i/atk; d[i]*=u*u*(3-2*u); }
+    /* 피크 정규화(포화 없음) + 끝 페이드 아웃 */
+    var peak=0,a;
+    for(i=0;i<n;i++){ a=Math.abs(d[i]); if(a>peak) peak=a; }
+    var g2=0.85/(peak||1);
+    for(i=0;i<n;i++) d[i]*=g2;
+    var fade=Math.floor(0.40*sr);
+    for(i=0;i<fade;i++){ var u2=i/fade; d[n-1-i]*=u2*u2; }
   }
   return buf;
 }
 
-/* ── triangle: clear metallic ring — inharmonic high partials, long decay, tiny strike noise ── */
-function makeTriangle(){
-  var sr=AC.sampleRate,dur=3.6,n=Math.floor(dur*sr);
-  var buf=AC.createBuffer(2,n,sr);
-  /* [주파수, 세기, 감쇠(초)] — 트라이앵글 특유의 비화성 배음 */
+/* ── triangle ────────────────────────────────────────────────────────────────
+   맑은 금속음: 1.8~10kHz 비화성 배음, 아주 가까운 두 주파수의 맥놀이,
+   0.6ms 페이드 인과 11.5kHz 저역 통과로 시작 클릭·초고역 지지직을 없앤다.  */
+function makeTriangle(ctx){
+  var sr=ctx.sampleRate,dur=3.6,n=Math.floor(dur*sr);
+  var buf=ctx.createBuffer(2,n,sr);
   var P=[[1840,0.90,3.10],[2420,0.42,2.60],[3180,0.55,2.95],[4460,0.62,2.55],
-         [5720,0.52,2.15],[7010,0.46,1.85],[8460,0.38,1.55],[9930,0.30,1.30],
-         [11620,0.24,1.05],[13480,0.18,0.85],[15700,0.13,0.65],[18200,0.09,0.50]];
+         [5720,0.52,2.15],[7010,0.42,1.85],[8460,0.30,1.55],[9930,0.20,1.25],
+         [11480,0.09,0.95]];
   for(var ch=0;ch<2;ch++){
-    var d=buf.getChannelData(ch), i, k;
+    var d=buf.getChannelData(ch),i,k;
     for(k=0;k<P.length;k++){
       var f=P[k][0]*(1+(Math.random()*2-1)*0.011);
       var amp=P[k][1]*(0.9+Math.random()*0.2);
       var dec=P[k][2];
-      /* 두 개의 아주 가까운 주파수를 겹쳐 맑게 흔들리는(beating) 금속음을 만든다 */
       var f2=f*(1+0.0016+Math.random()*0.0012);
       var ph1=Math.random()*6.283, ph2=Math.random()*6.283;
       var w1=2*Math.PI*f/sr, w2=2*Math.PI*f2/sr;
@@ -321,93 +387,200 @@ function makeTriangle(){
         e*=kd;
       }
     }
-    /* 타격 순간의 짧은 금속성 잡음 */
-    var nc=Math.floor(0.010*sr), prev=0;
+    /* 타격 순간의 짧은 금속성 잡음 — 3~10kHz 대역 */
+    var nz=new Float32Array(n);
+    var nc=Math.floor(0.008*sr);
+    for(i=0;i<nc;i++) nz[i]=(Math.random()*2-1)*Math.pow(1-i/nc,2.6);
+    var ncf=bpCoef(6200,0.9,sr);
+    var q1=0,q2=0,p1=0,p2=0;
     for(i=0;i<nc;i++){
-      var x=Math.random()*2-1;
-      var hp=x-prev; prev=x;
-      d[i]+=hp*0.55*Math.pow(1-i/nc,2.6);
+      var xx=nz[i];
+      var yy=ncf.b0*xx+ncf.b1*q1+ncf.b2*q2-ncf.a1*p1-ncf.a2*p2;
+      q2=q1; q1=xx; p2=p1; p1=yy;
+      d[i]+=yy*0.42;
     }
-    var peak=0;
-    for(i=0;i<n;i++){ var a=Math.abs(d[i]); if(a>peak) peak=a; }
-    var g=0.92/(peak||1);
-    for(i=0;i<n;i++){ var v=d[i]*g; d[i]=v; }
-    var fade=Math.floor(0.4*sr);
-    for(i=0;i<fade;i++){ d[n-1-i]*=i/fade; }
+    filtInPlace(d,lpCoef(11500,0.7,sr));
+    var atk=Math.max(4,Math.floor(0.0006*sr));
+    for(i=0;i<atk;i++){ var u=i/atk; d[i]*=u*u*(3-2*u); }
+    var peak=0,a;
+    for(i=0;i<n;i++){ a=Math.abs(d[i]); if(a>peak) peak=a; }
+    var g=0.90/(peak||1);
+    for(i=0;i<n;i++) d[i]*=g;
+    var fade=Math.floor(0.40*sr);
+    for(i=0;i<fade;i++){ var u2=i/fade; d[n-1-i]*=u2*u2; }
   }
   return buf;
+}
+
+/* ── graph ───────────────────────────────────────────────────────────────────*/
+function buildGraph(ctx,bufs){
+  var g={};
+  g.master=ctx.createGain(); g.master.gain.value=MASTER_GAIN;
+  g.lim=ctx.createDynamicsCompressor();
+  g.lim.threshold.value=-4; g.lim.knee.value=6; g.lim.ratio.value=12;
+  g.lim.attack.value=0.003; g.lim.release.value=0.15;
+  g.pre=ctx.createGain(); g.pre.gain.value=0.5;
+  g.soft=ctx.createWaveShaper(); g.soft.curve=limiterCurve(); g.soft.oversample="4x";
+  g.master.connect(g.lim); g.lim.connect(g.pre); g.pre.connect(g.soft); g.soft.connect(ctx.destination);
+  g.music=ctx.createGain(); g.music.gain.value=MUSIC_GAIN; g.music.connect(g.master);
+  g.cymDry=ctx.createGain(); g.cymDry.gain.value=CYM_DRY; g.cymDry.connect(g.master);
+  g.triDry=ctx.createGain(); g.triDry.gain.value=TRI_DRY; g.triDry.connect(g.master);
+  g.conv=ctx.createConvolver();
+  g.conv.normalize=false;
+  g.conv.buffer=bufs.ir||makeIR(ctx,1.6);
+  g.cymWet=ctx.createGain(); g.cymWet.gain.value=CYM_WET; g.cymWet.connect(g.conv);
+  g.triWet=ctx.createGain(); g.triWet.gain.value=TRI_WET; g.triWet.connect(g.conv);
+  g.conv.connect(g.master);
+  g.crashBufs=bufs.crash||[makeCrash(ctx)];
+  g.triBufs=bufs.tri||[makeTriangle(ctx)];
+  return g;
 }
 function ensureAudio(){
   if(AC) return AC;
   var Ctx=window.AudioContext||window.webkitAudioContext;
   if(!Ctx){ fail("이 브라우저에서는 소리를 재생할 수 없습니다."); return null; }
   AC=new Ctx({latencyHint:"interactive"});
-  master=AC.createGain(); master.gain.value=MASTER_GAIN;
-  softLim=AC.createWaveShaper(); softLim.curve=softClipCurve(); softLim.oversample="none";
-  master.connect(softLim); softLim.connect(AC.destination);
-  musicGain=AC.createGain(); musicGain.gain.value=MUSIC_GAIN; musicGain.connect(master);
-  cymDry=AC.createGain(); cymDry.gain.value=CYM_DRY; cymDry.connect(master);
-  triDry=AC.createGain(); triDry.gain.value=TRI_DRY; triDry.connect(master);
-  conv=AC.createConvolver(); conv.buffer=makeIR(1.5);
-  cymWet=AC.createGain(); cymWet.gain.value=CYM_WET; cymWet.connect(conv); conv.connect(master);
-  triWet=AC.createGain(); triWet.gain.value=TRI_WET; triWet.connect(conv);
-  crashSet=[makeCrash()];
-  triSet=[makeTriangle()];
+  G=buildGraph(AC,{});
+  crashSet=G.crashBufs; triSet=G.triBufs;
   return AC;
 }
 function fillCrashVariants(){
-  if(!AC||crashSet.length>=3) return;
-  try{ while(crashSet.length<3) crashSet.push(makeCrash()); }catch(e){}
+  if(!AC||!G||crashSet.length>=3) return;
+  try{
+    var n=0;
+    while(crashSet.length<3 && n<2){ crashSet.push(makeCrash(AC)); n++; }
+  }catch(e){}
 }
-function playCrash(scale, soft){
-  if(!AC) return;
-  if(!crashSet.length) crashSet.push(makeCrash());
-  var src=AC.createBufferSource();
-  src.buffer=crashSet[(Math.random()*crashSet.length)|0];
+/* 한 타격을 ctx의 그래프 g로 내보낸다 (live: AC / 검증: OfflineAudioContext) */
+function emitCrash(ctx,g,when,scale,soft){
+  if(!g||!g.crashBufs||!g.crashBufs.length) return;
+  var src=ctx.createBufferSource();
+  src.buffer=g.crashBufs[(Math.random()*g.crashBufs.length)|0];
   src.playbackRate.value=0.985+Math.random()*0.03;
-  var g=AC.createGain();
-  var chain=[];
+  var out=ctx.createGain(), stopAt=0;
   if(soft){
-    var lp=AC.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=2600; lp.Q.value=0.7;
-    var env=AC.createGain(); var t0=AC.currentTime;
-    env.gain.setValueAtTime(ROLL_GAIN*(scale||1),t0);
-    env.gain.exponentialRampToValueAtTime(0.0008,t0+0.26);
-    src.connect(lp); lp.connect(env); chain.push(env);
-    g.gain.value=1;
-    env.connect(g);
-    try{ src.stop(t0+0.32); }catch(e){}
+    var lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=3000; lp.Q.value=0.6;
+    out.gain.setValueAtTime(ROLL_GAIN*(scale||1),when);
+    out.gain.exponentialRampToValueAtTime(0.0008,when+0.26);
+    src.connect(lp); lp.connect(out);
+    stopAt=when+0.32;
   } else {
-    g.gain.value=CYM_HIT_GAIN*(scale||1);
-    src.connect(g);
+    out.gain.value=CYM_HIT_GAIN*(scale||1);
+    src.connect(out);
   }
-  if(AC.createStereoPanner){
-    var pan=AC.createStereoPanner(); pan.pan.value=(Math.random()*2-1)*0.13;
-    g.connect(pan); pan.connect(cymDry); pan.connect(cymWet);
-  } else { g.connect(cymDry); g.connect(cymWet); }
-  src.start(0);
+  if(ctx.createStereoPanner){
+    var pan=ctx.createStereoPanner(); pan.pan.value=(Math.random()*2-1)*0.12;
+    out.connect(pan); pan.connect(g.cymDry); pan.connect(g.cymWet);
+  } else { out.connect(g.cymDry); out.connect(g.cymWet); }
+  src.start(when);
+  if(stopAt){ try{ src.stop(stopAt); }catch(e){} }
+}
+function emitTriangle(ctx,g,when,soft){
+  if(!g||!g.triBufs||!g.triBufs.length) return;
+  var src=ctx.createBufferSource();
+  src.buffer=g.triBufs[(Math.random()*g.triBufs.length)|0];
+  src.playbackRate.value=0.996+Math.random()*0.008;
+  var out=ctx.createGain(), stopAt=0;
+  if(soft){
+    out.gain.setValueAtTime(TRI_ROLL_GAIN,when);
+    out.gain.exponentialRampToValueAtTime(0.0015,when+0.42);
+    stopAt=when+0.5;
+  } else {
+    out.gain.value=TRI_HIT_GAIN;
+  }
+  src.connect(out);
+  if(ctx.createStereoPanner){
+    var pan=ctx.createStereoPanner(); pan.pan.value=0.14;
+    out.connect(pan); pan.connect(g.triDry); pan.connect(g.triWet);
+  } else { out.connect(g.triDry); out.connect(g.triWet); }
+  src.start(when);
+  if(stopAt){ try{ src.stop(stopAt); }catch(e){} }
+}
+function playCrash(scale,soft){
+  if(!AC||!G) return;
+  emitCrash(AC,G,AC.currentTime,scale,soft);
 }
 function playTriangle(soft){
-  if(!AC) return;
-  if(!triSet.length) triSet.push(makeTriangle());
-  var src=AC.createBufferSource();
-  src.buffer=triSet[(Math.random()*triSet.length)|0];
-  src.playbackRate.value=0.996+Math.random()*0.008;
-  var g=AC.createGain();
-  var t0=AC.currentTime;
-  if(soft){
-    g.gain.setValueAtTime(TRI_ROLL_GAIN,t0);
-    g.gain.exponentialRampToValueAtTime(0.0015,t0+0.42);
-    try{ src.stop(t0+0.5); }catch(e){}
-  } else {
-    g.gain.value=TRI_HIT_GAIN;
-  }
-  src.connect(g);
-  if(AC.createStereoPanner){
-    var pan=AC.createStereoPanner(); pan.pan.value=0.14;
-    g.connect(pan); pan.connect(triDry); pan.connect(triWet);
-  } else { g.connect(triDry); g.connect(triWet); }
-  src.start(0);
+  if(!AC||!G) return;
+  emitTriangle(AC,G,AC.currentTime,soft);
 }
+
+/* ── 오프라인 검증: 실제 그래프 그대로 렌더해 피크·클리핑·대역 에너지 측정 ── */
+function bandRms(d,sr,lo,hi){
+  var cf=bpCoef((lo+hi)/2,Math.max(0.7,(hi-lo)/Math.max(1,(lo+hi)/2)),sr);
+  var x1=0,x2=0,y1=0,y2=0,i,acc=0,n=d.length;
+  for(i=0;i<n;i++){
+    var x=d[i];
+    var y=cf.b0*x+cf.b1*x1+cf.b2*x2-cf.a1*y1-cf.a2*y2;
+    x2=x1;x1=x;y2=y1;y1=y;acc+=y*y;
+  }
+  return Math.sqrt(acc/n);
+}
+function analyzeBuf(buf){
+  var L=buf.getChannelData(0),R=buf.getChannelData(1),n=L.length,i;
+  var peak=0,rms=0,c99=0,c92=0,c85=0;
+  for(i=0;i<n;i++){
+    var a=Math.abs(L[i]),b=Math.abs(R[i]);
+    if(a>peak)peak=a; if(b>peak)peak=b;
+    rms+=L[i]*L[i]+R[i]*R[i];
+    var m=a>b?a:b;
+    if(m>=0.99)c99++; else if(m>=0.92)c92++; else if(m>=0.85)c85++;
+  }
+  rms=Math.sqrt(rms/(2*n));
+  var sr=buf.sampleRate;
+  var bands={};
+  var EDGES=[[0,120],[120,400],[400,1200],[1200,3000],[3000,6000],[6000,9000],[9000,13000],[13000,20000]];
+  for(i=0;i<EDGES.length;i++){
+    bands[EDGES[i][0]+"-"+EDGES[i][1]]=+bandRms(L,sr,EDGES[i][0],EDGES[i][1]).toFixed(4);
+  }
+  return {peak:+peak.toFixed(4),rms:+rms.toFixed(4),rmsDb:+(20*Math.log10(rms+1e-9)).toFixed(1),
+          clip99:c99,over92:c92,over85:c85,bands:bands};
+}
+function audioTest(){
+  if(!AC||!G||!musicBuf) return Promise.reject(new Error("audio not ready"));
+  var bufs={crash:crashSet,tri:triSet,ir:G.conv.buffer};
+  var sr=AC.sampleRate, DUR=4.2, N=Math.ceil(DUR*sr);
+  function render(name,fn){
+    var ctx=new OfflineAudioContext(2,N,sr);
+    var g=buildGraph(ctx,bufs);
+    fn(ctx,g);
+    var t0=performance.now();
+    return ctx.startRendering().then(function(b){
+      var r=analyzeBuf(b);
+      r.name=name; r.ms=Math.round(performance.now()-t0);
+      return r;
+    });
+  }
+  function music(ctx,g,from,to){
+    var s=ctx.createBufferSource(); s.buffer=musicBuf; s.connect(g.music);
+    s.start(0,from,to-from);
+  }
+  var jobs=[];
+  jobs.push(render("music_only",function(ctx,g){ music(ctx,g,18.0,22.2); }));
+  jobs.push(render("cym_solo",function(ctx,g){ emitCrash(ctx,g,0.3,1,false); }));
+  jobs.push(render("cym_roll",function(ctx,g){
+    for(var i=0;i<8;i++) emitCrash(ctx,g,0.3+i*0.03,1,true);
+  }));
+  jobs.push(render("tri_solo",function(ctx,g){ emitTriangle(ctx,g,0.3,false); }));
+  jobs.push(render("tri_roll",function(ctx,g){
+    for(var i=0;i<12;i++) emitTriangle(ctx,g,0.3+i*0.085,true);
+  }));
+  jobs.push(render("cym_tri_simul",function(ctx,g){
+    for(var i=0;i<4;i++){ emitCrash(ctx,g,0.3+i*0.5,1,false); emitTriangle(ctx,g,0.3+i*0.5,false); }
+  }));
+  jobs.push(render("cym+solo",function(ctx,g){ music(ctx,g,17.0,21.2); emitCrash(ctx,g,0.56,1,false); }));
+  jobs.push(render("tri+solo",function(ctx,g){ music(ctx,g,20.0,24.2); emitTriangle(ctx,g,1.45,false); }));
+  jobs.push(render("max_all",function(ctx,g){
+    music(ctx,g,17.0,21.2);
+    emitCrash(ctx,g,0.56,1,false);
+    emitTriangle(ctx,g,0.56,false);
+    for(var i=0;i<8;i++) emitCrash(ctx,g,0.9+i*0.03,1,true);
+    for(var j=0;j<12;j++) emitTriangle(ctx,g,0.6+j*0.085,true);
+    emitCrash(ctx,g,1.9,1,false); emitTriangle(ctx,g,1.9,false);
+  }));
+  return Promise.all(jobs);
+}
+
 function dataToBuffer(uri){
   return new Promise(function(res,rej){
     try{
@@ -785,7 +958,7 @@ function startGame(){
     if(musicSrc){ try{ musicSrc.stop(0); }catch(e){} }
     musicSrc=AC.createBufferSource();
     musicSrc.buffer=musicBuf;
-    musicSrc.connect(musicGain);
+    musicSrc.connect(G.music);
     startAt=AC.currentTime+lead;
     musicSrc.start(startAt);
     phase="play"; songT=-lead;
@@ -958,7 +1131,8 @@ window.__game={
   strikeAt:function(t){ var now=AC?AC.currentTime:performance.now()/1000; STRIKE_AT=now - t; TRI_AT=now - t; updateCymbals(); updateTriangle(); },
   triStrikeAt:function(t){ var now=AC?AC.currentTime:performance.now()/1000; TRI_AT=now - t; updateTriangle(); },
   triSvgRect:function(){ return document.getElementById("triZone").getBoundingClientRect(); },
-  scorePeek:function(t){ return timeToX(t); }
+  scorePeek:function(t){ return timeToX(t); },
+  audiotest:audioTest
 };
 })();
 </script>
