@@ -63,6 +63,26 @@
     display:inline-flex;align-items:center;justify-content:center;
   }
   .iconBtn:active,#menuBtn:active{transform:translateY(1px)}
+  #zoomBox{
+    display:flex;align-items:center;gap:2px;padding:3px 5px;border-radius:999px;
+    background:linear-gradient(180deg, rgba(96,66,32,.92), rgba(46,31,15,.92));
+    border:1px solid rgba(226,190,132,.45);
+    box-shadow:0 4px 16px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.13);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  }
+  #zoomBox button{
+    width:32px;height:28px;border:0;border-radius:999px;background:transparent;color:#f6e8cd;
+    font:inherit;font-size:17px;font-weight:800;line-height:1;cursor:pointer;padding:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  }
+  #zoomBox button:active{background:rgba(226,190,132,.22)}
+  #zoomBox button:disabled{opacity:.3}
+  #zoomVal{
+    min-width:48px;text-align:center;font-size:11.5px;font-weight:700;color:#fbeccb;
+    cursor:pointer;font-variant-numeric:tabular-nums;line-height:1;
+  }
   #menu{
     display:none;width:250px;padding:6px;border-radius:14px;
     background:rgba(28,20,11,.96);
@@ -161,6 +181,20 @@
     50%{transform:scale(1.035);box-shadow:0 12px 34px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.5) inset, 0 0 36px rgba(240,205,146,.32)}
   }
   #cover .sub{margin-top:16px;font-size:11.5px;color:rgba(210,190,158,.6)}
+
+  /* ── 손가락 누름에서 브라우저 창·메뉴·선택·확대·드래그가 뜨지 않게 ──
+     (스크롤·선택이 필요한 도움말 본문만 아래에서 예외로 되돌린다) */
+  html,body,#app,#app *,svg,#scene,#scene *,#cover,#cover *{
+    -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;-webkit-user-drag:none;
+  }
+  #app,#scene,#scene *,#cover,#cover *,#badge,#hint,#notehud,#toast{touch-action:none}
+  #scene image,#app img{-webkit-user-drag:none;user-select:none;pointer-events:none}
+  /* 도움말: 읽고 스크롤하고 문장을 골라 복사할 수 있어야 한다 */
+  #help,#help .sheet,#help .sheet *{touch-action:pan-y}
+  #help .sheet,#help .sheet p,#help .sheet li,#help .sheet h2,#help .sheet h3,#help .sheet b,#help .sheet span{
+    -webkit-user-select:text;user-select:text;-webkit-touch-callout:default;-webkit-user-drag:auto;
+  }
 </style>
 </head>
 <body>
@@ -393,6 +427,11 @@
       <button id="menuBtn" aria-haspopup="true" aria-expanded="false">율명 ▾</button>
       <button id="fsBtn" class="iconBtn" aria-label="전체화면">⛶</button>
     </div>
+    <div id="zoomBox" role="group" aria-label="해금 크기">
+      <button id="zoomOut" aria-label="해금 작게">−</button>
+      <span id="zoomVal" role="button" tabindex="0" title="눌러서 100%로">100%</span>
+      <button id="zoomIn" aria-label="해금 크게">+</button>
+    </div>
     <div id="menu" role="menu"></div>
   </div>
 
@@ -430,6 +469,12 @@
       <h3>키보드 (노트북)</h3>
       <ul>
         <li>중현: <b>A S D F G H J K L</b> · 유현: <b>Q W E R T Y U I O</b></li>
+      </ul>
+
+      <h3>크기 조절</h3>
+      <ul>
+        <li>오른쪽 위 <b>−</b> / <b>+</b> 로 해금을 <b>70%~160%</b>까지 키우고 줄일 수 있습니다.</li>
+        <li>가운데 <b>100%</b>를 누르면 원래 크기로 돌아갑니다. 크기는 다음에 열어도 그대로 기억합니다.</li>
       </ul>
 
       <h3>알아두기</h3>
@@ -596,7 +641,7 @@ var L = { W:0, H:0, k:1, rot:0, cx:0, cy:0 };
 /* 상단 컨트롤(배지·버튼)이 끝나는 높이 — 악기가 그 아래에서 시작하도록 */
 function topBarBottom(){
   var y = 0, i, r;
-  var nodes = [document.getElementById("topBtns"), document.querySelector("#badge span")];
+  var nodes = [document.getElementById("topBtns"), document.getElementById("zoomBox"), document.querySelector("#badge span")];
   for(i=0;i<nodes.length;i++){
     if(!nodes[i]) continue;
     r = nodes[i].getBoundingClientRect();
@@ -617,11 +662,21 @@ function layout(){
   var botPad = H * 0.03;
   var topPad = Math.max(H * 0.03, topBarBottom() + 4);
   var band = Math.max(120, H - topPad - botPad);
-  var k = Math.min(band / artH, W * 0.99 / artW);
+  var kFit = Math.min(band / artH, W * 0.99 / artW);
+  var z = Math.max(ZMIN, Math.min(ZMAX, S.zoom || 1));
+  var k = kFit * z;
 
-  L.W = W; L.H = H; L.k = k; L.rot = 0;
+  L.W = W; L.H = H; L.k = k; L.rot = 0; L.z = z;
 
+  /* 100%에서는 악기 전체가 화면에 들어오게 가운데,
+     크게 키우면(화면에 다 안 들어오면) 두 줄 연주 영역이 가운데 남도록 조금씩 올린다. */
   var localCY = (GEO.topY + GEO.botY) / 2;
+  var playCY = GEO.playTop + GEO.playH / 2;
+  var visH = band / k;
+  if(visH < artH){
+    var t = Math.max(0, Math.min(1, (artH - visH) / Math.max(1, artH - GEO.playH)));
+    localCY = localCY + (playCY - localCY) * t;
+  }
   L.cx = W / 2;
   L.cy = topPad + band / 2 - localCY * k;
 
@@ -657,6 +712,33 @@ function placeHud(){
   hud.style.bottom = "calc(58px + env(safe-area-inset-bottom))";
   hint.style.bottom = "calc(22px + env(safe-area-inset-bottom))";
 }
+
+/* ── 해금 크기 조절 (− 100% +) ── */
+var ZMIN = 0.7, ZMAX = 1.6, ZSTEP = 0.1, ZOOM_KEY = "hg_zoom";
+function loadZoom(){
+  var v = NaN;
+  try{ v = parseFloat(localStorage.getItem(ZOOM_KEY)); }catch(e){}
+  if(!isFinite(v)) v = 1;
+  return Math.max(ZMIN, Math.min(ZMAX, Math.round(v * 10) / 10));
+}
+S.zoom = loadZoom();
+var zoomValEl = document.getElementById("zoomVal");
+var zoomOutBtn = document.getElementById("zoomOut");
+var zoomInBtn = document.getElementById("zoomIn");
+function syncZoomUI(){
+  if(zoomValEl) zoomValEl.textContent = Math.round(S.zoom * 100) + "%";
+  if(zoomOutBtn) zoomOutBtn.disabled = (S.zoom <= ZMIN + 1e-6);
+  if(zoomInBtn) zoomInBtn.disabled = (S.zoom >= ZMAX - 1e-6);
+}
+function setZoom(z, save){
+  releaseAll();
+  S.zoom = Math.max(ZMIN, Math.min(ZMAX, Math.round(z * 10) / 10));
+  layout();
+  syncZoomUI();
+  if(save){ try{ localStorage.setItem(ZOOM_KEY, String(S.zoom)); }catch(e){} }
+  if(save) toast(S.zoom === 1 ? "원래 크기 100%" : "해금 크기 " + Math.round(S.zoom * 100) + "%");
+}
+syncZoomUI();
 
 /* ══════════════════════════════════════════════════════════
    4. 그리기 — 실물 재질 (대나무·오동나무·명주실·말총)
@@ -1730,6 +1812,15 @@ function setMenu(open){
   menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
 }
 menuBtn.addEventListener("click", function(e){ e.stopPropagation(); setMenu(!menuEl.classList.contains("open")); });
+if(zoomInBtn) zoomInBtn.addEventListener("click", function(){ setZoom(S.zoom + ZSTEP, true); });
+if(zoomOutBtn) zoomOutBtn.addEventListener("click", function(){ setZoom(S.zoom - ZSTEP, true); });
+if(zoomValEl){
+  zoomValEl.addEventListener("click", function(){ setZoom(1, true); });
+  zoomValEl.addEventListener("dblclick", function(e){ e.preventDefault(); setZoom(1, true); });
+  zoomValEl.addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); setZoom(1, true); }
+  });
+}
 menuEl.addEventListener("click", function(e){ e.stopPropagation(); });
 document.addEventListener("pointerdown", function(e){
   if(menuEl.classList.contains("open") && !menuEl.contains(e.target) && e.target !== menuBtn) setMenu(false);
@@ -1847,6 +1938,33 @@ document.addEventListener("touchend", function(e){
 }, {passive:false});
 document.addEventListener("dblclick", function(e){ e.preventDefault(); }, {passive:false});
 document.addEventListener("contextmenu", function(e){ e.preventDefault(); }, {passive:false});
+
+/* 손가락으로 누르고 길게 누르고 여러 곳을 동시에 눌러도
+   선택·복사 메뉴·이미지 저장 창·드래그·확대가 뜨지 않게 (도움말 본문만 예외) */
+function inHelpEl(t){
+  while(t && t !== document){
+    if(t.id === "help") return true;
+    t = t.parentNode;
+  }
+  return false;
+}
+document.addEventListener("selectstart", function(e){
+  if(inHelpEl(e.target)) return;
+  if(e.cancelable) e.preventDefault();
+}, {passive:false});
+document.addEventListener("dragstart", function(e){
+  if(inHelpEl(e.target)) return;
+  if(e.cancelable) e.preventDefault();
+}, {passive:false});
+document.addEventListener("touchmove", function(e){
+  if(inHelpEl(e.target)) return;      /* 도움말은 스크롤 허용 */
+  if(e.cancelable) e.preventDefault();
+}, {passive:false});
+document.addEventListener("mousedown", function(e){
+  /* 마우스로 줄을 잡을 때도 글자 선택·이미지 끌기가 시작되지 않게 */
+  if(e.target && e.target.closest && e.target.closest("#ui,#badge,#help")) return;
+  if(e.button === 0 && e.detail > 1) e.preventDefault();
+}, {passive:false});
 
 /* ══════════════════════════════════════════════════════════
    9. 검증 API
@@ -2027,8 +2145,14 @@ window.__hg = {
   errors: function(){ return window.__errs; },
   mode: function(){ return S.mode; },
   setOption: applyOption,
+  zoom: function(){ return S.zoom; },
+  setZoom: setZoom,
+  artBox: function(){
+    var r = overlayG.getBoundingClientRect();
+    return {x:+r.x.toFixed(1), y:+r.y.toFixed(1), w:+r.width.toFixed(1), h:+r.height.toFixed(1)};
+  },
   audit: audit,
-  version: "1.1"
+  version: "1.2"
 };
 
 /* ══════════════════════════════════════════════════════════
