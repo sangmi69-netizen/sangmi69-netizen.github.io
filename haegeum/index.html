@@ -277,9 +277,9 @@
         <stop offset="100%" stop-color="#3a2711"/>
       </linearGradient>
       <linearGradient id="hairG" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#f6ecd8" stop-opacity=".10"/>
-        <stop offset="45%" stop-color="#fdf6e8" stop-opacity=".30"/>
-        <stop offset="100%" stop-color="#c9b795" stop-opacity=".06"/>
+        <stop offset="0%" stop-color="#f7e9c8" stop-opacity=".14"/>
+        <stop offset="40%" stop-color="#fff6df" stop-opacity=".40"/>
+        <stop offset="100%" stop-color="#b9a075" stop-opacity=".10"/>
       </linearGradient>
 
       <!-- 줄감개 -->
@@ -811,7 +811,7 @@ function buildNeck(){
 
   var g = el("g", {"clip-path":"url(#clipNeck)"}, neckG);
   /* 대나무 결 — 목대 하나를 덮는 긴 결(이음매 없음) */
-  imgEl(TEX.neckPhoto, -HW, -548, HW * 2, 1112, g);
+  imgEl(TEX.neckPhoto, -HW - 1.5, -548, HW * 2 + 3, 1112, g);
   /* 원통 명암 — 왼쪽 광원 (사진 위에 옅게) */
   el("rect", {x:-HW - 2, y:-540, width:HW * 2 + 4, height:1104, fill:"url(#cylShade)", opacity:".55"}, g);
   el("rect", {x:-HW - 2, y:-540, width:11, height:1104, fill:"url(#edgeAO)", opacity:".7"}, g);
@@ -887,7 +887,7 @@ function buildStrings(){
   for(var s=0; s<2; s++){
     var g = (s === 0) ? strJungG : strYuG;
     strEls[s] = []; shadowEls[s] = [];
-    var w = (s === 0) ? 5.2 : 3.8;
+    var w = (s === 0) ? 5.8 : 4.4;
     /* 복판·몸통에 드리우는 그림자 */
     var sh = el("path", {d:"", fill:"none", stroke:"#140b03", "stroke-width":w + 2.4,
                          "stroke-linecap":"round", opacity:".3", transform:"translate(3.2,2.6)"}, g);
