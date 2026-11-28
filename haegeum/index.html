@@ -593,6 +593,18 @@ var lightG = document.getElementById("lightG");
 
 var L = { W:0, H:0, k:1, rot:0, cx:0, cy:0 };
 
+/* 상단 컨트롤(배지·버튼)이 끝나는 높이 — 악기가 그 아래에서 시작하도록 */
+function topBarBottom(){
+  var y = 0, i, r;
+  var nodes = [document.getElementById("topBtns"), document.querySelector("#badge span")];
+  for(i=0;i<nodes.length;i++){
+    if(!nodes[i]) continue;
+    r = nodes[i].getBoundingClientRect();
+    if(r.height > 0 && r.bottom > y) y = r.bottom;
+  }
+  return y;
+}
+
 function layout(){
   var W = Math.max(300, window.innerWidth);
   var H = Math.max(300, window.innerHeight);
@@ -601,15 +613,17 @@ function layout(){
   /* 해금은 어떤 화면에서도 세로로 세운다.
      노트북·데스크톱의 가로 화면에서도 눕히지 않고(회전 없음),
      위 줄감개·입죽부터 아래 울림통·붉은 명주실 꼬리까지 잘리지 않도록
-     위아래 여백을 두고 화면 높이에 맞춰 키운다. */
-  var padY = H * 0.03;
-  var k = Math.min((H - padY * 2) / artH, W * 0.99 / artW);
+     화면 높이에 맞춰 키우되, 위쪽 컨트롤(배지·?·율명·⛶)과 겹치지 않게 그 아래부터 세운다. */
+  var botPad = H * 0.03;
+  var topPad = Math.max(H * 0.03, topBarBottom() + 4);
+  var band = Math.max(120, H - topPad - botPad);
+  var k = Math.min(band / artH, W * 0.99 / artW);
 
   L.W = W; L.H = H; L.k = k; L.rot = 0;
 
   var localCY = (GEO.topY + GEO.botY) / 2;
   L.cx = W / 2;
-  L.cy = H / 2 - localCY * k;
+  L.cy = topPad + band / 2 - localCY * k;
 
   sceneT.setAttribute("transform",
     "translate(" + L.cx.toFixed(2) + "," + L.cy.toFixed(2) + ") scale(" + k.toFixed(5) + ")");
