@@ -68,7 +68,6 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 }
 #brand .dot{width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd9a8,#b06a3b 65%,#5e3018);box-shadow:0 0 8px rgba(240,170,90,.5)}
 #brand b{font-weight:800;letter-spacing:.01em;color:#ffe3bd;font-size:13px}
-#brand span.small{font-weight:800;font-size:11.5px;color:#d9c4a8;letter-spacing:.02em}
 #tools{display:flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0}
 #countSeg{
   display:flex;align-items:center;gap:2px;padding:2px;border-radius:11px;
@@ -330,7 +329,6 @@ input[type=range]{accent-color:#d69a5c;height:24px;width:150px}
 
 /* 아주 좁은 화면 (세로로 돌려 쓰는 화면은 앱 폭이 844라 해당 없음) */
 @media (max-width:520px) and (orientation:landscape){
-  #brand span.small{display:none}
   #countSeg .lbl{display:none}
   .tb.txt{padding:0 8px;font-size:11px}
 }
@@ -347,7 +345,7 @@ input[type=range]{accent-color:#d69a5c;height:24px;width:150px}
 <body>
 <div id="app">
   <div id="topbar">
-    <div id="brand"><span class="dot"></span><b>창일중학교</b><span class="small">이상미</span></div>
+    <div id="brand"><span class="dot"></span><b>창일중학교 이상미</b></div>
     <div id="tools">
       <div id="countSeg" role="group" aria-label="팀파니 대수">
         <span class="lbl">대수</span>
