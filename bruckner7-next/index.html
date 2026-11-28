@@ -78,12 +78,13 @@
     <svg id="tri" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 460" preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="steel" x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0%" stop-color="#fdfeff"/>
-          <stop offset="20%" stop-color="#cfd8de"/>
-          <stop offset="42%" stop-color="#8e9aa2"/>
-          <stop offset="60%" stop-color="#eaf1f6"/>
-          <stop offset="80%" stop-color="#96a2a9"/>
-          <stop offset="100%" stop-color="#dde5eb"/>
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="16%" stop-color="#c2cdd4"/>
+          <stop offset="34%" stop-color="#78838a"/>
+          <stop offset="50%" stop-color="#aebbc3"/>
+          <stop offset="66%" stop-color="#f4f9fc"/>
+          <stop offset="82%" stop-color="#6d787f"/>
+          <stop offset="100%" stop-color="#cfd8de"/>
         </linearGradient>
         <linearGradient id="steelRod" x1="0" y1="0" x2="1" y2="0.6">
           <stop offset="0%" stop-color="#fdfefe"/>
@@ -98,13 +99,15 @@
         <line x1="200" y1="28" x2="200" y2="72" stroke="#d2d2d2" stroke-width="3"></line>
         <circle cx="200" cy="26" r="4.5" fill="#dcdcdc"></circle>
         <path id="triGlow" d="M 262 238 L 110 238 L 200 72 L 283 212" fill="none" stroke="#ffcf3d" stroke-width="24" stroke-linejoin="round" stroke-linecap="round" opacity="0" filter="url(#triBlur)"></path>
-        <path id="triPath" d="M 262 238 L 110 238 L 200 72 L 283 212" fill="none" stroke="url(#steel)" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"></path>
-        <path d="M 262 238 L 110 238 L 200 72 L 283 212" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" opacity=".62" transform="translate(0,-1.6)"></path>
+        <path id="triEdge" d="M 262 238 L 110 238 L 200 72 L 283 212" fill="none" stroke="#6d787f" stroke-width="15.5" stroke-linejoin="round" stroke-linecap="round"></path>
+        <path id="triPath" d="M 262 238 L 110 238 L 200 72 L 283 212" fill="none" stroke="url(#steel)" stroke-width="12.5" stroke-linejoin="round" stroke-linecap="round"></path>
+        <path d="M 262 238 L 110 238 L 200 72 L 283 212" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".55" transform="translate(-0.6,-1.8)"></path>
         <text x="200" y="298" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif" font-size="24" fill="#c8c8c8" letter-spacing="1">트라이앵글</text>
       </g>
       <g id="beater">
-        <line x1="352" y1="392" x2="272" y2="212" stroke="url(#steelRod)" stroke-width="7" stroke-linecap="round"></line>
-        <circle cx="270" cy="207" r="8" fill="url(#steel)" stroke="#7b868d" stroke-width="1.2"></circle>
+        <line x1="330" y1="352" x2="300" y2="200" stroke="#6d787f" stroke-width="9" stroke-linecap="round"></line>
+        <line x1="330" y1="352" x2="300" y2="200" stroke="url(#steelRod)" stroke-width="6" stroke-linecap="round"></line>
+        <circle cx="300" cy="199" r="8.5" fill="url(#steel)" stroke="#68737a" stroke-width="1.4"></circle>
       </g>
     </svg>
     <div class="zone" id="zone"></div>
@@ -546,7 +549,7 @@ function updateTriangle(){
   }
   if(jig) triG.setAttribute("transform","rotate("+jig.toFixed(2)+" 200 72)");
   else triG.removeAttribute("transform");
-  beater.setAttribute("transform","rotate("+bang.toFixed(2)+" 352 392)");
+  beater.setAttribute("transform","rotate("+bang.toFixed(2)+" 330 352)");
   triGlow.setAttribute("opacity",(glow*0.5).toFixed(3));
 }
 
