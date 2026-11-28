@@ -75,7 +75,7 @@
         <image id="cymImgL" x="588" y="484" width="236" height="550" href="assets/cymbal_left.png"></image>
       </g>
     </svg>
-    <svg id="tri" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 460" preserveAspectRatio="xMidYMid meet">
+    <svg id="tri" xmlns="http://www.w3.org/2000/svg" viewBox="88 12 268 356" preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="steel" x1="0" y1="0" x2="0.4" y2="1">
           <stop offset="0%" stop-color="#ffffff"/>
@@ -587,8 +587,8 @@ function layoutWith(vw,vh){
     playhead.setAttribute("y1","112"); playhead.setAttribute("y2","386");
     zone.style.left="0"; zone.style.width="100%"; zone.style.top="0"; zone.style.height=H+"px";
     zone.style.right="auto"; zone.style.bottom="auto";
-    var tw=W*0.168, th=tw*460/400;
-    placeTri(W*0.775, H-th-H*0.045, tw, th);
+    var tw=W*0.185, th=tw*356/268;
+    placeTri(W*0.765, H-th-H*0.018, tw, th);
   } else {
     stage.style.width=vw+"px"; stage.style.height=vh+"px";
     stage.style.left="0px"; stage.style.top="0px";
@@ -606,10 +606,10 @@ function layoutWith(vw,vh){
     zone.style.left="0"; zone.style.width="100%"; zone.style.top="0"; zone.style.height=vh+"px";
     zone.style.right="auto"; zone.style.bottom="auto";
     var avail=Math.max(0, vh-ch-scoreBottom);
-    var tw2=Math.min(vw*0.40, avail*0.86);
-    var th2=tw2*460/400;
+    var tw2=Math.min(vw*0.46, avail*0.94*268/356);
+    var th2=tw2*356/268;
     var top2=scoreBottom+Math.max(4,(avail-th2)/2);
-    placeTri(vw-tw2-vw*0.06, top2, tw2, th2);
+    placeTri(vw-tw2-vw*0.05, top2, tw2, th2);
   }
 }
 window.addEventListener("resize",layout);
