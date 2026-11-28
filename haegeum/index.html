@@ -891,6 +891,117 @@ function buildBow(){
   el("rect", {x:198, y:406, width:16, height:4, rx:2, fill:"#c9a26a", opacity:".28"}, bowG);
 }
 
+
+/* ── 연주 오버레이 ── */
+var bowPad = null, bowPadLabel = null;
+
+function buildOverlay(){
+  while(overlayG.firstChild) overlayG.removeChild(overlayG.firstChild);
+  labelEls = []; headEls = [];
+
+  var lanesG = el("g", {}, overlayG);
+  var markG = el("g", {}, overlayG);
+  var labG = el("g", {}, overlayG);
+
+  var n = rowCount(), h = rowH();
+  var fs = Math.min(30, h * 0.46);
+
+  for(var s=0; s<2; s++){
+    var x1 = (s === 0) ? -GEO.laneOuter : GEO.laneInner;
+    var w = GEO.laneOuter - GEO.laneInner;
+    var lane = el("rect", {
+      x:x1, y:GEO.playTop, width:w, height:GEO.playH, rx:14,
+      fill:"url(#laneFade)", stroke:"none",
+      "data-lane":s, class:"lane"
+    }, lanesG);
+    lane.style.touchAction = "none";
+    lane.style.cursor = "pointer";
+    lane.addEventListener("pointerdown", makeLaneHandler(s), {passive:false});
+
+    for(var r=0;r<n;r++){
+      el("circle", {cx:GEO.strX[s], cy:rowY(r), r:3.4, fill:"url(#dotG)", opacity:".5"}, markG);
+    }
+    /* 줄 경계 — 손가락이 닿는 자리 */
+    var outer = (s === 0) ? -GEO.laneOuter : GEO.laneOuter;
+    var inner = (s === 0) ? -GEO.laneInner : GEO.laneInner;
+    for(var b=0;b<=n;b++){
+      var by = GEO.playTop + b * h;
+      el("line", {x1:inner, y1:by, x2:outer, y2:by, stroke:"rgba(246,214,160,.1)", "stroke-width":1}, markG);
+    }
+    el("line", {x1:outer, y1:GEO.playTop, x2:outer, y2:GEO.playTop + GEO.playH,
+                stroke:"rgba(246,214,160,.13)", "stroke-width":1}, markG);
+    el("line", {x1:inner, y1:GEO.playTop, x2:inner, y2:GEO.playTop + GEO.playH,
+                stroke:"rgba(246,214,160,.05)", "stroke-width":1}, markG);
+
+    for(var r2=0;r2<n;r2++){
+      var d = ROWS[s][r2];
+      var txt = el("text", {
+        x:GEO.labelX[s], y:rowY(r2),
+        "text-anchor":"middle", "dominant-baseline":"central",
+        "font-size": (labelText(d).length > 1 ? fs * 0.8 : fs),
+        "font-weight":"600", fill:"#d8bd91", class:"lbl", "data-s":s, "data-r":r2
+      }, labG);
+      txt.textContent = labelText(d);
+      txt.__xy = [GEO.labelX[s], rowY(r2)];
+      labelEls.push(txt);
+    }
+
+    var hx = (s === 0) ? -150 : 150, hy = GEO.playTop + GEO.playH + 12;
+    var head = el("text", {
+      x:hx, y:hy, "text-anchor":"middle", "dominant-baseline":"central",
+      "font-size":18, "font-weight":"700", fill:"rgba(240,205,146,.5)", "letter-spacing":"2"
+    }, labG);
+    head.textContent = (s === 0) ? "중현" : "유현";
+    head.__xy = [hx, hy];
+    headEls.push(head);
+  }
+
+  /* 활 판 (활 긋기 모드) */
+  bowPad = el("rect", {
+    x:-212, y:374, width:424, height:86, rx:16,
+    fill:"rgba(246,214,160,0.05)", stroke:"rgba(246,214,160,0.22)", "stroke-width":1.4,
+    "stroke-dasharray":"7 6", class:"bowpad", opacity:"0"
+  }, overlayG);
+  bowPad.style.touchAction = "none";
+  bowPad.addEventListener("pointerdown", onBowPadDown, {passive:false});
+  bowPadLabel = el("text", {
+    x:-192, y:417, "text-anchor":"middle", "dominant-baseline":"central",
+    "font-size":17, "font-weight":"700", fill:"rgba(240,205,146,.6)", opacity:"0"
+  }, overlayG);
+  bowPadLabel.textContent = "활";
+  bowPadLabel.__xy = [-192, 417];
+
+  applyTextAngle();
+  updateLabels();
+  syncBowPad();
+}
+
+function makeLaneHandler(s){
+  return function(ev){ onLaneDown(ev, s); };
+}
+
+function syncBowPad(){
+  var on = (S.mode === "bow");
+  if(bowPad) bowPad.setAttribute("opacity", on ? "1" : "0");
+  if(bowPadLabel){
+    bowPadLabel.setAttribute("opacity", on ? "1" : "0");
+    bowPadLabel.setAttribute("transform", L.rot ? ("rotate(" + (-L.rot) + " " + bowPadLabel.__xy[0] + " " + bowPadLabel.__xy[1] + ")") : "");
+  }
+  if(bowPad) bowPad.style.pointerEvents = on ? "all" : "none";
+}
+
+function updateLabels(){
+  var h = rowH(), fs = Math.min(30, h * 0.46);
+  for(var i=0;i<labelEls.length;i++){
+    var t = labelEls[i];
+    var s = parseInt(t.getAttribute("data-s"), 10);
+    var r = parseInt(t.getAttribute("data-r"), 10);
+    var txt = labelText(ROWS[s][r]);
+    t.textContent = txt;
+    t.setAttribute("font-size", txt.length > 1 ? fs * 0.8 : fs);
+  }
+}
+
 /* ══════════════════════════════════════════════════════════
    5. 소리 — 해금 합성 (잡음 없는 순음 합성)
    ─ 활 마찰 백색잡음과 리미터 왜곡을 걷어내고,
