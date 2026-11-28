@@ -1894,7 +1894,7 @@ function bandE(x, sr, f1, f2, steps){
 }
 function db(x){ return 20 * Math.log(Math.max(1e-9, x)) / Math.LN10; }
 
-function analyze(buf){
+function analyze(buf, f0exp){
   var sr = buf.sampleRate, n = buf.length;
   var d = buf.getChannelData(0);
   var peak = 0, sum = 0, dc = 0, clips = 0, maxStep = 0, maxStep2 = 0;
@@ -1914,14 +1914,17 @@ function analyze(buf){
   mean /= len;
   for(var j2=0;j2<len;j2++) win[j2] -= mean;
 
-  var minLag = Math.floor(sr / 1600), maxLag = Math.floor(sr / 60);
-  var best = -1, bestLag = 0;
-  for(var lag=minLag; lag<=maxLag; lag++){
-    var s2 = 0;
-    for(var k=0;k<len-lag;k++) s2 += win[k] * win[k + lag];
-    if(s2 > best){ best = s2; bestLag = lag; }
+  var f0 = f0exp || 0;
+  if(!f0){
+    var minLag = Math.floor(sr / 1600), maxLag = Math.floor(sr / 60);
+    var best = -1, bestLag = 0;
+    for(var lag=minLag; lag<=maxLag; lag++){
+      var s2 = 0;
+      for(var k=0;k<len-lag;k++) s2 += win[k] * win[k + lag];
+      if(s2 > best){ best = s2; bestLag = lag; }
+    }
+    f0 = bestLag ? sr / bestLag : 0;
   }
-  var f0 = bestLag ? sr / bestLag : 0;
 
   var bands = [
     bandE(win, sr, 120, 400, 10),
@@ -1963,11 +1966,14 @@ function analyze(buf){
     for(var m2=0; m2<bl && b2*bl+m2<n; m2++){ s3 += d[b2*bl+m2]*d[b2*bl+m2]; cnt++; }
     blocks.push(+Math.sqrt(s3 / Math.max(1,cnt)).toFixed(5));
   }
-  /* 20 ms 창 사이 레벨 변화율 — 지퍼·클릭 지표 */
+  /* 20 ms 창 사이 레벨 변화 (dB) — 지퍼·클릭 지표 */
+  var bmax2 = 0;
+  for(var b3=0; b3<blocks.length; b3++) if(blocks[b3] > bmax2) bmax2 = blocks[b3];
   var maxJump = 0;
   for(var w2=1; w2<blocks.length; w2++){
-    var prev = Math.max(1e-6, blocks[w2-1]);
-    var jr = Math.abs(blocks[w2] - blocks[w2-1]) / prev;
+    var d1 = 20 * Math.log(Math.max(1e-7, blocks[w2]) / Math.max(1e-7, bmax2)) / Math.LN10;
+    var d0 = 20 * Math.log(Math.max(1e-7, blocks[w2-1]) / Math.max(1e-7, bmax2)) / Math.LN10;
+    var jr = Math.abs(d1 - d0);
     if(jr > maxJump) maxJump = jr;
   }
 
@@ -2003,11 +2009,15 @@ function audit(){
     { name:"유현 중음", list:[{s:1, midi:rows1[3].midi, at:0.05, dur:1.5}], sec:2.2 },
     { name:"유현 고음", list:[{s:1, midi:rows1[7].midi, at:0.05, dur:1.5}], sec:2.2 },
     { name:"두 줄 동시", list:[{s:0, midi:rows0[2].midi, at:0.05, dur:1.5},
-                              {s:1, midi:rows1[2].midi, at:0.05, dur:1.5}], sec:2.2 }
+                              {s:1, midi:rows1[2].midi, at:0.05, dur:1.5}], sec:2.2 },
+    { name:"네 음 동시", list:[{s:0, midi:rows0[1].midi, at:0.05, dur:1.4},
+                              {s:0, midi:rows0[4].midi, at:0.05, dur:1.4},
+                              {s:1, midi:rows1[1].midi, at:0.05, dur:1.4},
+                              {s:1, midi:rows1[4].midi, at:0.05, dur:1.4}], sec:2.2 }
   ];
   return Promise.all(jobs.map(function(j){
     return renderOffline(j.list, j.sec).then(function(buf){
-      var a = analyze(buf);
+      var a = analyze(buf, 440 * Math.pow(2, (j.list[0].midi - 69) / 12));
       a.name = j.name;
       return a;
     });
