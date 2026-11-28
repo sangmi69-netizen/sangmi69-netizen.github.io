@@ -184,7 +184,7 @@ function timeToX(t){
 
 /* ── audio ── */
 var AC=null, G=null;
-var MASTER_GAIN=1.0, MUSIC_GAIN=0.88, CYM_DRY=0.42, CYM_WET=0.20, CYM_HIT_GAIN=0.68, ROLL_GAIN=0.24;
+var MASTER_GAIN=1.0, MUSIC_GAIN=0.88, CYM_DRY=0.42, CYM_WET=0.22, CYM_HIT_GAIN=1.95, ROLL_GAIN=0.43;
 var TRI_DRY=0.52, TRI_WET=0.22, TRI_HIT_GAIN=0.62, TRI_ROLL_GAIN=0.26;
 var crashSet=[], triSet=[], musicBuf=null, musicFetch=null, musicSrc=null;
 var startAt=0, songT=0, phase="title", starting=false;
@@ -280,22 +280,22 @@ function filtInPlace(d,cf){
 }
 
 /* ── crash cymbal ────────────────────────────────────────────────────────────
-   브루크너 7번의 오케스트라 크래시에 맞춘 청동 심벌:
-   · 몸통은 대역별로 감쇠를 달리한 대역 제한 노이즈(고역일수록 빨리 사라짐)
-   · 금속 배음은 500~8.7kHz의 비화성 부분음, 살짝 어긋난 두 음을 겹쳐 맑게 흔든다
-   · 0.9ms 페이드 인으로 시작 순간의 '툭' 튀는 클릭을 없앴다
-   · 13kHz 위는 2차 저역 통과로 걷어내 지지직·앨리어싱을 막는다
-   · 버퍼 안에서 포화(tanh)시키지 않고 피크만 0.85로 정규화한다               */
+   브루크너 7번 클라이맥스의 오케스트라 대형 심벌(Piatti) — 20인치급 두 장.
+   원본 연주 영상의 크래시 순간을 분석해, 가벼운 고역 위주 소리 대신
+   · 150~600Hz의 두터운 금속 몸통이 3초 이상 남아 '묵직함'을 만들고
+   · 600~2.5kHz 중역 바디가 어택을 받쳐 주며
+   · 2.5~10kHz의 쉬머가 2초 이상 길게 퍼져 '웅장함'을 만든다
+   타격 순간에는 700Hz~7kHz의 짧은 금속성 크랙을 얹어 '쾅' 하는 펀치를 준다.
+   0.9ms 페이드 인, 13kHz 저역 통과, 버퍼 내 포화 없음, 피크 0.85 정규화로
+   잡음·클리핑 없이 유지한다.                                               */
 function makeCrash(ctx){
-  var sr=ctx.sampleRate,dur=4.2,n=Math.floor(dur*sr);
+  var sr=ctx.sampleRate,dur=6.0,n=Math.floor(dur*sr);
   var buf=ctx.createBuffer(2,n,sr);
-  var LAY=[[820,0.80,0.30,1.35],[2100,1.05,0.24,1.05],[4300,1.00,0.15,0.76],
-           [6800,0.90,0.085,0.50],[9800,0.80,0.040,0.32]];
-  /* [주파수, 세기, 감쇠(초)] — 청동판의 비화성 배음 */
-  var P=[[523,0.55,2.30],[777,0.42,2.05],[1102,0.46,1.85],[1471,0.38,1.65],
-         [1907,0.34,1.45],[2411,0.30,1.28],[2963,0.27,1.10],[3581,0.23,0.96],
-         [4231,0.20,0.84],[4973,0.17,0.72],[5813,0.14,0.62],[6719,0.11,0.54],
-         [7691,0.09,0.46],[8741,0.07,0.40]];
+  /* [주파수, Q, 세기, 감쇠(초)] — 대역별 금속 몸통. 저역일수록 크고 오래 남는다 */
+  var LAY=[[150,1.5,0.38,3.40],[205,1.5,0.90,3.20],[285,1.3,1.05,3.00],[395,1.2,1.10,2.70],
+           [545,1.1,1.00,2.40],[760,1.0,0.90,2.20],[1060,0.95,0.80,2.00],[1460,0.90,0.72,1.85],
+           [2020,0.85,0.80,1.75],[2790,0.80,0.90,1.65],[3850,0.75,0.92,1.50],[5300,0.70,0.84,1.30],
+           [7300,0.65,0.72,1.10],[10000,0.60,0.56,0.90]];
   for(var ch=0;ch<2;ch++){
     var d=buf.getChannelData(ch),i,k;
     var w=new Float32Array(n);
@@ -310,40 +310,60 @@ function makeCrash(ctx){
         x2=x1; x1=x; y2=y1; y1=y; d[i]+=y*eg; eg*=kd;
       }
     }
-    for(k=0;k<P.length;k++){
-      var fr=P[k][0]*(1+(Math.random()*2-1)*0.006);
-      var f2=fr*(1+0.0015+Math.random()*0.0012);
-      var aamp=P[k][1]*(0.9+Math.random()*0.2);
-      var dc=P[k][2]*(0.95+Math.random()*0.1);
+    /* 비화성 부분음(청동판 공명) — 185Hz에서 1.155배씩 어긋나게 올라간다.
+       저역 부분음은 크고 4초까지 남고, 고역 부분음은 짧게 사라진다.        */
+    var fr=185;
+    for(k=0;k<22;k++){
+      fr*=1.155+Math.random()*0.024;
+      if(fr>11500) break;
+      var low=300/Math.max(fr,300);
+      var aamp=0.30*Math.pow(low,0.25)*(0.85+Math.random()*0.3);
+      var dc=1.0+3.4*Math.pow(low,0.55);
+      var f2=fr*1.0016;
       var w1=2*Math.PI*fr/sr, w2=2*Math.PI*f2/sr;
       var c1=2*Math.cos(w1), c2=2*Math.cos(w2);
       var ph1=Math.random()*6.283, ph2=Math.random()*6.283;
       var s1=Math.sin(ph1), s0=Math.sin(ph1-w1);
       var t1=Math.sin(ph2), t0=Math.sin(ph2-w2);
-      var e=aamp, kd2=Math.exp(-1/(dc*sr));
+      var e2=aamp, kd2=Math.exp(-1/(dc*sr));
       for(i=0;i<n;i++){
-        d[i]+=(s1*0.78+t1*0.30)*e;
+        d[i]+=(s1*0.78+t1*0.30)*e2;
         var s3=c1*s1-s0; s0=s1; s1=s3;
         var t3=c2*t1-t0; t0=t1; t1=t3;
-        e*=kd2;
+        e2*=kd2;
       }
     }
-    /* 타격 순간의 짧은 금속성 잡음 — 3~9kHz로 대역 제한(전대역 화이트노이즈 금지) */
-    var nz=new Float32Array(n);
-    var nc=Math.floor(0.012*sr);
-    for(i=0;i<nc;i++) nz[i]=(Math.random()*2-1)*Math.pow(1-i/nc,2.4);
-    var ncf=bpCoef(5200,0.9,sr);
-    var q1=0,q2=0,p1=0,p2=0;
-    for(i=0;i<nc;i++){
-      var xx=nz[i];
-      var yy=ncf.b0*xx+ncf.b1*q1+ncf.b2*q2-ncf.a1*p1-ncf.a2*p2;
-      q2=q1; q1=xx; p2=p1; p1=yy;
-      d[i]+=yy*0.55;
+    /* 어택 크랙: 45ms 길이, 11ms 감쇠의 700Hz·2.4kHz·6.5kHz 대역 타격음.
+       '쾅' 하는 순간의 펀치를 만들고 20ms 안에 사라진다.                  */
+    var nb=Math.floor(0.045*sr), burst=new Float32Array(n);
+    for(i=0;i<nb;i++) burst[i]=(Math.random()*2-1)*Math.exp(-i/(0.011*sr))*Math.pow(1-i/nb,0.7);
+    var bc1=bpCoef(700,0.50,sr), bc2=bpCoef(2400,0.55,sr), bc3=bpCoef(6500,0.60,sr);
+    var q1=0,q2=0,p1=0,p2=0,u1=0,u2=0,v1=0,v2=0,r1=0,r2=0,z1=0,z2=0;
+    for(i=0;i<nb;i++){
+      var xx=burst[i];
+      var o1=bc1.b0*xx+bc1.b1*q1+bc1.b2*q2-bc1.a1*p1-bc1.a2*p2;
+      q2=q1; q1=xx; p2=p1; p1=o1;
+      var o2=bc2.b0*xx+bc2.b1*u1+bc2.b2*u2-bc2.a1*v1-bc2.a2*v2;
+      u2=u1; u1=xx; v2=v1; v1=o2;
+      var o3=bc3.b0*xx+bc3.b1*r1+bc3.b2*r2-bc3.a1*z1-bc3.a2*z2;
+      r2=r1; r1=xx; z2=z1; z1=o3;
+      d[i]+=o1*5.5+o2*4.95+o3*2.75;
     }
-    /* 고역 다듬기 + 바닥 대역 정리 */
+    /* 저역 움프: 심벌 두 장이 부딪칠 때 나는 190Hz의 묵직한 바닥(0.16초) */
+    var nl=Math.floor(0.16*sr), lowb=new Float32Array(n);
+    for(i=0;i<nl;i++) lowb[i]=(Math.random()*2-1)*Math.pow(1-i/nl,2.2);
+    var lc=bpCoef(190,1.1,sr);
+    var l1=0,l2=0,m1=0,m2=0;
+    for(i=0;i<nl;i++){
+      var lx=lowb[i];
+      var ly=lc.b0*lx+lc.b1*l1+lc.b2*l2-lc.a1*m1-lc.a2*m2;
+      l2=l1; l1=lx; m2=m1; m1=ly;
+      d[i]+=ly*0.55;
+    }
+    /* 고역 다듬기 + 바닥 정리 (110Hz 아래만 걷어 묵직한 저역은 남긴다) */
     filtInPlace(d,lpCoef(13000,0.7,sr));
     filtInPlace(d,lpCoef(13000,0.7,sr));
-    filtInPlace(d,hpCoef(220,0.7,sr));
+    filtInPlace(d,hpCoef(110,0.7,sr));
     /* 0.9ms 어택 페이드 인 — 시작 샘플 불연속(클릭) 제거 */
     var atk=Math.max(4,Math.floor(0.0009*sr));
     for(i=0;i<atk;i++){ var u=i/atk; d[i]*=u*u*(3-2*u); }
@@ -353,7 +373,7 @@ function makeCrash(ctx){
     var g2=0.85/(peak||1);
     for(i=0;i<n;i++) d[i]*=g2;
     var fade=Math.floor(0.40*sr);
-    for(i=0;i<fade;i++){ var u2=i/fade; d[n-1-i]*=u2*u2; }
+    for(i=0;i<fade;i++){ var u2b=i/fade; d[n-1-i]*=u2b*u2b; }
   }
   return buf;
 }
@@ -529,17 +549,23 @@ function analyzeBuf(buf){
   rms=Math.sqrt(rms/(2*n));
   var sr=buf.sampleRate;
   var bands={};
-  var EDGES=[[0,120],[120,400],[400,1200],[1200,3000],[3000,6000],[6000,9000],[9000,13000],[13000,20000]];
+  var EDGES=[[0,120],[120,250],[250,500],[500,1000],[1000,2500],[2500,4000],[4000,6300],[6300,9000],[9000,13000],[13000,20000]];
   for(i=0;i<EDGES.length;i++){
     bands[EDGES[i][0]+"-"+EDGES[i][1]]=+bandRms(L,sr,EDGES[i][0],EDGES[i][1]).toFixed(4);
   }
+  var dec=[],win=Math.floor(0.4*sr);
+  for(i=0;i<6;i++){
+    var st=Math.floor((0.5+i*0.6)*sr),acc=0,cnt=0;
+    for(var j=st;j<st+win&&j<n;j++){ acc+=L[j]*L[j]; cnt++; }
+    dec.push(+(10*Math.log10((acc/(cnt||1))+1e-12)).toFixed(1));
+  }
   return {peak:+peak.toFixed(4),rms:+rms.toFixed(4),rmsDb:+(20*Math.log10(rms+1e-9)).toFixed(1),
-          clip99:c99,over92:c92,over85:c85,bands:bands};
+          clip99:c99,over92:c92,over85:c85,bands:bands,decay:dec};
 }
 function audioTest(){
   if(!AC||!G||!musicBuf) return Promise.reject(new Error("audio not ready"));
   var bufs={crash:crashSet,tri:triSet,ir:G.conv.buffer};
-  var sr=AC.sampleRate, DUR=4.2, N=Math.ceil(DUR*sr);
+  var sr=AC.sampleRate, DUR=6.2, N=Math.ceil(DUR*sr);
   function render(name,fn){
     var ctx=new OfflineAudioContext(2,N,sr);
     var g=buildGraph(ctx,bufs);
