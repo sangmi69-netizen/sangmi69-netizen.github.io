@@ -948,25 +948,25 @@ function buildBow(){
               opacity:".32", "stroke-linecap":"round"}, bowG);
 
   /* 말총 뭉치 — 부드러운 띠 */
-  el("path", {d:"M -203 412 L 203 405 L 203 419 L -203 426 Z", fill:"url(#hairG)"}, bowG);
+  el("path", {d:"M -203 414 L 203 407 L 203 417 L -203 424 Z", fill:"url(#hairG)"}, bowG);
 
   /* 말총 — 가는 털 수십 가닥 (은은하게) */
   for(var i=0; i<26; i++){
-    var o = -4.8 + i * 0.39;
+    var o = -3.4 + i * 0.272;
     el("path", {d:"M " + (-201).toFixed(1) + " " + (413 + o).toFixed(2) +
                    " L " + (201).toFixed(1) + " " + (406 + o).toFixed(2),
                 fill:"none", stroke:(i % 6 === 0 ? "#cbb894" : "#f8efdd"), "stroke-width":0.7,
                 opacity:".28", "stroke-linecap":"round"}, bowG);
   }
   /* 말총 뭉치의 부드러운 윤기 */
-  el("path", {d:"M -199 416 L 199 409", fill:"none", stroke:"#fffaf0", "stroke-width":4,
-              opacity:".08", "stroke-linecap":"round"}, bowG);
+  el("path", {d:"M -199 416 L 199 409", fill:"none", stroke:"#fffaf0", "stroke-width":3,
+              opacity:".10", "stroke-linecap":"round"}, bowG);
 
   /* 활 고지 (왼쪽 손잡이) */
-  el("rect", {x:-230, y:403, width:28, height:24, rx:8, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.2}, bowG);
+  el("rect", {x:-228, y:406, width:24, height:20, rx:7, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.1}, bowG);
   el("rect", {x:-227, y:406, width:22, height:6, rx:3, fill:"#c9a26a", opacity:".28"}, bowG);
   /* 오른쪽 끝 */
-  el("rect", {x:200, y:402, width:20, height:16, rx:6, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.2}, bowG);
+  el("rect", {x:202, y:405, width:17, height:14, rx:5, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.1}, bowG);
   el("rect", {x:202, y:404, width:15, height:4, rx:2, fill:"#c9a26a", opacity:".26"}, bowG);
 }
 
