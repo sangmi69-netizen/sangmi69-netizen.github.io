@@ -1154,7 +1154,9 @@ window.__game={
   triStrikeAt:function(t){ var now=AC?AC.currentTime:performance.now()/1000; TRI_AT=now - t; updateTriangle(); },
   triSvgRect:function(){ return document.getElementById("triZone").getBoundingClientRect(); },
   scorePeek:function(t){ return timeToX(t); },
-  audiotest:audioTest
+  audiotest:audioTest,
+  crashBuf:function(){ return crashSet[0]||null; },
+  setCym:function(o){ if(o.hit!=null)CYM_HIT_GAIN=o.hit; if(o.wet!=null){CYM_WET=o.wet; if(G)G.cymWet.gain.value=o.wet;} if(o.dry!=null){CYM_DRY=o.dry; if(G)G.cymDry.gain.value=o.dry;} return {hit:CYM_HIT_GAIN,dry:CYM_DRY,wet:CYM_WET}; }
 };
 })();
 </script>
