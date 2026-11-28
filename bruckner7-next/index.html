@@ -694,6 +694,28 @@ function addScore(n){
   stats.score+=n;
   els.score.textContent=stats.score.toLocaleString("en-US");
 }
+function judgeNote(n, t, kind){
+  var err=t-n.t, ad=Math.abs(err);
+  var res=ad<=W_PERFECT?"perfect":(ad<=W_GOOD?"good":"miss");
+  n.done=true; n.res=res; n._res=res; flashNote(n);
+  stats.errMs=Math.round(err*1000);
+  if(res==="perfect"){ stats.perfect++; stats.hits++; stats.combo++; addScore(1000); judgeText(kind==="tri"?"째릉!":"PERFECT"); }
+  else if(res==="good"){ stats.good++; stats.hits++; stats.combo++; addScore(450); judgeText("GOOD"); }
+  else { stats.miss++; stats.combo=0; judgeText("MISS"); }
+  stats.maxCombo=Math.max(stats.maxCombo,stats.combo);
+}
+function addRoll(kind, auto){
+  if(kind==="cym"){
+    if(stats.roll<ROLL.max){ stats.roll++; addScore(ROLL.per); if(!auto) judgeText("롤 +"+ROLL.per); }
+    else if(!auto) judgeText("롤");
+    return;
+  }
+  if(stats.tri<TRIROLL.max){
+    stats.tri++; addScore(TRIROLL.per);
+    document.getElementById("rTri").textContent=stats.tri;
+    if(!auto) judgeText("째릉 +"+TRIROLL.per);
+  } else if(!auto) judgeText("째릉");
+}
 function hit(kind, auto){
   var t=nowT();
   if(kind==="tri"){
@@ -705,42 +727,23 @@ function hit(kind, auto){
   }
   if(phase!=="play") return;
 
-  /* 1) 악보 음과의 판정 */
-  {
-    var best=null,bestErr=1e9,i,n;
-    for(i=0;i<NOTES.length;i++){
-      n=NOTES[i];
-      if(n.done||n.kind!==kind) continue;
-      var e=Math.abs(t-n.t);
-      if(e<=W_HIT&&e<bestErr){ best=n; bestErr=e; }
-    }
-    if(best){
-      var err=t-best.t, ad=Math.abs(err);
-      var res=ad<=W_PERFECT?"perfect":(ad<=W_GOOD?"good":"miss");
-      best.done=true; best.res=res; best._res=res; flashNote(best);
-      stats.errMs=Math.round(err*1000);
-      if(res==="perfect"){ stats.perfect++; stats.hits++; stats.combo++; addScore(1000); judgeText(kind==="tri"?"째릉!":"PERFECT"); }
-      else if(res==="good"){ stats.good++; stats.hits++; stats.combo++; addScore(450); judgeText("GOOD"); }
-      else { stats.miss++; stats.combo=0; judgeText("MISS"); }
-      stats.maxCombo=Math.max(stats.maxCombo,stats.combo);
-      return;
-    }
-  }
-  /* 2) 악보에 없는 연주 → 롤/트레몰로 점수 */
-  if(kind==="cym"){
-    if(rollWindow(t)){
-      if(stats.roll<ROLL.max){ stats.roll++; addScore(ROLL.per); judgeText("롤 +"+ROLL.per); }
-      else judgeText("롤");
-    } else judgeText("");
+  var inside = (kind==="cym") ? rollWindow(t) : triRollWindow(t);
+
+  if(auto){                      /* 누르고 있는 동안의 자동 트레몰로 연타 */
+    if(inside) addRoll(kind,true);
     return;
   }
-  if(triRollWindow(t)){
-    if(stats.tri<TRIROLL.max){
-      stats.tri++; addScore(TRIROLL.per);
-      document.getElementById("rTri").textContent=stats.tri;
-      if(!auto) judgeText("째릉 +"+TRIROLL.per);
-    } else if(!auto) judgeText("째릉");
-  } else if(!auto) judgeText("");
+  var best=null,bestErr=1e9,i,n;
+  for(i=0;i<NOTES.length;i++){
+    n=NOTES[i];
+    if(n.done||n.kind!==kind) continue;
+    var e=Math.abs(t-n.t);
+    if(e<=W_HIT&&e<bestErr){ best=n; bestErr=e; }
+  }
+  if(best && bestErr<=W_GOOD){ judgeNote(best,t,kind); return; }
+  if(inside){ addRoll(kind,false); return; }
+  if(best){ judgeNote(best,t,kind); return; }
+  judgeText("");
 }
 
 function finishGame(){
