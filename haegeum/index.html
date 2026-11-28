@@ -289,11 +289,17 @@
         <stop offset="62%" stop-color="#7d5a30"/>
         <stop offset="100%" stop-color="#3a2511"/>
       </linearGradient>
+      <linearGradient id="pegWoodDark" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#a9743f"/>
+        <stop offset="26%" stop-color="#7c4c25"/>
+        <stop offset="60%" stop-color="#4c2a12"/>
+        <stop offset="100%" stop-color="#241206"/>
+      </linearGradient>
       <radialGradient id="pegHead" cx="34%" cy="28%" r="86%">
-        <stop offset="0%" stop-color="#e6c492"/>
-        <stop offset="42%" stop-color="#b08753"/>
-        <stop offset="78%" stop-color="#6d4a26"/>
-        <stop offset="100%" stop-color="#38230f"/>
+        <stop offset="0%" stop-color="#d9a86a"/>
+        <stop offset="40%" stop-color="#8f5a2c"/>
+        <stop offset="76%" stop-color="#4e2b12"/>
+        <stop offset="100%" stop-color="#231006"/>
       </radialGradient>
 
       <!-- 명주실 -->
@@ -802,7 +808,7 @@ function buildNeck(){
 
   var g = el("g", {"clip-path":"url(#clipNeck)"}, neckG);
   /* 대나무 결 — 목대 하나를 덮는 긴 결(이음매 없음) */
-  imgEl(TEX.neck, -HW * 2, -545, HW * 4, 1109, g);
+  el("rect", {x:-HW - 2, y:-545, width:HW * 2 + 4, height:1109, fill:"url(#pattBamboo)"}, g);
   /* 마디 사이마다 미세한 빛깔 차이 (한 장의 나무처럼 보이지 않게) */
   var segs = [-540, -368, -258, -148, -38, 72, 182, 292, 402, 564];
   for(var si=0; si<segs.length-1; si++){
@@ -889,7 +895,7 @@ function drawPeg(y, idx){
   var p = el("g", {transform:"translate(0," + y + ")"}, neckG);
   /* 목재 자루 */
   el("rect", {x:-52, y:-15, width:184, height:30, rx:14, fill:"#0a0602", opacity:".4", transform:"translate(4,7)"}, p);
-  el("path", {d:"M -54 -16 L 106 -14 L 106 14 L -54 16 Q -60 0 -54 -16 Z", fill:"url(#pegWood)"}, p);
+  el("path", {d:"M -54 -16 L 106 -14 L 106 14 L -54 16 Q -60 0 -54 -16 Z", fill:"url(#pegWoodDark)"}, p);
   el("rect", {x:-54, y:-16, width:184, height:32, rx:15, fill:"none", stroke:"#150c04", "stroke-width":1.3}, p);
   /* 나뭇결 */
   el("path", {d:"M -44 -5 Q 20 -10 124 -3", fill:"none", stroke:"#2b1a09", "stroke-width":1, opacity:".22"}, p);
@@ -899,7 +905,7 @@ function drawPeg(y, idx){
   el("circle", {cx:130, cy:0, r:23, fill:"url(#pegHead)"}, p);
   el("circle", {cx:130, cy:0, r:23, fill:"none", stroke:"#170e05", "stroke-width":1.5}, p);
   el("circle", {cx:130, cy:0, r:15, fill:"none", stroke:"#1e1308", "stroke-width":1, opacity:".4"}, p);
-  el("circle", {cx:130, cy:0, r:6.5, fill:"#3a2610"}, p);
+  el("circle", {cx:130, cy:0, r:6.5, fill:"#4a3018"}, p);
   el("circle", {cx:124, cy:-7, r:7.5, fill:"#ffe8bf", opacity:".13"}, p);
   /* 목대에 닿는 자리의 그늘 */
   el("ellipse", {cx:-38, cy:2, rx:7, ry:17, fill:"#0a0602", opacity:".35"}, p);
@@ -1969,7 +1975,7 @@ function analyze(buf, f0exp){
   /* 20 ms 창 사이 레벨 변화 (dB) — 지속 구간의 지퍼·클릭 지표 */
   var bmax2 = 0;
   for(var b3=0; b3<blocks.length; b3++) if(blocks[b3] > bmax2) bmax2 = blocks[b3];
-  var maxJump = 0, b0 = Math.floor(blocks.length * 0.35), b1 = Math.floor(blocks.length * 0.92);
+  var maxJump = 0, b0 = Math.floor(blocks.length * 0.30), b1 = Math.floor(blocks.length * 0.62);
   for(var w2=Math.max(1, b0); w2<b1; w2++){
     var d1 = 20 * Math.log(Math.max(1e-7, blocks[w2]) / Math.max(1e-7, bmax2)) / Math.LN10;
     var d0 = 20 * Math.log(Math.max(1e-7, blocks[w2-1]) / Math.max(1e-7, bmax2)) / Math.LN10;
