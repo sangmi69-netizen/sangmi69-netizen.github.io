@@ -213,7 +213,7 @@
       </linearGradient>
 
       <!-- 네크 원통 명암 -->
-      <linearGradient id="cylShade" x1="-46" y1="0" x2="46" y2="0" gradientUnits="userSpaceOnUse">
+      <linearGradient id="cylShade" x1="-40" y1="0" x2="40" y2="0" gradientUnits="userSpaceOnUse">
         <stop offset="0%" stop-color="#1a1106" stop-opacity=".58"/>
         <stop offset="9%" stop-color="#3d2a14" stop-opacity=".18"/>
         <stop offset="24%" stop-color="#fff3d4" stop-opacity=".14"/>
@@ -222,7 +222,7 @@
         <stop offset="78%" stop-color="#140d05" stop-opacity=".34"/>
         <stop offset="100%" stop-color="#080502" stop-opacity=".64"/>
       </linearGradient>
-      <linearGradient id="cylSheen" x1="-46" y1="0" x2="46" y2="0" gradientUnits="userSpaceOnUse">
+      <linearGradient id="cylSheen" x1="-40" y1="0" x2="40" y2="0" gradientUnits="userSpaceOnUse">
         <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
         <stop offset="20%" stop-color="#ffffff" stop-opacity=".13"/>
         <stop offset="36%" stop-color="#ffffff" stop-opacity=".02"/>
@@ -303,10 +303,19 @@
       <clipPath id="clipBodyOut"><circle cx="0" cy="600" r="112"/></clipPath>
       <clipPath id="clipBoard"><circle cx="0" cy="600" r="95"/></clipPath>
       <clipPath id="clipNeck">
-        <rect x="-43.5" y="-436" width="87" height="1000"/>
-        <circle cx="24" cy="-506" r="43.5"/>
-        <path d="M -43.5 -436 Q -43.5 -486 4 -502 L 43.5 -506 L 43.5 -436 Z"/>
+        <rect x="-37.5" y="-436" width="75" height="1000"/>
+        <circle cx="24" cy="-506" r="37.5"/>
+        <path d="M -37.5 -436 Q -37.5 -486 4 -502 L 37.5 -506 L 37.5 -436 Z"/>
       </clipPath>
+      <pattern id="pattBamboo" width="300" height="300" patternUnits="userSpaceOnUse">
+        <image id="patBambooImg" x="0" y="0" width="300" height="300" preserveAspectRatio="none"/>
+      </pattern>
+      <pattern id="pattBamboo2" width="250" height="250" patternUnits="userSpaceOnUse">
+        <image id="patBambooImg2" x="0" y="0" width="250" height="250" preserveAspectRatio="none"/>
+      </pattern>
+      <pattern id="pattBoard" width="235" height="235" patternUnits="userSpaceOnUse">
+        <image id="patBoardImg" x="0" y="0" width="235" height="235" preserveAspectRatio="none"/>
+      </pattern>
     </defs>
     <g id="sceneT">
       <g id="art">
@@ -441,11 +450,11 @@ var S = { scaleId:"pyeongjo", tuningIdx:1, label:"yul", mode:"touch" };
 var GEO = {
   playTop: -380,
   playH: 760,
-  strX: [-32, 32],
+  strX: [-15, 15],
   laneInner: 6,
   laneOuter: 190,
   labelX: [-215, 215],
-  neckHalf: 46,
+  neckHalf: 40,
   bodyCY: 600,
   bodyR: 112,
   boardR: 95,
@@ -593,13 +602,17 @@ function el(tag, attrs, parent){
   if(parent) parent.appendChild(e);
   return e;
 }
-function texImg(href, x, y, w, h, parent, op){
-  var im = el("image", {x:x, y:y, width:w, height:h, preserveAspectRatio:"none"}, parent);
-  im.setAttribute("href", href);
-  im.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", href);
-  im.setAttribute("pointer-events", "none");
-  if(op !== undefined) im.setAttribute("opacity", op);
-  return im;
+function setHref(id, href){
+  var n = document.getElementById(id);
+  if(!n) return;
+  n.setAttribute("href", href);
+  n.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", href);
+}
+function bindTextures(){
+  setHref("patBambooImg", TEX.bamboo);
+  setHref("patBambooImg2", TEX.bamboo);
+  setHref("patBoardImg", TEX.wood);
+  setHref("patPearlImg", TEX.silk);
 }
 
 var labelEls = [], headEls = [];
@@ -614,48 +627,48 @@ function buildBody(){
   el("ellipse", {cx:10, cy:CY + 98, rx:150, ry:32, fill:"url(#bodyShadow)"}, bodyG);
 
   /* 통의 두께 — 뒤쪽으로 살짝 보이는 대나무 단면 */
-  el("circle", {cx:4, cy:CY + 8, r:R + 1, fill:"#0a0602"}, bodyG);
-  el("circle", {cx:3, cy:CY + 5, r:R, fill:"#171006"}, bodyG);
+  el("circle", {cx:4, cy:CY + 9, r:R + 1, fill:"#0a0602"}, bodyG);
+  el("circle", {cx:3, cy:CY + 5, r:R, fill:"#191006"}, bodyG);
 
-  /* 대나무 테(울림통 벽) */
+  /* 대나무 테(울림통 벽) — 마디 결이 원형으로 도는 통 */
   var og = el("g", {"clip-path":"url(#clipBodyOut)"}, bodyG);
-  texImg(TEX.bamboo, -R, CY - R, R * 2, R * 2, og);
+  el("rect", {x:-R, y:CY - R, width:R * 2, height:R * 2, fill:"url(#pattBamboo2)"}, og);
   el("circle", {cx:0, cy:CY, r:R, fill:"url(#rimShade)"}, og);
-  /* 대나무 결 방향의 미세한 세로 섬유 */
-  for(var i=0; i<10; i++){
-    var ang = -1.35 + i * 0.30;
-    var x1 = Math.sin(ang) * (BR + 1), x2 = Math.sin(ang) * (R - 1);
-    var y1 = CY - Math.cos(ang) * (BR + 1), y2 = CY - Math.cos(ang) * (R - 1);
-    el("line", {x1:x1, y1:y1, x2:x2, y2:y2, stroke:(i % 2 ? "#ffffff" : "#000000"),
-                "stroke-width":1.1, opacity:(i % 2 ? 0.05 : 0.07)}, og);
+  /* 테 위 대나무 마디 두 줄 */
+  for(var nd=0; nd<2; nd++){
+    var rr = BR + 8 + nd * 0.1;
+    el("ellipse", {cx:0, cy:CY + (nd ? 62 : -58), rx:Math.sqrt(Math.max(1, R*R - 60*60)), ry:7,
+                   fill:"none", stroke:"#2a1c0b", "stroke-width":2.6, opacity:".35"}, og);
+    el("ellipse", {cx:0, cy:CY + (nd ? 60 : -60), rx:Math.sqrt(Math.max(1, R*R - 60*60)), ry:6,
+                   fill:"none", stroke:"#ffe7bd", "stroke-width":1.2, opacity:".18"}, og);
   }
 
   /* 테의 모서리 — 바깥 어두운 선, 안쪽 밝은 절단면 */
   el("circle", {cx:0, cy:CY, r:R - 0.6, fill:"none", stroke:"#080502", "stroke-width":2.8, opacity:".9"}, bodyG);
   el("path", {d:arcPath(0, CY, R - 2.2, 196, 344), fill:"none", stroke:"#ffe9bd", "stroke-width":2.2,
-              opacity:".22", "stroke-linecap":"round"}, bodyG);
+              opacity:".20", "stroke-linecap":"round"}, bodyG);
   el("circle", {cx:0, cy:CY, r:BR + 4.5, fill:"none", stroke:"#0b0703", "stroke-width":2.4, opacity:".8"}, bodyG);
   el("path", {d:arcPath(0, CY, BR + 3.2, 200, 340), fill:"none", stroke:"#f7dcaa", "stroke-width":1.4,
-              opacity:".18", "stroke-linecap":"round"}, bodyG);
+              opacity:".16", "stroke-linecap":"round"}, bodyG);
 
   /* 복판(오동나무) */
   el("circle", {cx:0, cy:CY, r:BR + 1.5, fill:"#140c04"}, bodyG);
   var bg = el("g", {"clip-path":"url(#clipBoard)"}, bodyG);
-  texImg(TEX.wood, -BR, CY - BR, BR * 2, BR * 2, bg);
+  el("rect", {x:-BR, y:CY - BR, width:BR * 2, height:BR * 2, fill:"url(#pattBoard)"}, bg);
   el("circle", {cx:0, cy:CY, r:BR, fill:"url(#boardShade)"}, bg);
   /* 나뭇결 결 방향 */
-  for(var j=0; j<7; j++){
-    var gx = -76 + j * 25;
-    el("path", {d:"M " + gx + " " + (CY - 92) + " Q " + (gx + 5) + " " + CY + " " + (gx - 3) + " " + (CY + 92),
-                fill:"none", stroke:"#8a6a3e", "stroke-width":0.9, opacity:".07"}, bg);
+  for(var j=0; j<9; j++){
+    var gx = -84 + j * 21;
+    el("path", {d:"M " + gx + " " + (CY - 92) + " Q " + (gx + 4) + " " + CY + " " + (gx - 3) + " " + (CY + 92),
+                fill:"none", stroke:"#7a5c33", "stroke-width":0.9, opacity:".06"}, bg);
   }
   /* 옻칠 광택 */
-  el("ellipse", {cx:-34, cy:CY - 34, rx:58, ry:44, fill:"url(#varnish)"}, bg);
-  el("ellipse", {cx:26, cy:CY + 30, rx:44, ry:20, fill:"url(#varnish2)"}, bg);
+  el("ellipse", {cx:-30, cy:CY - 36, rx:56, ry:40, fill:"url(#varnish)"}, bg);
+  el("ellipse", {cx:24, cy:CY + 34, rx:40, ry:18, fill:"url(#varnish2)"}, bg);
 
   /* 복판이 앉은 홈의 그늘 */
   el("circle", {cx:0, cy:CY, r:BR, fill:"none", stroke:"#0a0603", "stroke-width":6, opacity:".26"}, bodyG);
-  el("circle", {cx:0, cy:CY, r:BR - 1.6, fill:"none", stroke:"#ffe7bb", "stroke-width":1, opacity:".16"}, bodyG);
+  el("circle", {cx:0, cy:CY, r:BR - 1.6, fill:"none", stroke:"#ffe7bb", "stroke-width":1, opacity:".14"}, bodyG);
   el("circle", {cx:0, cy:CY, r:BR, fill:"none", stroke:"#0d0803", "stroke-width":1.2, opacity:".55"}, bodyG);
 
   /* 원산 — 줄이 걸리는 작은 대나무 다리 */
@@ -663,38 +676,36 @@ function buildBody(){
   el("path", {d:"M -43 " + (wy + 11) + " Q -46 " + (wy - 9) + " -34 " + (wy - 12) +
                  " L 34 " + (wy - 12) + " Q 46 " + (wy - 9) + " 43 " + (wy + 11) +
                  " Q 0 " + (wy + 16) + " -43 " + (wy + 11) + " Z",
-              fill:"#c8ab74", stroke:"#2b1c0b", "stroke-width":1.2}, bodyG);
+              fill:"#b89a63", stroke:"#2b1c0b", "stroke-width":1.2}, bodyG);
   el("path", {d:"M -36 " + (wy - 9) + " L 36 " + (wy - 9) +
                  " Q 30 " + (wy + 2) + " 0 " + (wy + 4) + " Q -30 " + (wy + 2) + " -36 " + (wy - 9) + " Z",
               fill:"url(#wonsanTop)"}, bodyG);
   el("path", {d:"M -41 " + (wy + 3) + " Q 0 " + (wy + 13) + " 41 " + (wy + 3),
               fill:"none", stroke:"#2a1a09", "stroke-width":1.1, opacity:".45"}, bodyG);
-  el("line", {x1:-34, y1:wy - 11, x2:34, y2:wy - 11, stroke:"#fff0cf", "stroke-width":1.1, opacity:".4"}, bodyG);
-  /* 원산의 대나무 마디 결 */
-  el("line", {x1:-12, y1:wy - 11, x2:-12, y2:wy + 6, stroke:"#8a6a3a", "stroke-width":1, opacity:".3"}, bodyG);
-  el("line", {x1:14, y1:wy - 11, x2:14, y2:wy + 6, stroke:"#8a6a3a", "stroke-width":1, opacity:".3"}, bodyG);
+  el("line", {x1:-34, y1:wy - 11, x2:34, y2:wy - 11, stroke:"#fff0cf", "stroke-width":1.1, opacity:".38"}, bodyG);
+  el("line", {x1:-12, y1:wy - 11, x2:-12, y2:wy + 6, stroke:"#8a6a3a", "stroke-width":1, opacity:".28"}, bodyG);
+  el("line", {x1:14, y1:wy - 11, x2:14, y2:wy + 6, stroke:"#8a6a3a", "stroke-width":1, opacity:".28"}, bodyG);
 
   /* 감잡이 — 줄을 매는 아래쪽 나무 토막 */
   var gy = GEO.gamY;
   el("ellipse", {cx:4, cy:gy + 16, rx:40, ry:8, fill:"#0b0703", opacity:".5"}, bodyG);
   el("rect", {x:-36, y:gy - 10, width:72, height:22, rx:7, fill:"#4a3218", stroke:"#160d04", "stroke-width":1.2}, bodyG);
-  el("rect", {x:-33, y:gy - 8, width:66, height:6, rx:3, fill:"#c9a978", opacity:".28"}, bodyG);
+  el("rect", {x:-33, y:gy - 8, width:66, height:6, rx:3, fill:"#c9a978", opacity:".24"}, bodyG);
   for(var k=0; k<4; k++){
-    el("rect", {x:-30 + k * 17, y:gy - 10, width:3, height:22, fill:"#e6d2a8", opacity:".22"}, bodyG);
+    el("rect", {x:-30 + k * 17, y:gy - 10, width:3, height:22, fill:"#e6d2a8", opacity:".2"}, bodyG);
   }
-  /* 감잡이에 감긴 명주실 */
-  el("path", {d:"M -20 " + (gy - 4) + " q 20 7 40 0", fill:"none", stroke:"#c4553a", "stroke-width":2.2, opacity:".9"}, bodyG);
-  el("path", {d:"M -20 " + (gy + 3) + " q 20 7 40 0", fill:"none", stroke:"#8e3220", "stroke-width":2.0, opacity:".9"}, bodyG);
+  el("path", {d:"M -20 " + (gy - 4) + " q 20 7 40 0", fill:"none", stroke:"#c4553a", "stroke-width":2.2, opacity:".85"}, bodyG);
+  el("path", {d:"M -20 " + (gy + 3) + " q 20 7 40 0", fill:"none", stroke:"#8e3220", "stroke-width":2.0, opacity:".85"}, bodyG);
 
   /* 붉은 실 꼬리 */
   var cords = [[-16, "#8e2f22", 3.0, 44], [0, "#b8543c", 2.6, 54], [14, "#7c2a1c", 3.2, 48]];
   for(var c2=0; c2<cords.length; c2++){
     var cd = cords[c2];
-    el("path", {d:"M " + cd[0] + " " + (gy + 11) + " q " + (2) + " " + (cd[3] * 0.4) + " " + (-3) + " " + (cd[3] * 0.72) +
+    el("path", {d:"M " + cd[0] + " " + (gy + 11) + " q 2 " + (cd[3] * 0.4) + " -3 " + (cd[3] * 0.72) +
                    " q -5 " + (cd[3] * 0.2) + " 1 " + (cd[3] * 0.4),
                 fill:"none", stroke:cd[1], "stroke-width":cd[2], "stroke-linecap":"round"}, bodyG);
     el("path", {d:"M " + cd[0] + " " + (gy + 11) + " q 2 " + (cd[3] * 0.4) + " -3 " + (cd[3] * 0.72),
-                fill:"none", stroke:"#f0b79a", "stroke-width":.8, opacity:".35", "stroke-linecap":"round"}, bodyG);
+                fill:"none", stroke:"#f0b79a", "stroke-width":.8, opacity:".3", "stroke-linecap":"round"}, bodyG);
   }
 }
 
@@ -714,88 +725,86 @@ function buildNeck(){
 
   /* 뒤로 떨어지는 그림자 */
   el("path", {d:d, fill:"none", stroke:"#000000", "stroke-width":HW * 2 + 2, "stroke-linecap":"butt",
-              opacity:".34", transform:"translate(15,10)"}, neckG);
+              opacity:".36", transform:"translate(16,11)"}, neckG);
 
   /* 어두운 테두리 → 대나무 바탕 */
   el("path", {d:d, fill:"none", stroke:"#0a0602", "stroke-width":HW * 2 + 4, "stroke-linecap":"butt"}, neckG);
   el("path", {d:d, fill:"none", stroke:"#7a5c2e", "stroke-width":HW * 2, "stroke-linecap":"butt"}, neckG);
 
   var g = el("g", {"clip-path":"url(#clipNeck)"}, neckG);
-  /* 대나무 결 (한 장으로 길게 펼침) */
-  texImg(TEX.bamboo, -HW - 4, -540, HW * 2 + 8, 1100, g);
+  /* 대나무 결 — 실제 크기로 타일 */
+  el("rect", {x:-HW - 2, y:-540, width:HW * 2 + 4, height:1100, fill:"url(#pattBamboo)"}, g);
   /* 원통 명암 — 왼쪽 광원 */
   el("rect", {x:-HW - 2, y:-540, width:HW * 2 + 4, height:1100, fill:"url(#cylShade)"}, g);
   /* 마디 */
   var nodes = [402, 292, 182, 72, -38, -148, -258, -368];
   for(var i=0; i<nodes.length; i++){
     var y = nodes[i];
-    el("ellipse", {cx:0, cy:y, rx:HW - 2, ry:9, fill:"#000000", opacity:".10"}, g);
-    el("rect", {x:-HW - 2, y:y - 5.5, width:HW * 2 + 4, height:2.4, fill:"#ffe7bd", opacity:".20"}, g);
-    el("rect", {x:-HW - 2, y:y - 2.6, width:HW * 2 + 4, height:3.0, fill:"#140d05", opacity:".42"}, g);
-    el("rect", {x:-HW - 2, y:y + 0.6, width:HW * 2 + 4, height:1.6, fill:"#f6dcac", opacity:".14"}, g);
-    /* 마디눈 */
-    var ex = -26 + ((i * 37) % 42);
+    el("ellipse", {cx:0, cy:y, rx:HW - 1, ry:8, fill:"#000000", opacity:".10"}, g);
+    el("rect", {x:-HW - 2, y:y - 5.2, width:HW * 2 + 4, height:2.2, fill:"#ffe7bd", opacity:".22"}, g);
+    el("rect", {x:-HW - 2, y:y - 2.6, width:HW * 2 + 4, height:2.8, fill:"#140d05", opacity:".45"}, g);
+    el("rect", {x:-HW - 2, y:y + 0.4, width:HW * 2 + 4, height:1.5, fill:"#f6dcac", opacity:".15"}, g);
+    var ex = -22 + ((i * 37) % 34);
     el("path", {d:"M " + ex + " " + (y + 1) + " q 7 -6 15 -1", fill:"none", stroke:"#2a1c0b",
-                "stroke-width":2.4, opacity:".45", "stroke-linecap":"round"}, g);
+                "stroke-width":2.4, opacity:".42", "stroke-linecap":"round"}, g);
   }
   /* 세로 섬유 결 */
-  for(var s=0; s<14; s++){
-    var fx = -HW + 4 + s * (HW * 2 - 8) / 13;
+  for(var s=0; s<10; s++){
+    var fx = -HW + 4 + s * (HW * 2 - 8) / 9;
     el("path", {d:"M " + fx + " -470 Q " + (fx + 1.5) + " 0 " + fx + " 500", fill:"none",
-                stroke:(s % 2 ? "#ffe3b0" : "#2a1c0b"), "stroke-width":1, opacity:(s % 2 ? .05 : .07)}, g);
+                stroke:(s % 2 ? "#ffe3b0" : "#2a1c0b"), "stroke-width":1, opacity:(s % 2 ? .045 : .06)}, g);
   }
   /* 산성 — 위쪽 붉은 옻칠 */
   el("rect", {x:-HW - 2, y:-470, width:HW * 2 + 4, height:176, fill:"url(#sanseongG)"}, g);
   el("rect", {x:-HW - 2, y:-470, width:HW * 2 + 4, height:176, fill:"url(#cylSheen)"}, g);
   el("rect", {x:-HW - 2, y:-296, width:HW * 2 + 4, height:8, fill:"url(#sanseongFade)"}, g);
-  /* 옻칠 벗겨진 자리 */
   for(var w=0; w<6; w++){
-    var wx = -30 + ((w * 53) % 58), wy2 = -450 + w * 27;
-    el("ellipse", {cx:wx, cy:wy2, rx:4 + (w % 3) * 2.4, ry:2 + (w % 2) * 1.6, fill:"#c9a06a", opacity:".16"}, g);
+    var wx = -26 + ((w * 53) % 50), wy2 = -450 + w * 27;
+    el("ellipse", {cx:wx, cy:wy2, rx:4 + (w % 3) * 2.4, ry:2 + (w % 2) * 1.6, fill:"#c9a06a", opacity:".14"}, g);
   }
   /* 입죽 — 위 끝의 구멍 */
-  el("ellipse", {cx:24, cy:-507, rx:43, ry:14, fill:"#0d0803"}, neckG);
-  el("ellipse", {cx:24, cy:-507, rx:43, ry:14, fill:"none", stroke:"#8a6534", "stroke-width":2.2}, neckG);
-  el("ellipse", {cx:24, cy:-508, rx:34, ry:9, fill:"#050302"}, neckG);
-  el("path", {d:"M -17 -508 Q 24 -516 65 -503", fill:"none", stroke:"#ffe4b4", "stroke-width":1.4, opacity:".28"}, neckG);
-  /* 입죽 틈 */
-  el("path", {d:"M 24 -512 L 22 -492", fill:"none", stroke:"#0a0502", "stroke-width":3.4, opacity:".55"}, neckG);
+  el("ellipse", {cx:24, cy:-507, rx:HW - 3, ry:13, fill:"#0d0803"}, neckG);
+  el("ellipse", {cx:24, cy:-507, rx:HW - 3, ry:13, fill:"none", stroke:"#8a6534", "stroke-width":2.2}, neckG);
+  el("ellipse", {cx:24, cy:-508, rx:HW - 9, ry:8, fill:"#050302"}, neckG);
+  el("path", {d:"M " + (24 - HW + 4) + " -508 Q 24 -516 " + (24 + HW - 4) + " -503",
+              fill:"none", stroke:"#ffe4b4", "stroke-width":1.4, opacity:".26"}, neckG);
+  el("path", {d:"M 24 -512 L 22 -494", fill:"none", stroke:"#0a0502", "stroke-width":3.2, opacity:".5"}, neckG);
 
-  /* 몸통으로 이어지는 아래쪽 그늘 */
-  el("path", {d:"M 0 545 L 0 470", fill:"none", stroke:"#0a0602", "stroke-width":HW * 2, opacity:".0"}, neckG);
+  /* 활을 거는 가죽 받침 */
+  el("rect", {x:-HW - 6, y:462, width:HW * 2 + 12, height:22, rx:7, fill:"#3c4534"}, neckG);
+  el("rect", {x:-HW - 6, y:462, width:HW * 2 + 12, height:8, rx:4, fill:"#9fb08a", opacity:".2"}, neckG);
+  el("rect", {x:-HW - 6, y:462, width:HW * 2 + 12, height:22, rx:7, fill:"none", stroke:"#12180f", "stroke-width":1.2}, neckG);
+
+  /* 몸통과 만나는 자리의 그늘 */
+  el("ellipse", {cx:0, cy:520, rx:HW + 4, ry:16, fill:"#0a0602", opacity:".28"}, neckG);
 
   drawPeg(GEO.pegY[0], 0);
   drawPeg(GEO.pegY[1], 1);
 
-  /* 활을 거는 고무/가죽 받침 (원래 있던 초록 받침 자리) */
-  el("rect", {x:-HW - 6, y:462, width:HW * 2 + 12, height:22, rx:7, fill:"#3c4534"}, neckG);
-  el("rect", {x:-HW - 6, y:462, width:HW * 2 + 12, height:8, rx:4, fill:"#9fb08a", opacity:".22"}, neckG);
-  el("rect", {x:-HW - 6, y:462, width:HW * 2 + 12, height:22, rx:7, fill:"none", stroke:"#12180f", "stroke-width":1.2}, neckG);
-
   /* 테두리 마무리 */
-  el("path", {d:d, fill:"none", stroke:"#1a1108", "stroke-width":1.6, opacity:".5", "stroke-linecap":"butt"}, neckG);
+  el("path", {d:d, fill:"none", stroke:"#1a1108", "stroke-width":1.4, opacity:".45", "stroke-linecap":"butt"}, neckG);
 }
 
 function drawPeg(y, idx){
   var p = el("g", {transform:"translate(0," + y + ")"}, neckG);
   /* 목재 자루 */
-  el("rect", {x:-58, y:-16, width:206, height:32, rx:15, fill:"#0a0602", opacity:".38", transform:"translate(4,8)"}, p);
-  el("rect", {x:-60, y:-17, width:206, height:34, rx:16, fill:"url(#pegWood)"}, p);
-  el("rect", {x:-60, y:-17, width:206, height:34, rx:16, fill:"none", stroke:"#150c04", "stroke-width":1.4}, p);
+  el("rect", {x:-52, y:-15, width:184, height:30, rx:14, fill:"#0a0602", opacity:".4", transform:"translate(4,7)"}, p);
+  el("rect", {x:-54, y:-16, width:184, height:32, rx:15, fill:"url(#pegWood)"}, p);
+  el("rect", {x:-54, y:-16, width:184, height:32, rx:15, fill:"none", stroke:"#150c04", "stroke-width":1.3}, p);
   /* 나뭇결 */
-  el("path", {d:"M -50 -5 Q 20 -11 138 -3", fill:"none", stroke:"#2b1a09", "stroke-width":1, opacity:".22"}, p);
-  el("path", {d:"M -48 5 Q 30 10 132 4", fill:"none", stroke:"#2b1a09", "stroke-width":1, opacity:".16"}, p);
-  el("rect", {x:-52, y:-13, width:190, height:5, rx:3, fill:"#ffe6bb", opacity:".14"}, p);
+  el("path", {d:"M -44 -5 Q 20 -10 124 -3", fill:"none", stroke:"#2b1a09", "stroke-width":1, opacity:".22"}, p);
+  el("path", {d:"M -42 5 Q 30 9 118 4", fill:"none", stroke:"#2b1a09", "stroke-width":1, opacity:".15"}, p);
+  el("rect", {x:-46, y:-12, width:168, height:4, rx:2, fill:"#ffe6bb", opacity:".13"}, p);
   /* 머리 */
-  el("circle", {cx:150, cy:0, r:26, fill:"url(#pegHead)"}, p);
-  el("circle", {cx:150, cy:0, r:26, fill:"none", stroke:"#170e05", "stroke-width":1.6}, p);
-  el("circle", {cx:150, cy:0, r:17, fill:"none", stroke:"#1e1308", "stroke-width":1, opacity:".45"}, p);
-  el("circle", {cx:150, cy:0, r:7.5, fill:"#3a2610"}, p);
-  el("circle", {cx:143, cy:-8, r:9, fill:"#ffe8bf", opacity:".14"}, p);
+  el("circle", {cx:130, cy:0, r:23, fill:"url(#pegHead)"}, p);
+  el("circle", {cx:130, cy:0, r:23, fill:"none", stroke:"#170e05", "stroke-width":1.5}, p);
+  el("circle", {cx:130, cy:0, r:15, fill:"none", stroke:"#1e1308", "stroke-width":1, opacity:".4"}, p);
+  el("circle", {cx:130, cy:0, r:6.5, fill:"#3a2610"}, p);
+  el("circle", {cx:124, cy:-7, r:7.5, fill:"#ffe8bf", opacity:".13"}, p);
   /* 감긴 명주실 */
-  for(var i=0; i<5; i++){
-    el("ellipse", {cx:16 + i * 4, cy:0, rx:9, ry:15.5, fill:"none",
-                   stroke:(i % 2 ? "#cbb68c" : "#f3e7c8"), "stroke-width":1.5, opacity:".55"}, p);
+  for(var i=0; i<6; i++){
+    el("ellipse", {cx:2 + i * 4.4, cy:0, rx:8.5, ry:14.5, fill:"none",
+                   stroke:(i % 2 ? "#cbb68c" : "#f3e7c8"), "stroke-width":1.4, opacity:".5"}, p);
   }
 }
 
@@ -803,28 +812,28 @@ function buildStrings(){
   for(var s=0; s<2; s++){
     var g = (s === 0) ? strJungG : strYuG;
     strEls[s] = []; shadowEls[s] = [];
-    var w = (s === 0) ? 5.0 : 3.4;
+    var w = (s === 0) ? 4.4 : 3.0;
     /* 복판·몸통에 드리우는 그림자 */
-    var sh = el("path", {d:"", fill:"none", stroke:"#140b03", "stroke-width":w + 3.2,
-                         "stroke-linecap":"round", opacity:".26", transform:"translate(3.6,2.8)"}, g);
+    var sh = el("path", {d:"", fill:"none", stroke:"#140b03", "stroke-width":w + 2.4,
+                         "stroke-linecap":"round", opacity:".3", transform:"translate(3.2,2.6)"}, g);
     shadowEls[s].push(sh);
     /* 실 본체 */
     strEls[s].push(el("path", {d:"", fill:"none", stroke:(s === 0 ? "url(#silkJung)" : "url(#silkYu)"),
                                "stroke-width":w, "stroke-linecap":"round"}, g));
     /* 꼬인 실 결 */
     strEls[s].push(el("path", {d:"", fill:"none", stroke:"#6d5636", "stroke-width":w * 0.5,
-                               "stroke-linecap":"butt", opacity:".34", "stroke-dasharray":"2.4 3.2"}, g));
+                               "stroke-linecap":"butt", opacity:".32", "stroke-dasharray":"2.2 3.0"}, g));
     /* 하이라이트 */
     strEls[s].push(el("path", {d:"", fill:"none", stroke:"#fffaf0",
-                               "stroke-width":Math.max(0.7, w * 0.26), "stroke-linecap":"round", opacity:".5"}, g));
+                               "stroke-width":Math.max(0.6, w * 0.24), "stroke-linecap":"round", opacity:".45"}, g));
   }
   /* 줄감개에 감긴 끝 */
   for(var s2=0; s2<2; s2++){
     var g2 = (s2 === 0) ? strJungG : strYuG;
     var py = GEO.pegY[s2];
     for(var i=0; i<3; i++){
-      el("path", {d:"M " + (GEO.strX[s2] - 7) + " " + (py - 6 + i * 6) + " q 7 4 14 0",
-                  fill:"none", stroke:"#e8d6b0", "stroke-width":2.4, opacity:".7"}, g2);
+      el("path", {d:"M " + (GEO.strX[s2] - 6) + " " + (py - 6 + i * 6) + " q 6 4 12 0",
+                  fill:"none", stroke:"#e8d6b0", "stroke-width":2.2, opacity:".65"}, g2);
     }
   }
   drawString(0); drawString(1);
@@ -838,57 +847,56 @@ function drawString(s){
   for(var i=0; i<active.length; i++){
     if(active[i].s === s){ seg = active[i]; break; }
   }
-  var d, ds;
+  var d;
   if(!seg){
     d = "M " + x + " " + top + " L " + x + " " + bot;
   }else{
     var p = Math.max(top + 8, Math.min(GEO.wonsanY - 12, seg.pressY));
     var b = GEO.wonsanY - 3;
     var mid = (p + b) / 2;
-    var off = Math.sin(vibPhase) * (2.0 + 1.7 * (seg.nong || 0));
+    var off = Math.sin(vibPhase) * (1.8 + 1.6 * (seg.nong || 0));
     d = "M " + x + " " + top + " L " + x + " " + p.toFixed(1) +
         " Q " + (x + off * 2.2).toFixed(2) + " " + mid.toFixed(1) + " " + x + " " + b.toFixed(1) +
         " L " + x + " " + bot;
   }
-  ds = d;
   for(var k=0; k<strEls[s].length; k++) strEls[s][k].setAttribute("d", d);
-  for(var k2=0; k2<shadowEls[s].length; k2++) shadowEls[s][k2].setAttribute("d", ds);
+  for(var k2=0; k2<shadowEls[s].length; k2++) shadowEls[s][k2].setAttribute("d", d);
 }
 
 function buildBow(){
   /* 악기 위에 드리우는 활 그림자 */
-  el("path", {d:"M -206 429 Q 0 461 206 424", fill:"none", stroke:"#0b0602", "stroke-width":17,
-              opacity:".28", transform:"translate(0,12)"}, bowG);
+  el("path", {d:"M -206 429 Q 0 461 206 424", fill:"none", stroke:"#0b0602", "stroke-width":15,
+              opacity:".3", transform:"translate(0,13)"}, bowG);
 
   /* 활대 — 검붉은 옻칠한 나무 */
-  el("path", {d:"M -212 424 Q 0 456 212 418", fill:"none", stroke:"#2a1608", "stroke-width":13,
+  el("path", {d:"M -214 421 Q 0 452 214 415", fill:"none", stroke:"#1e1208", "stroke-width":12,
               "stroke-linecap":"round"}, bowG);
-  el("path", {d:"M -212 423 Q 0 455 212 417", fill:"none", stroke:"url(#bowWoodG)", "stroke-width":10,
+  el("path", {d:"M -214 420 Q 0 451 214 414", fill:"none", stroke:"url(#bowWoodG)", "stroke-width":9,
               "stroke-linecap":"round"}, bowG);
-  el("path", {d:"M -206 418 Q 0 449 206 411", fill:"none", stroke:"#ffe6bb", "stroke-width":2.2,
-              opacity:".20", "stroke-linecap":"round"}, bowG);
-  el("path", {d:"M -206 429 Q 0 460 206 422", fill:"none", stroke:"#0b0602", "stroke-width":1.6,
-              opacity:".35", "stroke-linecap":"round"}, bowG);
+  el("path", {d:"M -208 415 Q 0 445 208 408", fill:"none", stroke:"#ffe6bb", "stroke-width":2,
+              opacity:".18", "stroke-linecap":"round"}, bowG);
+  el("path", {d:"M -208 426 Q 0 457 208 419", fill:"none", stroke:"#0b0602", "stroke-width":1.4,
+              opacity:".32", "stroke-linecap":"round"}, bowG);
 
-  /* 말총 — 가는 털 수십 가닥 */
-  for(var i=0; i<30; i++){
-    var o = -6.2 + i * 0.43;
-    var sag = 2.2 * Math.sin((i / 29) * Math.PI);
-    el("path", {d:"M " + (-198 - o * 0.5).toFixed(1) + " " + (413 + o + sag).toFixed(2) +
-                   " Q 0 " + (449 + o + sag).toFixed(2) + " " + (198 + o * 0.5).toFixed(1) + " " + (407 + o + sag).toFixed(2),
-                fill:"none", stroke:(i % 5 === 0 ? "#d8c8a8" : "#fbf3e4"), "stroke-width":0.9,
-                opacity:".30", "stroke-linecap":"round"}, bowG);
+  /* 말총 — 가는 털 수십 가닥 (은은하게) */
+  for(var i=0; i<26; i++){
+    var o = -4.6 + i * 0.37;
+    var sag = 1.6 * Math.sin((i / 25) * Math.PI);
+    el("path", {d:"M " + (-200 - o * 0.4).toFixed(1) + " " + (415 + o + sag).toFixed(2) +
+                   " Q 0 " + (446 + o + sag).toFixed(2) + " " + (200 + o * 0.4).toFixed(1) + " " + (409 + o + sag).toFixed(2),
+                fill:"none", stroke:(i % 6 === 0 ? "#cbb894" : "#f4e8d2"), "stroke-width":0.7,
+                opacity:".16", "stroke-linecap":"round"}, bowG);
   }
   /* 말총 뭉치의 부드러운 윤기 */
-  el("path", {d:"M -196 411 Q 0 447 196 405", fill:"none", stroke:"#fffaf0", "stroke-width":7,
-              opacity:".10", "stroke-linecap":"round"}, bowG);
+  el("path", {d:"M -198 414 Q 0 445 198 407", fill:"none", stroke:"#fffaf0", "stroke-width":5,
+              opacity:".07", "stroke-linecap":"round"}, bowG);
 
   /* 활 고지 (왼쪽 손잡이) */
-  el("rect", {x:-228, y:404, width:30, height:26, rx:9, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.2}, bowG);
-  el("rect", {x:-225, y:407, width:24, height:7, rx:3, fill:"#c9a26a", opacity:".3"}, bowG);
+  el("rect", {x:-230, y:403, width:28, height:24, rx:8, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.2}, bowG);
+  el("rect", {x:-227, y:406, width:22, height:6, rx:3, fill:"#c9a26a", opacity:".28"}, bowG);
   /* 오른쪽 끝 */
-  el("rect", {x:196, y:404, width:22, height:18, rx:7, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.2}, bowG);
-  el("rect", {x:198, y:406, width:16, height:4, rx:2, fill:"#c9a26a", opacity:".28"}, bowG);
+  el("rect", {x:200, y:402, width:20, height:16, rx:6, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.2}, bowG);
+  el("rect", {x:202, y:404, width:15, height:4, rx:2, fill:"#c9a26a", opacity:".26"}, bowG);
 }
 
 
@@ -1931,6 +1939,7 @@ window.__hg = {
    10. 시작
    ══════════════════════════════════════════════════════════ */
 function init(){
+  bindTextures();
   buildRows();
   buildBody();
   buildNeck();
