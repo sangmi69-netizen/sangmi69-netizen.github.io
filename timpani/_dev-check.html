@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><title>timpani 화면 크기 확인(임시)</title>
+<style>
+  body{margin:0;background:#222;color:#eee;font:12px system-ui;display:flex;gap:14px;padding:10px;align-items:flex-start;flex-wrap:wrap}
+  .box{background:#111;padding:6px;border-radius:8px}
+  .box p{margin:0 0 5px;color:#9cf}
+  iframe{border:0;display:block;background:#000}
+</style></head>
+<body>
+  <div class="box"><p>iPhone 13 Pro 세로 390×844</p><iframe id="f1" src="index.html?m=portrait" width="390" height="844"></iframe></div>
+  <div class="box"><p>iPhone SE 세로 375×667 (좁은 화면 규칙)</p><iframe id="f2" src="index.html?m=se" width="375" height="667"></iframe></div>
+  <div class="box"><p>가로 844×390</p><iframe id="f3" src="index.html?m=landscape" width="844" height="390"></iframe></div>
+</body></html>
