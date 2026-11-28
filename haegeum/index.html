@@ -334,6 +334,16 @@
         <feGaussianBlur stdDeviation="7"/>
       </filter>
 
+      <radialGradient id="keyLight" cx="22%" cy="12%" r="78%">
+        <stop offset="0%" stop-color="#fff2d2" stop-opacity=".11"/>
+        <stop offset="45%" stop-color="#ffe6bd" stop-opacity=".04"/>
+        <stop offset="100%" stop-color="#ffe6bd" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="lowShade" cx="72%" cy="86%" r="62%">
+        <stop offset="0%" stop-color="#0a0502" stop-opacity=".34"/>
+        <stop offset="100%" stop-color="#0a0502" stop-opacity="0"/>
+      </radialGradient>
+
       <clipPath id="clipBodyOut"><circle cx="0" cy="600" r="112"/></clipPath>
       <clipPath id="clipBoard"><circle cx="0" cy="600" r="95"/></clipPath>
       <clipPath id="clipNeck">
@@ -358,6 +368,7 @@
         <g id="strYuG"></g>
         <g id="bowG"></g>
         <g id="strJungG"></g>
+        <g id="lightG"></g>
         <g id="overlayG"></g>
       </g>
     </g>
@@ -568,6 +579,7 @@ var strYuG = document.getElementById("strYuG");
 var bowG = document.getElementById("bowG");
 var strJungG = document.getElementById("strJungG");
 var overlayG = document.getElementById("overlayG");
+var lightG = document.getElementById("lightG");
 
 var L = { W:0, H:0, k:1, rot:0, cx:0, cy:0, land:false };
 
@@ -785,7 +797,7 @@ function buildNeck(){
 
   var g = el("g", {"clip-path":"url(#clipNeck)"}, neckG);
   /* 대나무 결 — 목대 하나를 덮는 긴 결(이음매 없음) */
-  imgEl(TEX.neck, -HW - 2, -540, HW * 2 + 4, 1104, g);
+  imgEl(TEX.neck, -HW * 2, -545, HW * 4, 1109, g);
   /* 마디 사이마다 미세한 빛깔 차이 (한 장의 나무처럼 보이지 않게) */
   var segs = [-540, -368, -258, -148, -38, 72, 182, 292, 402, 564];
   for(var si=0; si<segs.length-1; si++){
@@ -874,6 +886,9 @@ function drawPeg(y, idx){
   el("circle", {cx:130, cy:0, r:15, fill:"none", stroke:"#1e1308", "stroke-width":1, opacity:".4"}, p);
   el("circle", {cx:130, cy:0, r:6.5, fill:"#3a2610"}, p);
   el("circle", {cx:124, cy:-7, r:7.5, fill:"#ffe8bf", opacity:".13"}, p);
+  /* 목대에 닿는 자리의 그늘 */
+  el("ellipse", {cx:-38, cy:2, rx:7, ry:17, fill:"#0a0602", opacity:".35"}, p);
+  el("ellipse", {cx:38, cy:2, rx:7, ry:17, fill:"#0a0602", opacity:".30"}, p);
   /* 감긴 명주실 */
   for(var i=0; i<6; i++){
     el("ellipse", {cx:2 + i * 4.4, cy:0, rx:8.5, ry:14.5, fill:"none",
@@ -952,20 +967,19 @@ function buildBow(){
               opacity:".32", "stroke-linecap":"round"}, bowG);
 
   /* 말총 뭉치 — 부드러운 띠 */
-  el("path", {d:"M -204 411 Q 0 442 204 404 L 204 419 Q 0 457 -204 426 Z", fill:"url(#hairG)"}, bowG);
+  el("path", {d:"M -203 412 L 203 405 L 203 419 L -203 426 Z", fill:"url(#hairG)"}, bowG);
 
   /* 말총 — 가는 털 수십 가닥 (은은하게) */
   for(var i=0; i<26; i++){
-    var o = -4.6 + i * 0.37;
-    var sag = 1.6 * Math.sin((i / 25) * Math.PI);
-    el("path", {d:"M " + (-200 - o * 0.4).toFixed(1) + " " + (415 + o + sag).toFixed(2) +
-                   " Q 0 " + (446 + o + sag).toFixed(2) + " " + (200 + o * 0.4).toFixed(1) + " " + (409 + o + sag).toFixed(2),
-                fill:"none", stroke:(i % 6 === 0 ? "#cbb894" : "#f4e8d2"), "stroke-width":0.7,
-                opacity:".26", "stroke-linecap":"round"}, bowG);
+    var o = -4.8 + i * 0.39;
+    el("path", {d:"M " + (-201).toFixed(1) + " " + (413 + o).toFixed(2) +
+                   " L " + (201).toFixed(1) + " " + (406 + o).toFixed(2),
+                fill:"none", stroke:(i % 6 === 0 ? "#cbb894" : "#f8efdd"), "stroke-width":0.7,
+                opacity:".28", "stroke-linecap":"round"}, bowG);
   }
   /* 말총 뭉치의 부드러운 윤기 */
-  el("path", {d:"M -198 414 Q 0 445 198 407", fill:"none", stroke:"#fffaf0", "stroke-width":5,
-              opacity:".07", "stroke-linecap":"round"}, bowG);
+  el("path", {d:"M -199 416 L 199 409", fill:"none", stroke:"#fffaf0", "stroke-width":4,
+              opacity:".08", "stroke-linecap":"round"}, bowG);
 
   /* 활 고지 (왼쪽 손잡이) */
   el("rect", {x:-230, y:403, width:28, height:24, rx:8, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.2}, bowG);
@@ -973,6 +987,13 @@ function buildBow(){
   /* 오른쪽 끝 */
   el("rect", {x:200, y:402, width:20, height:16, rx:6, fill:"#3a2411", stroke:"#140c04", "stroke-width":1.2}, bowG);
   el("rect", {x:202, y:404, width:15, height:4, rx:2, fill:"#c9a26a", opacity:".26"}, bowG);
+}
+
+/* 사진 같은 조명 — 악기 전체에 얹는 빛과 그늘 */
+function buildLight(){
+  if(!lightG) return;
+  el("rect", {x:-260, y:-560, width:520, height:1360, fill:"url(#keyLight)", "pointer-events":"none"}, lightG);
+  el("rect", {x:-260, y:-560, width:520, height:1360, fill:"url(#lowShade)", "pointer-events":"none"}, lightG);
 }
 
 
@@ -2021,6 +2042,7 @@ function init(){
   buildNeck();
   buildStrings();
   buildBow();
+  buildLight();
   buildOverlay();
   buildMenu();
   refreshMenu();
