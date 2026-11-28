@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex,nofollow" />
+<title>haegeum fit check</title>
+<style>
+  html,body{margin:0;background:#000;overflow:hidden}
+  .wrap{position:absolute;left:0;top:0;transform-origin:0 0}
+  iframe{border:0;display:block;background:#0a0704}
+</style>
+</head>
+<body>
+<script>
+  /* 임시 확인용 — 실제 배포본을 지정한 화면 크기의 iframe에 그대로 띄운다 */
+  var q = new URLSearchParams(location.search);
+  var w = parseInt(q.get("w") || "1280", 10);
+  var h = parseInt(q.get("h") || "800", 10);
+  var s = parseFloat(q.get("s") || "1");
+  var wrap = document.createElement("div");
+  wrap.className = "wrap";
+  wrap.style.width = w + "px";
+  wrap.style.height = h + "px";
+  wrap.style.transform = "scale(" + s + ")";
+  var f = document.createElement("iframe");
+  f.width = w; f.height = h;
+  f.src = "./index.html?fit=" + w + "x" + h + "&t=" + Date.now();
+  wrap.appendChild(f);
+  document.body.appendChild(wrap);
+</script>
+</body>
+</html>
