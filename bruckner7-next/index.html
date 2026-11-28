@@ -184,7 +184,7 @@ function timeToX(t){
 
 /* ── audio ── */
 var AC=null, G=null;
-var MASTER_GAIN=1.0, MUSIC_GAIN=0.88, CYM_DRY=0.42, CYM_WET=0.22, CYM_HIT_GAIN=1.25, ROLL_GAIN=0.24;
+var MASTER_GAIN=1.0, MUSIC_GAIN=0.88, CYM_DRY=0.42, CYM_WET=0.22, CYM_HIT_GAIN=1.95, ROLL_GAIN=0.43;
 var TRI_DRY=0.52, TRI_WET=0.22, TRI_HIT_GAIN=0.62, TRI_ROLL_GAIN=0.26;
 var crashSet=[], triSet=[], musicBuf=null, musicFetch=null, musicSrc=null;
 var startAt=0, songT=0, phase="title", starting=false;
@@ -1160,6 +1160,7 @@ window.__game={
   scorePeek:function(t){ return timeToX(t); },
   audiotest:audioTest,
   crashBuf:function(){ return crashSet[0]||null; },
+  buildCrash:function(){ var t=performance.now(); makeCrash(AC); return Math.round(performance.now()-t); },
   setCym:function(o){ if(o.hit!=null)CYM_HIT_GAIN=o.hit; if(o.wet!=null){CYM_WET=o.wet; if(G)G.cymWet.gain.value=o.wet;} if(o.dry!=null){CYM_DRY=o.dry; if(G)G.cymDry.gain.value=o.dry;} return {hit:CYM_HIT_GAIN,dry:CYM_DRY,wet:CYM_WET}; }
 };
 })();
