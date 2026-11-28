@@ -951,6 +951,7 @@ window.__game={
     return window.__auto.length;
   },
   hitAt:function(i){ var n=NOTES[i]; if(n){ press(n.kind); } },
+  keyHold:function(on){ triKeyHold=!!on; return triKeyHold; },
   strikeAt:function(t){ var now=AC?AC.currentTime:performance.now()/1000; STRIKE_AT=now - t; TRI_AT=now - t; updateCymbals(); updateTriangle(); },
   triStrikeAt:function(t){ var now=AC?AC.currentTime:performance.now()/1000; TRI_AT=now - t; updateTriangle(); },
   triSvgRect:function(){ return document.getElementById("triZone").getBoundingClientRect(); },
