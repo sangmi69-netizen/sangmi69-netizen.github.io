@@ -184,7 +184,7 @@ function timeToX(t){
 
 /* ── audio ── */
 var AC=null, G=null;
-var MASTER_GAIN=1.0, MUSIC_GAIN=0.88, CYM_DRY=0.42, CYM_WET=0.22, CYM_HIT_GAIN=1.20, ROLL_GAIN=0.24;
+var MASTER_GAIN=1.0, MUSIC_GAIN=0.88, CYM_DRY=0.42, CYM_WET=0.22, CYM_HIT_GAIN=1.25, ROLL_GAIN=0.24;
 var TRI_DRY=0.52, TRI_WET=0.22, TRI_HIT_GAIN=0.62, TRI_ROLL_GAIN=0.26;
 var crashSet=[], triSet=[], musicBuf=null, musicFetch=null, musicSrc=null;
 var startAt=0, songT=0, phase="title", starting=false;
@@ -285,13 +285,14 @@ function filtInPlace(d,cf){
    · 150~600Hz의 두터운 금속 몸통이 3초 이상 남아 '묵직함'을 만들고
    · 600~2.5kHz 중역 바디가 어택을 받쳐 주며
    · 2.5~10kHz의 쉬머가 2초 이상 길게 퍼져 '웅장함'을 만든다
+   타격 순간에는 700Hz~7kHz의 짧은 금속성 크랙을 얹어 '쾅' 하는 펀치를 준다.
    0.9ms 페이드 인, 13kHz 저역 통과, 버퍼 내 포화 없음, 피크 0.85 정규화로
    잡음·클리핑 없이 유지한다.                                               */
 function makeCrash(ctx){
   var sr=ctx.sampleRate,dur=6.0,n=Math.floor(dur*sr);
   var buf=ctx.createBuffer(2,n,sr);
   /* [주파수, Q, 세기, 감쇠(초)] — 대역별 금속 몸통. 저역일수록 크고 오래 남는다 */
-  var LAY=[[150,1.5,0.50,3.40],[205,1.5,0.90,3.20],[285,1.3,1.05,3.00],[395,1.2,1.10,2.70],
+  var LAY=[[150,1.5,0.38,3.40],[205,1.5,0.90,3.20],[285,1.3,1.05,3.00],[395,1.2,1.10,2.70],
            [545,1.1,1.00,2.40],[760,1.0,0.90,2.20],[1060,0.95,0.80,2.00],[1460,0.90,0.72,1.85],
            [2020,0.85,0.80,1.75],[2790,0.80,0.90,1.65],[3850,0.75,0.92,1.50],[5300,0.70,0.84,1.30],
            [7300,0.65,0.72,1.10],[10000,0.60,0.56,0.90]];
@@ -332,18 +333,21 @@ function makeCrash(ctx){
         e2*=kd2;
       }
     }
-    /* 어택 펀치: 28ms의 넓은 금속성 크랙(400~6kHz 대역) — 2ms 안에 사라진다 */
-    var nb=Math.floor(0.028*sr), burst=new Float32Array(n);
-    for(i=0;i<nb;i++) burst[i]=(Math.random()*2-1)*Math.pow(1-i/nb,1.6)*Math.exp(-i/(0.006*sr));
-    var b1=bpCoef(1500,0.55,sr), b2f=bpCoef(4200,0.60,sr);
-    var q1=0,q2=0,p1=0,p2=0,u1=0,u2=0,v1=0,v2=0;
+    /* 어택 크랙: 45ms 길이, 11ms 감쇠의 700Hz·2.4kHz·6.5kHz 대역 타격음.
+       '쾅' 하는 순간의 펀치를 만들고 20ms 안에 사라진다.                  */
+    var nb=Math.floor(0.045*sr), burst=new Float32Array(n);
+    for(i=0;i<nb;i++) burst[i]=(Math.random()*2-1)*Math.exp(-i/(0.011*sr))*Math.pow(1-i/nb,0.7);
+    var bc1=bpCoef(700,0.50,sr), bc2=bpCoef(2400,0.55,sr), bc3=bpCoef(6500,0.60,sr);
+    var q1=0,q2=0,p1=0,p2=0,u1=0,u2=0,v1=0,v2=0,r1=0,r2=0,z1=0,z2=0;
     for(i=0;i<nb;i++){
       var xx=burst[i];
-      var y1v=b1.b0*xx+b1.b1*q1+b1.b2*q2-b1.a1*p1-b1.a2*p2;
-      q2=q1; q1=xx; p2=p1; p1=y1v;
-      var y2v=b2f.b0*xx+b2f.b1*u1+b2f.b2*u2-b2f.a1*v1-b2f.a2*v2;
-      u2=u1; u1=xx; v2=v1; v1=y2v;
-      d[i]+=y1v*0.95+y2v*0.65;
+      var o1=bc1.b0*xx+bc1.b1*q1+bc1.b2*q2-bc1.a1*p1-bc1.a2*p2;
+      q2=q1; q1=xx; p2=p1; p1=o1;
+      var o2=bc2.b0*xx+bc2.b1*u1+bc2.b2*u2-bc2.a1*v1-bc2.a2*v2;
+      u2=u1; u1=xx; v2=v1; v1=o2;
+      var o3=bc3.b0*xx+bc3.b1*r1+bc3.b2*r2-bc3.a1*z1-bc3.a2*z2;
+      r2=r1; r1=xx; z2=z1; z1=o3;
+      d[i]+=o1*5.5+o2*4.95+o3*2.75;
     }
     /* 저역 움프: 심벌 두 장이 부딪칠 때 나는 190Hz의 묵직한 바닥(0.16초) */
     var nl=Math.floor(0.16*sr), lowb=new Float32Array(n);
@@ -369,7 +373,7 @@ function makeCrash(ctx){
     var g2=0.85/(peak||1);
     for(i=0;i<n;i++) d[i]*=g2;
     var fade=Math.floor(0.40*sr);
-    for(i=0;i<fade;i++){ var u2=i/fade; d[n-1-i]*=u2*u2; }
+    for(i=0;i<fade;i++){ var u2b=i/fade; d[n-1-i]*=u2b*u2b; }
   }
   return buf;
 }
