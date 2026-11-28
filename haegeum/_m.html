@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><title>임시 크기 확인</title>
+<style>
+  html,body{margin:0;background:#222;color:#ddd;font:12px sans-serif}
+  .wrap{display:flex;gap:14px;padding:10px;align-items:flex-start}
+  .phone{border:2px solid #555;border-radius:10px;overflow:hidden;background:#000}
+  iframe{border:0;display:block}
+  p{margin:0 0 6px}
+</style></head>
+<body>
+<div class="wrap">
+  <div><p>아이폰 세로 390×844</p><div class="phone"><iframe id="f1" src="./index.html?m=1" width="390" height="844"></iframe></div></div>
+  <div><p>아이패드 세로 768×1024</p><div class="phone"><iframe id="f2" src="./index.html?m=2" width="768" height="1024"></iframe></div></div>
+  <div><p>안드로이드 360×640</p><div class="phone"><iframe id="f3" src="./index.html?m=3" width="360" height="640"></iframe></div></div>
+</div>
+</body></html>
