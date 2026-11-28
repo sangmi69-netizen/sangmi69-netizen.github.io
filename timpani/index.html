@@ -91,6 +91,37 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none
 .tb.txt{width:auto;padding:0 10px;font-size:12px;letter-spacing:.03em}
 .tb svg{width:16px;height:16px;display:block}
 
+/* ───────── 음량 조절 (상단 바) ───────── */
+#volCtl{
+  display:flex;align-items:center;gap:1px;flex:0 0 auto;margin-left:auto;
+  padding:2px 4px 2px 2px;border-radius:11px;
+  background:rgba(24,15,9,.82);border:1px solid rgba(240,190,130,.26);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+#volCtl .vb{
+  width:25px;height:25px;border-radius:8px;display:grid;place-items:center;
+  font-size:14px;font-weight:800;color:#e8d3b4;line-height:1;
+}
+#volCtl .vb:active{background:rgba(240,190,130,.18)}
+#volCtl .vb svg{width:15px;height:15px;display:block}
+#volCtl .vpct{
+  min-width:40px;padding:0 1px;text-align:center;font-size:11.5px;font-weight:800;
+  color:#ffd9ab;font-variant-numeric:tabular-nums;letter-spacing:.01em;white-space:nowrap;
+}
+#volCtl.muted .vpct{color:#a58d75}
+#volCtl.muted #volMute{color:#f0a94a;background:rgba(240,169,74,.16)}
+@media (max-width:700px){
+  #brand{padding:4px 8px 4px 7px}
+  #brand b{font-size:10.5px}
+  #countSeg .lbl{display:none}
+  #countSeg button{min-width:23px;height:24px;font-size:12px}
+  .tb{width:27px;height:27px}
+  .tb svg{width:15px;height:15px}
+  .tb.txt{padding:0 7px;font-size:11px;letter-spacing:0}
+  #volCtl .vb{width:22px;height:22px}
+  #volCtl .vpct{min-width:35px;font-size:11px}
+}
+
 /* ───────── 무대 ───────── */
 #stage{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;touch-action:none}
 #scene{
@@ -346,6 +377,12 @@ input[type=range]{accent-color:#d69a5c;height:24px;width:150px}
 <div id="app">
   <div id="topbar">
     <div id="brand"><span class="dot"></span><b>음악교사 이상미</b></div>
+    <div id="volCtl" role="group" aria-label="음량 조절">
+      <button id="volMute" class="vb" aria-label="음소거" aria-pressed="false" title="음소거"></button>
+      <button id="volDn" class="vb" aria-label="음량 줄이기" title="음량 줄이기">−</button>
+      <span id="volPct" class="vpct" aria-live="polite" aria-label="지금 음량">100%</span>
+      <button id="volUp" class="vb" aria-label="음량 키우기" title="음량 키우기">＋</button>
+    </div>
     <div id="tools">
       <div id="countSeg" role="group" aria-label="팀파니 대수">
         <span class="lbl">대수</span>
@@ -400,8 +437,8 @@ input[type=range]{accent-color:#d69a5c;height:24px;width:150px}
         <div class="chips" id="presets" style="margin-top:7px"></div>
       </div>
 
-      <div class="row"><span class="k1">전체 음량</span>
-        <input type="range" id="vol" min="0" max="1" step="0.01" aria-label="전체 음량">
+      <div class="row"><span class="k1">전체 음량 <b id="volPctPanel">100%</b></span>
+        <input type="range" id="vol" min="0" max="2" step="0.05" aria-label="전체 음량">
       </div>
 
       <h3>지금 조율</h3>
@@ -447,6 +484,7 @@ input[type=range]{accent-color:#d69a5c;height:24px;width:150px}
 
       <h3>⑤ 화면</h3>
       <ul>
+        <li>위쪽 <b>− 100% ＋</b> 로 음량을 <b>0%~200%</b> 조절합니다. 처음에는 <b>100%</b>이고, <b>🔊</b> 를 누르면 소리만 잠깐 끕니다(다시 누르면 원래 음량). <b>조율</b> 창의 <b>전체 음량</b> 막대로도 조절됩니다.</li>
         <li>오른쪽 위 <b>⛶</b> 로 전체화면 연주를 합니다. 아이폰을 세로로 들고 있어도 화면이 저절로 가로로 돌아갑니다.</li>
         <li>마지막으로 고른 대수와 조율은 이 브라우저에 저장되어 다음에 열어도 그대로입니다.</li>
       </ul>
@@ -508,7 +546,7 @@ var LAYOUT_KEY = "tp_layout_v1";
 var SCALE_MIN = 0.6, SCALE_MAX = 1.6;
 var LAY = {};
 var state = {
-  count:4, a4:440, vol:0.85,
+  count:4, a4:440, vol:1, muted:false,
   notes:{},                 /* size(문자열) → MIDI */
   selected:0
 };
@@ -522,7 +560,11 @@ function loadState(){
     if(s && typeof s === "object"){
       if(SETS[s.count]) state.count = s.count;
       if(s.a4 === 440 || s.a4 === 442) state.a4 = s.a4;
-      if(typeof s.vol === "number") state.vol = Math.max(0, Math.min(1, s.vol));
+      if(typeof s.vol === "number"){
+        /* 예전 저장값(0~1, 전체 게인 0.72×vol)은 새 기준의 100%로 올려 받습니다 */
+        state.vol = (s.vscale === 2) ? clampVol(s.vol) : DEFAULT_VOL;
+      }
+      if(typeof s.muted === "boolean") state.muted = s.muted;
       if(s.notes) Object.keys(DEFAULT).forEach(function(k){
         if(typeof s.notes[k] === "number") state.notes[k] = clampNote(k, s.notes[k]);
       });
@@ -530,7 +572,7 @@ function loadState(){
   }catch(e){}
 }
 function saveState(){
-  try{ localStorage.setItem(STORE_KEY, JSON.stringify({count:state.count, a4:state.a4, vol:state.vol, notes:state.notes})); }catch(e){}
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify({count:state.count, a4:state.a4, vol:state.vol, muted:state.muted, notes:state.notes, vscale:2})); }catch(e){}
 }
 function lim(size){ var r = SIZE[size].range; return [r[0] - EXT, r[1] + EXT]; }
 function clampNote(size, m){ var l = lim(size); return Math.max(l[0], Math.min(l[1], m)); }
@@ -545,8 +587,17 @@ function fmtHz(f){ return (Math.round(f * 10) / 10).toFixed(1); }
    펠트 말렛 어택 + 살짝 올라간 시작 음정이 60ms에 걸쳐 내려앉는
    실제 타격의 '웅' 하는 느낌을 넣었습니다.
    ══════════════════════════════════════════════════════════ */
-var AC = {ctx:null, master:null, bus:null, wet:null, comp:null, ready:false};
-var BUS_VOL = 0.72;
+var AC = {ctx:null, master:null, bus:null, wet:null, comp:null, out:null, ready:false};
+/* 음량 눈금: 0~200%, 처음 값 100%. 저장된 값이 이 눈금입니다. */
+var DEFAULT_VOL = 1, VOL_MAX = 2;
+/* 100%에서의 마스터 게인. 예전 값(0.72 × 0.85 ≒ 0.61)보다 약 4~5 dB 크게, 한계까지 쓰지 않고 남깁니다. */
+var MASTER_UNIT = 1.0;
+/* 컴프레서 앞 게인 스테이지 — 컴프레서와 리미터가 힘을 받아 더 단단하게 울립니다. */
+var DRIVE = 1.25;
+function clampVol(v){
+  if(!(typeof v === "number") || !isFinite(v)) return DEFAULT_VOL;
+  return Math.max(0, Math.min(VOL_MAX, Math.round(v * 100) / 100));
+}
 
 var PARTIALS = [
   {r:1.000, a:1.00, d:1.00},
@@ -562,6 +613,18 @@ function softCurve(){
   for(var i = 0; i < n; i++){
     var x = (i / (n - 1)) * 2 - 1;
     c[i] = Math.tanh(x * 1.32) / Math.tanh(1.32);
+  }
+  return c;
+}
+/* 마지막 안전장치 — 0.86 아래는 그대로, 위로는 탄젠트 곡선으로 부드럽게 눌러
+   어떤 음량에서도 1.0을 넘지 않습니다(디지털 클리핑 없음) */
+function outCurve(){
+  var n = 4096, c = new Float32Array(n), knee = 0.86, ceil = 1;
+  for(var i = 0; i < n; i++){
+    var x = (i / (n - 1)) * 2 - 1, ax = Math.abs(x), y;
+    if(ax <= knee){ y = ax; }
+    else { y = knee + (ceil - knee) * Math.tanh((ax - knee) / (ceil - knee)); }
+    c[i] = x < 0 ? -y : y;
   }
   return c;
 }
@@ -594,6 +657,34 @@ function noiseBuf(ctx){
   ctx.__tpNoise = b;
   return b;
 }
+/* 소리 경로: 버스 → 드라이브 → 소프트 셰이퍼 → HP/LP → 컴프레서 → 리미터 → 마스터(음량) → 출력 소프트 클립
+   오프라인 검증에서도 같은 경로를 그대로 씁니다 */
+function buildChain(ctx, masterValue){
+  var master = ctx.createGain(); master.gain.value = masterValue;
+  var drive = ctx.createGain(); drive.gain.value = DRIVE;
+  var shaper = ctx.createWaveShaper(); shaper.curve = softCurve(); shaper.oversample = "2x";
+  var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 34; hp.Q.value = 0.6;
+  var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 8600; lp.Q.value = 0.35;
+  var comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -13; comp.knee.value = 20; comp.ratio.value = 2.8;
+  comp.attack.value = 0.008; comp.release.value = 0.30;
+  var limiter = ctx.createDynamicsCompressor();
+  limiter.threshold.value = -1.0; limiter.knee.value = 0; limiter.ratio.value = 20;
+  limiter.attack.value = 0.004; limiter.release.value = 0.10;
+  var outClip = ctx.createWaveShaper(); outClip.curve = outCurve(); outClip.oversample = "2x";
+
+  var bus = ctx.createGain(); bus.gain.value = 1;
+  bus.connect(drive); drive.connect(shaper); shaper.connect(hp); hp.connect(lp); lp.connect(comp);
+  comp.connect(limiter); limiter.connect(master); master.connect(outClip); outClip.connect(ctx.destination);
+
+  /* 홀 잔향은 컴프레서 뒤 소리에만 조금 섮어 넣습니다 */
+  var conv = ctx.createConvolver(); conv.buffer = buildIR(ctx, 2.2);
+  var wetHP = ctx.createBiquadFilter(); wetHP.type = "highpass"; wetHP.frequency.value = 180;
+  var wetGain = ctx.createGain(); wetGain.gain.value = 0.23;
+  bus.connect(conv); conv.connect(wetHP); wetHP.connect(wetGain); wetGain.connect(comp);
+
+  return {bus:bus, master:master, comp:comp, wet:conv, out:outClip};
+}
 function initAudio(){
   if(AC.ctx) return AC.ctx;
   var Ctx = window.AudioContext || window.webkitAudioContext;
@@ -602,27 +693,8 @@ function initAudio(){
   try{ ctx = new Ctx({latencyHint:"interactive"}); }catch(e){ ctx = new Ctx(); }
   AC.ctx = ctx;
 
-  var master = ctx.createGain(); master.gain.value = BUS_VOL * state.vol;
-  var shaper = ctx.createWaveShaper(); shaper.curve = softCurve(); shaper.oversample = "2x";
-  var hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 34; hp.Q.value = 0.6;
-  var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 8600; lp.Q.value = 0.35;
-  var comp = ctx.createDynamicsCompressor();
-  comp.threshold.value = -16; comp.knee.value = 24; comp.ratio.value = 3.2;
-  comp.attack.value = 0.004; comp.release.value = 0.30;
-  var limiter = ctx.createDynamicsCompressor();
-  limiter.threshold.value = -1.6; limiter.knee.value = 0; limiter.ratio.value = 20;
-  limiter.attack.value = 0.001; limiter.release.value = 0.12;
-
-  var bus = ctx.createGain(); bus.gain.value = 1;
-  bus.connect(shaper); shaper.connect(hp); hp.connect(lp); lp.connect(comp);
-  comp.connect(limiter); limiter.connect(master); master.connect(ctx.destination);
-
-  var conv = ctx.createConvolver(); conv.buffer = buildIR(ctx, 2.2);
-  var wetHP = ctx.createBiquadFilter(); wetHP.type = "highpass"; wetHP.frequency.value = 180;
-  var wetGain = ctx.createGain(); wetGain.gain.value = 0.23;
-  bus.connect(conv); conv.connect(wetHP); wetHP.connect(wetGain); wetGain.connect(comp);
-
-  AC.bus = bus; AC.master = master; AC.comp = comp; AC.wet = conv; AC.ready = true;
+  var ch = buildChain(ctx, (state.muted ? 0 : state.vol) * MASTER_UNIT);
+  AC.bus = ch.bus; AC.master = ch.master; AC.comp = ch.comp; AC.wet = ch.wet; AC.out = ch.out; AC.ready = true;
   return ctx;
 }
 function makeVoice(ctx, dest, o){
@@ -959,6 +1031,7 @@ function paint(){
   seg.forEach(function(b){ b.classList.toggle("on", Number(b.dataset.n) === state.count); });
   document.querySelectorAll("#a4seg button").forEach(function(b){ b.classList.toggle("on", Number(b.dataset.a4) === state.a4); });
   document.getElementById("vol").value = state.vol;
+  if(document.getElementById("volPctPanel")) document.getElementById("volPctPanel").textContent = volPctText();
   var rows = document.querySelectorAll("#tuneTable tbody tr");
   rows.forEach(function(tr, idx){
     var size = sizes[idx];
@@ -1001,6 +1074,69 @@ function previewNote(i){
   if(now - lastPreview < 110) return;
   lastPreview = now;
   strike(i, 0.5, 0.30);
+}
+
+/* ═══════════════════════════════════════════════════════
+   음량 조절 — 상단 바(🔊 − 100% ＋)와 조율 창의 미터가 같은 값을 씁니다
+   ═══════════════════════════════════════════════════════ */
+var ICON_SOUND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.8v4.4h3.1l3.9 3.4V6.4L7.1 9.8H4z"/><path d="M14.9 9.1a4.2 4.2 0 0 1 0 5.8"/><path d="M17.4 6.5a7.7 7.7 0 0 1 0 11"/></svg>';
+var ICON_MUTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.8v4.4h3.1l3.9 3.4V6.4L7.1 9.8H4z"/><path d="M15.4 9.9l4.6 4.4M20 9.9l-4.6 4.4"/></svg>';
+
+function volPctText(){ return Math.round(state.vol * 100) + "%"; }
+function applyVol(save){
+  if(AC.master) AC.master.gain.value = (state.muted ? 0 : state.vol) * MASTER_UNIT;
+  var pct = document.getElementById("volPct");
+  if(pct){
+    pct.textContent = state.muted ? "끔" : volPctText();
+    pct.setAttribute("aria-label", "지금 음량 " + volPctText());
+  }
+  var pp = document.getElementById("volPctPanel");
+  if(pp) pp.textContent = volPctText();
+  var mu = document.getElementById("volMute");
+  if(mu){
+    mu.classList.toggle("on", !!state.muted);
+    mu.setAttribute("aria-pressed", state.muted ? "true" : "false");
+    mu.setAttribute("aria-label", state.muted ? "음소거 해제" : "음소거");
+    mu.setAttribute("title", state.muted ? "음소거 해제" : "음소거");
+    mu.innerHTML = state.muted ? ICON_MUTE : ICON_SOUND;
+  }
+  var ctl = document.getElementById("volCtl");
+  if(ctl) ctl.classList.toggle("muted", !!state.muted);
+  var rg = document.getElementById("vol");
+  if(rg && Math.abs(Number(rg.value) - state.vol) > 0.001) rg.value = state.vol;
+  if(save !== false) saveState();
+}
+function setVol(v){
+  state.vol = clampVol(v);
+  if(state.muted && state.vol > 0) state.muted = false;
+  applyVol();
+}
+function toggleMute(forceOn){
+  var on = (forceOn === undefined) ? !state.muted : !!forceOn;
+  state.muted = on;
+  if(!on && state.vol <= 0) state.vol = DEFAULT_VOL;
+  applyVol();
+  if(!on) previewNote(Math.min(state.selected, SETS[state.count].length - 1));
+}
+function bindVolumeStep(el, delta){
+  if(!el) return;
+  var hold = null, rep = null, lastPointer = 0, lastKey = 0;
+  function step(){ setVol(state.vol + delta); }
+  el.addEventListener("pointerdown", function(ev){
+    if(ev.pointerType === "mouse" && ev.button !== 0) return;
+    lastPointer = Date.now();
+    step();
+    hold = setTimeout(function(){ rep = setInterval(step, 85); }, 430);
+  });
+  function stop(){ if(hold){ clearTimeout(hold); hold = null; } if(rep){ clearInterval(rep); rep = null; } }
+  ["pointerup", "pointercancel", "pointerleave", "blur"].forEach(function(t){ el.addEventListener(t, stop); });
+  el.addEventListener("click", function(){
+    if(Date.now() - lastPointer < 700 || Date.now() - lastKey < 700) return;   /* 이미 처리한 입력 */
+    step();
+  });
+  el.addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); lastKey = Date.now(); step(); }
+  });
 }
 function flashDeck(i, ok){
   var dk = deckEls[i];
@@ -1337,10 +1473,11 @@ document.querySelectorAll("#a4seg button").forEach(function(b){
   });
 });
 document.getElementById("vol").addEventListener("input", function(e){
-  state.vol = Number(e.target.value);
-  if(AC.master) AC.master.gain.value = BUS_VOL * state.vol;
-  saveState();
+  setVol(Number(e.target.value));
 });
+document.getElementById("volMute").addEventListener("click", function(){ toggleMute(); });
+bindVolumeStep(document.getElementById("volDn"), -0.1);
+bindVolumeStep(document.getElementById("volUp"), 0.1);
 document.getElementById("resetTune").addEventListener("click", function(){
   SETS[state.count].forEach(function(s){ state.notes[s] = DEFAULT[s]; });
   saveState(); paint();
@@ -1468,6 +1605,36 @@ window.__tp.measureAll = function(){
   return Promise.all(out);
 };
 window.__tp.setCount = function(n){ state.count = n; saveState(); rebuild(); paintTableLabels(); };
+window.__tp.vol = function(){ return {vol:state.vol, muted:state.muted, pct:volPctText(), masterGain:(state.muted ? 0 : state.vol) * MASTER_UNIT}; };
+window.__tp.setVol = function(v){ setVol(v); return window.__tp.vol(); };
+window.__tp.toggleMute = function(on){ toggleMute(on); return window.__tp.vol(); };
+/* 음량 검증 — 실제 소리 경로(buildChain)로 지금 대수 전체를 한 번씩 치고 출력 파형을 잽니다 */
+window.__tp.render = function(v){
+  var vol = (v === undefined) ? state.vol : clampVol(Number(v));
+  var Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  var sr = 44100, dur = 3.0;
+  var oc = new Ctx(2, Math.floor(sr * dur), sr);
+  var gain = state.muted ? 0 : vol;
+  var ch = buildChain(oc, gain * MASTER_UNIT);
+  var sizes = SETS[state.count];
+  sizes.forEach(function(s, i){
+    makeVoice(oc, ch.bus, {t:0.05, freq:hz(state.notes[s]), vel:1, pos:0.34,
+      pan: sizes.length > 1 ? ((i / (sizes.length - 1)) * 2 - 1) * 0.34 : 0});
+  });
+  return oc.startRendering().then(function(buf){
+    var peak = 0, clipped = 0, rms = 0;
+    for(var c = 0; c < buf.numberOfChannels; c++){
+      var d = buf.getChannelData(c), p = 0, s = 0;
+      for(var i = 0; i < d.length; i++){
+        var a = Math.abs(d[i]); if(a > p) p = a; if(a >= 0.9999) clipped++; s += d[i] * d[i];
+      }
+      if(p > peak) peak = p; rms += Math.sqrt(s / d.length);
+    }
+    return {vol:vol, masterGain:Math.round(gain * MASTER_UNIT * 1000) / 1000,
+            peak:Math.round(peak * 1000) / 1000, rms:Math.round((rms / buf.numberOfChannels) * 10000) / 10000,
+            clipped:clipped};
+  });
+};
 window.__tp.tune = function(i, d){ tuneStep(i, d); return {note:noteName(state.notes[SETS[state.count][i]])}; };
 window.__tp.setNote = function(i, m){
   var s = SETS[state.count][i]; state.notes[s] = clampNote(s, m); saveState(); paint(); return noteName(state.notes[s]);
@@ -1479,7 +1646,7 @@ window.__tp.applyPreset = function(id){
   saveState(); paint();
   return SETS[state.count].map(function(s){ return noteName(state.notes[s]); });
 };
-window.__tp.state = function(){ return {count:state.count, a4:state.a4, vol:state.vol, notes:Object.assign({}, state.notes), selected:state.selected}; };
+window.__tp.state = function(){ return {count:state.count, a4:state.a4, vol:state.vol, muted:state.muted, notes:Object.assign({}, state.notes), selected:state.selected}; };
 window.__tp.strike = function(i, v, p){ return strike(i, v, p); };
 window.__tp.strikeAll = function(){ SETS[state.count].forEach(function(_, i){ strike(i, 0.85, 0.34); }); };
 window.__tp.edit = function(on){ setEditing(on === undefined ? !isEditing() : !!on); return isEditing(); };
@@ -1500,6 +1667,7 @@ window.__tp.editBarState = function(){
 loadState();
 loadLayout();
 rebuild();
+applyVol(false);
 window.__tp.ready = true;
 setTimeout(function(){ var h = document.getElementById("hint"); if(h) h.classList.add("off"); }, 7000);
 </script>
